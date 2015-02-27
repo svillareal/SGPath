@@ -1,0 +1,404 @@
+/*
+Theme Name:     LifeGroup full width
+Description:    
+Author:         admin
+Template:       responsive
+
+(optional values you can add: Theme URI, Author URI, Version)
+*/
+
+@import url("../responsive/style.css");
+
+/* These are only temp styles to make dev environment more readable.*/
+.site-content, .site-main .widecolumn {
+    margin-left: 0px;
+}
+.site-content .entry-header, .site-content .entry-content, .site-content .entry-summary, .site-content .entry-meta, .page-content {
+    max-width: 900px;
+}
+.coreTrainingColumn {
+	width: 15.5%;
+  	float: left;
+  }
+.column1 {
+	float: left;
+	width: 8.33%;
+  }
+.column2 {
+	float: left;
+	width: 16.66%;
+  }
+.column3 {
+	float: left;
+	width: 25%;
+  }
+.column4 {
+	float: left;
+	width: 33.33%;
+  }
+.column5 {
+	float: left;
+	width: 41.66%;
+  }  
+.column6 {
+	float: left;
+	width: 50%;
+  }
+.column7 {
+	float: left;
+	width: 58.33%;
+  }
+.column8 {
+	float: left;
+	width: 66.66%;
+  }
+.column9 {
+	float: left;
+	width: 75%;
+  }
+.column20perc {
+	width: 20%
+  }
+.centered {
+	margin: 0 auto;
+	float: none;
+	}
+.OutcomeTitle {
+	text-align: center;
+	font-weight: 900;
+	margin-top: 20px;
+	margin-bottom: 10px;
+  }
+.heart-check-button {
+  margin: 30px;
+	}
+.outcome-entry-title {
+	font-size: 32px;
+	font-weight: 900;
+	margin-bottom: 10px;
+	text-align: center;
+    text-transform: uppercase;
+	}
+.outcome-heading {
+	text-align: center;
+	padding-top: 15px;
+	}
+#outcome-menu, #outcome-training, #outcome-extras {
+	background-color: lightgray;
+	padding: 10px;
+	}
+#outcome-introduction, #outcome-heart-check {
+	background-color: #f7f7f7;
+	padding: 10px;
+	}
+#outcome-introduction-more, #outcome-heart-graph {
+	background-color: #737373;
+	padding: 10px;
+  	color: white;
+	}
+#overview-menu, #discover-section, #deepen-section {
+	background-color: #c4c4c4;
+	padding: 10px;
+	}
+#start-here, #develop-section {
+	background-color: #f1f1f1;
+	padding: 10px;
+	}
+#leader-reports {
+	background-color: #aaaaaa;
+	padding: 10px;
+	}
+.test-content {
+    margin-left: 0px;
+    padding-right: 0px;
+}
+.training-section-show {
+  	background-color: white;
+	height: 315px;
+	padding: 0px;
+	border: 1px solid;
+	border-radius: 5px;
+  	margin-left: 5px;
+  	margin-right: 5px;
+  	padding-bottom: 5px;
+  	margin-top: 10px;
+	}	
+.training-section-show h4{
+	margin: 5px;
+  	font-size: 12px;
+		}
+.training-section-show p{
+	margin-left: 5px;
+	line-height: 10px;
+	font-size: 10px;
+		}
+.training-section-img {
+  width: 100%;
+		}
+.training-section-image {
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+		}
+.core-edit-links {
+	font-size: 12px;
+  	padding-left: 5px;
+	}
+img.desaturate {
+	filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'grayscale\'><feColorMatrix type=\'matrix\' values=\'0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0 0 0 1 0\'/></filter></svg>#grayscale"); /* Firefox 10+, Firefox on Android */
+	filter: gray; /* IE6-9 */
+	-webkit-filter: grayscale(100%); /* Chrome 19+, Safari 6+, Safari 6+ iOS */
+	opacity:0.5;
+}
+.opacity50 {
+	opacity: 0.5;
+  }
+.resource-image {
+	width: 90%;
+	margin-left: 10px;
+	}
+
+.resource-blurb {
+	padding-left: 10px;
+	}
+.resource-entry-title {
+	font-size: 24px;
+	font-weight: 600;	  
+	}
+.extras-image {
+	height: 100px;
+	margin-right: 10px;
+	}
+.extras-img {
+	margin-bottom: 15px;
+	}
+.extras-blurb {
+	margin-bottom: 15px;
+	font-size: 12px;
+	}
+.learn-more-arrow {
+	margin-left: auto;
+  	margin-right: auto;
+  	margin-top: -20px;
+  	display: block;
+  	margin-bottom: 15px;
+	}
+#learnMore {
+	cursor: pointer;
+	}
+#heartScoresGraph {
+	cursor: pointer;
+	}
+.resource-video {
+	margin-bottom: 15px;
+	width: 500px;
+	}
+.resource-audio-embed {
+	margin-top: 10px;
+	margin-bottom: 10px;
+		}
+.add_section {
+	margin-left: 15px;
+  }
+.sectionHide, .sectionEdit, .sectionChange {
+	cursor: pointer;
+  }
+#bsAddID, #rAddID, #smAddID, #aAddID, #gdAddID, #oAddID {
+	cursor: pointer;
+  }
+.core-option-links {
+	background-color: #666666;
+	font-size: 24px;
+	border: 1px solid #333333;
+	border-radius: 5px;
+	margin-bottom: 15px;
+    margin-top: 15px;
+	padding: 10px;
+	}
+.core-option-links a {
+	color: white;
+	}
+.core-option-links a:hover {
+	color: #cccccc;
+	}
+#add-core-link, #choose-core-link {
+	cursor: pointer;
+	}
+.lg-edit-icon {
+	font-size: 14px;
+	vertical-align: super;
+	}
+.admin-edit {
+	margin-bottom: 15px;
+	}
+.start-here-column {
+  padding: 10px;
+	}
+.outcome-icon-div {
+  padding-right: 7px;
+  padding-left: 7px;
+  font-size: 10px;
+  line-height: 10px;
+	}
+.outcome-icon-div h5 {
+  margin-bottom: 5px;
+  margin-top: 5px;
+  font-size: 14px;
+	}
+.outcome-icon-div p {
+  margin-top: 0px;
+	}
+.outcome-icon-div img {
+	width: 60%;
+	margin: 0 auto;
+	}
+.outcome-row {
+	padding-left: 20px;
+	padding-right: 20px;
+	}
+.prog-div {
+  padding-left: 5px;
+  padding-right: 5px;
+		}
+.woc-section h4 {
+	margin-left: 25px;
+	}
+.float-to-left {
+ float: left;
+	}
+#heart-check-results {
+	background-color: #666666;
+	color: white;
+	border-radius: 5px;
+	margin-top: 15px;
+	margin-bottom: 15px;
+	padding:35px;
+	}
+#heart-check-results h3 {
+	margin-top:10px;
+	}
+#heart-check-results h4 {
+	margin-top:10px;
+  	margin-bottom: 0px;
+	}
+#heart-check-results p {
+	color: lightGray;
+	line-height: 16px;
+	margin-top: 2px;
+	padding-top: 2px;
+	}
+.graph-results {
+	margin-bottom: 15px;
+		}
+.user-button {
+	padding: 20px;
+			}
+.update {
+	margin-top: -90px;
+	margin-left: 10px;
+	opacity: 0.99;
+  }
+.update p {
+	margin-bottom: 2px;
+	font-size: 12px;
+}
+.restore-old-version {
+	cursor: pointer;
+	}
+.radio-inline + .radio-inline, .checkbox-inline + .checkbox-inline {
+    margin-left: 0px;
+    margin-top: 0;
+}
+
+  
+/* Styles for progress bars for Spiritual Outcomes. */
+.prog-bar-icon {
+	margin-left: 12px;
+	font-size: 14px;
+	margin-top: 3px;
+  	padding-left: 12px;
+	}
+.resources-progress-bar {
+	height: 12px;
+	position: relative;
+	background: #555;
+	margin-top: 5px;
+  	margin-left: 0px;
+  	-moz-border-radius: 25px;
+	-webkit-border-radius: 25px;
+	border-radius: 25px;
+	padding: 2px;
+	-webkit-box-shadow: inset 0 -1px 1px rgba(255,255,255,0.3);
+	-moz-box-shadow   : inset 0 -1px 1px rgba(255,255,255,0.3);
+	box-shadow        : inset 0 -1px 1px rgba(255,255,255,0.3);
+	}
+
+.resources-progress-bar > span {
+	display: block;
+	height: 100%;
+	   -webkit-border-top-right-radius: 20px;
+	-webkit-border-bottom-right-radius: 20px;
+	       -moz-border-radius-topright: 20px;
+	    -moz-border-radius-bottomright: 20px;
+	           border-top-right-radius: 20px;
+	        border-bottom-right-radius: 20px;
+	    -webkit-border-top-left-radius: 20px;
+	 -webkit-border-bottom-left-radius: 20px;
+	        -moz-border-radius-topleft: 20px;
+	     -moz-border-radius-bottomleft: 20px;
+	            border-top-left-radius: 20px;
+	         border-bottom-left-radius: 20px;
+	background-color: rgb(43,194,83);
+	background-image: -webkit-gradient(
+	  linear,
+	  left bottom,
+	  left top,
+	  color-stop(0, rgb(43,194,83)),
+	  color-stop(1, rgb(84,240,84))
+	 );
+	background-image: -webkit-linear-gradient(
+	  center bottom,
+	  rgb(43,194,83) 37%,
+	  rgb(84,240,84) 69%
+	 );
+	background-image: -moz-linear-gradient(
+	  center bottom,
+	  rgb(43,194,83) 37%,
+	  rgb(84,240,84) 69%
+	 );
+	background-image: -ms-linear-gradient(
+	  center bottom,
+	  rgb(43,194,83) 37%,
+	  rgb(84,240,84) 69%
+	 );
+	background-image: -o-linear-gradient(
+	  center bottom,
+	  rgb(43,194,83) 37%,
+	  rgb(84,240,84) 69%
+	 );
+	-webkit-box-shadow: 
+	  inset 0 2px 9px  rgba(255,255,255,0.3),
+	  inset 0 -2px 6px rgba(0,0,0,0.4);
+	-moz-box-shadow: 
+	  inset 0 2px 9px  rgba(255,255,255,0.3),
+	  inset 0 -2px 6px rgba(0,0,0,0.4);
+	position: relative;
+	overflow: hidden;
+}
+
+.orange-prog-bar > span {
+	background-color: #f1a165;
+	background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, #f1a165),color-stop(1, #f36d0a));
+	background-image: -webkit-linear-gradient(top, #f1a165, #f36d0a); 
+        background-image: -moz-linear-gradient(top, #f1a165, #f36d0a);
+        background-image: -ms-linear-gradient(top, #f1a165, #f36d0a);
+        background-image: -o-linear-gradient(top, #f1a165, #f36d0a);
+}
+
+.red-prog-bar > span {
+	background-color: #f0a3a3;
+	background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, #f0a3a3),color-stop(1, #f42323));
+	background-image: -webkit-linear-gradient(top, #f0a3a3, #f42323);
+        background-image: -moz-linear-gradient(top, #f0a3a3, #f42323);
+        background-image: -ms-linear-gradient(top, #f0a3a3, #f42323);
+        background-image: -o-linear-gradient(top, #f0a3a3, #f42323);
+}

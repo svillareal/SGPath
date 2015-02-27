@@ -1,0 +1,10 @@
+.DS_Store
+*.DS_Store
+.htaccess
+dw_php_codehinting.config
+error_log
+MOJOWordpressInstaller-LD79fii5aA.state.json
+license.txt
+php.ini
+phpinfo.php
+_notes/

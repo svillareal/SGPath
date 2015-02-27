@@ -1,0 +1,507 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Formidable Registration v1.11.01\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: 2014-12-05 05:02:18+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: CSL v1.x\n"
+"X-Poedit-Language: \n"
+"X-Poedit-Country: \n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-KeywordsList: __;_e;__ngettext:1,2;_n:1,2;__ngettext_noop:1,2;_n_noop:1,2;_c,_nc:4c,1,2;_x:1,2c;_ex:1,2c;_nx:4c,1,2;_nx_noop:4c,1,2;\n"
+"X-Poedit-Basepath: \n"
+"X-Poedit-Bookmarks: \n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Textdomain-Support: yes"
+
+#: FrmRegAppController.php:303
+#@ frmreg
+msgid "User ID"
+msgstr ""
+
+#: FrmRegAppController.php:374
+#@ frmreg
+msgid "This username is already registered."
+msgstr ""
+
+#: FrmRegAppController.php:388
+#@ frmreg
+msgid "This email address is already registered."
+msgstr ""
+
+#: FrmRegAppController.php:863
+#: FrmRegAppHelper.php:26
+#, php-format
+#@ frmreg
+msgid "Username: %s"
+msgstr ""
+
+#: FrmRegAppController.php:864
+#: FrmRegAppHelper.php:27
+#, php-format
+#@ frmreg
+msgid "Password: %s"
+msgstr ""
+
+#: FrmRegAppController.php:875
+#, php-format
+#@ frmreg
+msgid "[%s] Your username and password"
+msgstr ""
+
+#: FrmRegAppController.php:1365
+#: views/_register_settings.php:34
+#: views/registration_options.php:40
+#: widgets/FrmRegLogin.php:15
+#: widgets/FrmRegLogin.php:44
+#@ default
+msgid "Username"
+msgstr ""
+
+#: FrmRegAppController.php:1366
+#: views/_register_settings.php:58
+#: views/registration_options.php:59
+#: widgets/FrmRegLogin.php:15
+#: widgets/FrmRegLogin.php:45
+#@ default
+msgid "Password"
+msgstr ""
+
+#: FrmRegAppController.php:1366
+#: widgets/FrmRegLogin.php:16
+#: widgets/FrmRegLogin.php:45
+#@ default
+msgid "Remember Me"
+msgstr ""
+
+#: FrmRegAppController.php:1367
+#: widgets/FrmRegLogin.php:16
+#: widgets/FrmRegLogin.php:46
+#@ default
+msgid "Login"
+msgstr ""
+
+#: FrmRegAppHelper.php:25
+#@ frmreg
+msgid "Your username and password"
+msgstr ""
+
+#: views/_usermeta_row.php:7
+#: views/new_usermeta_row.php:11
+#@ frmreg
+msgid "Select Field"
+msgstr ""
+
+#: views/registration_options.php:4
+#@ frmreg
+msgid "Register users who submit this form"
+msgstr ""
+
+#: views/_register_settings.php:183
+#: views/registration_options.php:10
+#@ frmreg
+msgid "Automatically log in users who submit this form"
+msgstr ""
+
+#: views/_register_settings.php:5
+#: views/registration_options.php:16
+#@ frmreg
+msgid "User Email"
+msgstr ""
+
+#: views/_register_settings.php:24
+#: views/registration_options.php:33
+#@ frmreg
+msgid "You need an \"email\" field type in your form"
+msgstr ""
+
+#: views/_register_settings.php:38
+#: views/registration_options.php:42
+#@ frmreg
+msgid "Automatically Generate from Email"
+msgstr ""
+
+#: views/_register_settings.php:39
+#: views/registration_options.php:43
+#@ frmreg
+msgid "Use Full Email Address"
+msgstr ""
+
+#: views/_register_settings.php:62
+#: views/registration_options.php:61
+#@ frmreg
+msgid "Automatically Generate"
+msgstr ""
+
+#: views/_register_settings.php:242
+#: views/_usermeta_row.php:2
+#: views/new_usermeta_row.php:3
+#: views/registration_options.php:189
+#@ default
+msgid "Name"
+msgstr ""
+
+#: views/_register_settings.php:81
+#: views/registration_options.php:77
+#@ default
+msgid "First Name"
+msgstr ""
+
+#: views/_register_settings.php:85
+#: views/_register_settings.php:108
+#: views/_register_settings.php:165
+#: views/registration_options.php:79
+#: views/registration_options.php:97
+#: views/registration_options.php:140
+#@ default
+msgid "None"
+msgstr ""
+
+#: views/_register_settings.php:104
+#: views/registration_options.php:95
+#@ default
+msgid "Last Name"
+msgstr ""
+
+#: views/_register_settings.php:127
+#: views/registration_options.php:113
+#@ frmreg
+msgid "Display Name"
+msgstr ""
+
+#: views/_register_settings.php:131
+#: views/registration_options.php:116
+#@ frmreg
+msgid "Same as Username"
+msgstr ""
+
+#: views/_register_settings.php:132
+#: views/registration_options.php:117
+#@ frmreg
+msgid "First Last (as selected above)"
+msgstr ""
+
+#: views/_register_settings.php:133
+#: views/registration_options.php:118
+#@ frmreg
+msgid "Last First (as selected above)"
+msgstr ""
+
+#: views/_register_settings.php:152
+#: views/registration_options.php:134
+#@ frmreg
+msgid "User Role"
+msgstr ""
+
+#: views/_register_settings.php:189
+#: views/registration_options.php:156
+#@ frmreg
+msgid "User Meta"
+msgstr ""
+
+#: widgets/FrmRegLogin.php:6
+#@ frmreg
+msgid "Add a login form anywhere on your site"
+msgstr ""
+
+#: widgets/FrmRegLogin.php:7
+#@ frmreg
+msgid "Login Form"
+msgstr ""
+
+#: widgets/FrmRegLogin.php:49
+#@ default
+msgid "Title"
+msgstr ""
+
+#: widgets/FrmRegLogin.php:52
+#@ frmreg
+msgid "Display fields in"
+msgstr ""
+
+#: widgets/FrmRegLogin.php:54
+#@ frmreg
+msgid "multiple rows"
+msgstr ""
+
+#: widgets/FrmRegLogin.php:55
+#@ frmreg
+msgid "a single row"
+msgstr ""
+
+#: widgets/FrmRegLogin.php:59
+#@ frmreg
+msgid "Use Formidable Styling"
+msgstr ""
+
+#: widgets/FrmRegLogin.php:62
+#@ frmreg
+msgid "Slide the login area"
+msgstr ""
+
+#: widgets/FrmRegLogin.php:65
+#@ frmreg
+msgid "Include Remember Me checkbox"
+msgstr ""
+
+#: widgets/FrmRegLogin.php:67
+#@ frmreg
+msgid "Username Label"
+msgstr ""
+
+#: widgets/FrmRegLogin.php:70
+#@ frmreg
+msgid "Password Label"
+msgstr ""
+
+#: widgets/FrmRegLogin.php:73
+#@ frmreg
+msgid "Remember Me Label"
+msgstr ""
+
+#: views/_register_settings.php:200
+#: views/registration_options.php:165
+#@ default
+msgid "Add"
+msgstr ""
+
+#: FrmRegAppController.php:92
+#@ frmpp
+msgid "You are running an outdated version of Formidable. This plugin may not work correctly if you do not update Formidable."
+msgstr ""
+
+#: FrmRegAppController.php:377
+#@ frmreg
+msgid "This username is invalid because it uses illegal characters. Please enter a valid username."
+msgstr ""
+
+#: FrmRegAppController.php:392
+#@ frmreg
+msgid "Passwords may not contain the character \"\\\"."
+msgstr ""
+
+#: FrmRegAppController.php:537
+#@ frmreg
+msgid "<strong>ERROR</strong>: Your registration has not yet been approved."
+msgstr ""
+
+#: FrmRegAppController.php:539
+#@ frmreg
+msgid "<strong>ERROR</strong>: Your payment has not been completed. You must complete your payment before you may log in."
+msgstr ""
+
+#: FrmRegAppController.php:716
+#@ formidable
+msgid "Settings Saved"
+msgstr ""
+
+#: FrmRegAppController.php:925
+#@ frmreg
+msgid "Created at signup"
+msgstr ""
+
+#: FrmRegAppController.php:976
+#: FrmRegAppHelper.php:518
+#@ frmreg
+msgid "The activation e-mail has been sent to the e-mail address with which you registered. Please check your email and click on the link provided."
+msgstr ""
+
+#: FrmRegAppController.php:1466
+#@ default
+msgid "Reset my password"
+msgstr ""
+
+#: FrmRegAppHelper.php:349
+#, php-format
+#@ frmreg
+msgid "[%s] Activate Your Account"
+msgstr ""
+
+#: FrmRegAppHelper.php:350
+#, php-format
+#@ frmreg
+msgid "Thanks for registering at %s! To complete the activation of your account please click the following link: "
+msgstr ""
+
+#: FrmRegAppHelper.php:497
+#@ frmreg
+msgid "The username field is empty."
+msgstr ""
+
+#: FrmRegAppHelper.php:502
+#@ frmreg
+msgid "The password field is empty."
+msgstr ""
+
+#: FrmRegAppController.php:978
+#: FrmRegAppHelper.php:522
+#@ frmreg
+msgid "That activation link is invalid."
+msgstr ""
+
+#: FrmRegAppController.php:612
+#@ frmreg
+msgid "Your account is now active. Enjoy!"
+msgstr ""
+
+#: FrmRegAppController.php:616
+#@ frmreg
+msgid "Your account has been activated. You may now log in."
+msgstr ""
+
+#: FrmRegAppController.php:620
+#@ frmreg
+msgid "Your account has been activated. Please check your e-mail for your password."
+msgstr ""
+
+#: FrmRegAppHelper.php:534
+#@ frmreg
+msgid "Your email has been successfully confirmed, but you must complete your payment before you can log in."
+msgstr ""
+
+#: FrmRegAppHelper.php:536
+#@ frmreg
+msgid "Your email has been confirmed, but you must now be approved by an administrator before you can log in. You will be notified by e-mail once your account has been reviewed."
+msgstr ""
+
+#: FrmRegAppHelper.php:552
+#@ frmreg
+msgid "Require new users to confirm their e-mail address before they may log in."
+msgstr ""
+
+#: FrmRegAppHelper.php:553
+#@ frmreg
+msgid "Require new users to be approved by an administrator before they may log in."
+msgstr ""
+
+#: FrmRegAppHelper.php:554
+#@ frmreg
+msgid "Prevent users from logging in until Paypal payment is complete."
+msgstr ""
+
+#: FrmRegAppHelper.php:555
+#@ frmreg
+msgid "Select the page where users will be redirected after clicking the activation link."
+msgstr ""
+
+#: FrmRegAppHelper.php:556
+#@ frmreg
+msgid "Select the general login/logout page for your site."
+msgstr ""
+
+#: models/FrmRegAction.php:14
+#@ formidable
+msgid "Register User"
+msgstr ""
+
+#: views/_register_settings.php:161
+#: views/registration_options.php:138
+#@ frmreg
+msgid "Avatar"
+msgstr ""
+
+#: views/_register_settings.php:161
+#: views/registration_options.php:138
+#@ frmreg
+msgid "Only select an avatar if you have not set it in another form. Only file upload fields will show here."
+msgstr ""
+
+#: views/_register_settings.php:205
+#: views/registration_options.php:168
+#@ frmreg
+msgid "User Moderation"
+msgstr ""
+
+#: views/_register_settings.php:209
+#: views/registration_options.php:172
+#@ frmreg
+msgid "Email confirmation"
+msgstr ""
+
+#: views/_register_settings.php:213
+#: views/registration_options.php:174
+#@ frmreg
+msgid "Redirect to:"
+msgstr ""
+
+#: views/_register_settings.php:219
+#@ frmreg
+msgid "Admin approval"
+msgstr ""
+
+#: views/_register_settings.php:227
+#: views/registration_options.php:180
+#@ frmreg
+msgid "Complete Paypal payment"
+msgstr ""
+
+#: views/_register_settings.php:235
+#: views/registration_options.php:186
+#@ frmreg
+msgid "Email Notification"
+msgstr ""
+
+#: views/_register_settings.php:239
+#: views/registration_options.php:188
+#@ formidable
+msgid "From/Reply to"
+msgstr ""
+
+#: views/_register_settings.php:245
+#: views/registration_options.php:192
+#@ formidable
+msgid "Email"
+msgstr ""
+
+#: views/_register_settings.php:252
+#: views/registration_options.php:196
+#@ formidable
+msgid "Subject"
+msgstr ""
+
+#: views/_register_settings.php:258
+#: views/registration_options.php:199
+#@ formidable
+msgid "Message"
+msgstr ""
+
+#: views/_usermeta_row.php:5
+#: views/new_usermeta_row.php:9
+#@ formidable
+msgid "Form Field"
+msgstr ""
+
+#: views/global_reg_settings.php:4
+#@ frmreg
+msgid "Login/Logout URL"
+msgstr ""
+
+#: views/global_reg_settings.php:12
+#@ frmreg
+msgid "Lost Password"
+msgstr ""
+
+#: FrmRegAppController.php:535
+#, php-format
+#@ frmreg
+msgid "<strong>ERROR</strong>: You have not confirmed your e-mail address. %1$sResend activation%2$s?"
+msgstr ""
+
+#: FrmRegAppHelper.php:507
+#, php-format
+#@ frmreg
+msgid "Invalid username or password. %1$sLost your password%2$s?"
+msgstr ""
+
+#: FrmRegAppHelper.php:513
+#, php-format
+#@ frmreg
+msgid "You have not confirmed your e-mail address. %1$sResend activation%2$s?"
+msgstr ""
+
