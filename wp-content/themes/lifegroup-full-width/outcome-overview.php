@@ -100,7 +100,7 @@ get_header();
 			$coreFieldID[$i] = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}frm_fields WHERE form_id='$formID' AND field_order='$coreFieldOrder[$i]'");
 		}
 
-		//Get Core Training completion status for individual user
+		//Get Core Training completion status for user
 		for ($i = 0; $i <= 5; $i++) {
 			$coreID[$i] = $wpdb->get_var("SELECT resourceEntryID FROM {$wpdb->prefix}coremeta WHERE outcomeID='$entryID[$postID]' AND coreCategory='$coreCatName[$i]' ORDER BY created_at DESC");
 		}
