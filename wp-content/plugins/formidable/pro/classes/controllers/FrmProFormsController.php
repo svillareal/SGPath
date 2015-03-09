@@ -93,8 +93,9 @@ class FrmProFormsController{
         }
 
         if ( ! empty($atts['exclude_fields']) ) {
-            if(!is_array($atts['exclude_fields']))
+            if ( ! is_array( $atts['exclude_fields'] ) ) {
                 $atts['exclude_fields'] = explode(',', $atts['exclude_fields']);
+            }
 
             $atts['exclude_fields'] = implode("','", array_filter( $atts['exclude_fields'], 'esc_sql' ));
 
@@ -171,7 +172,7 @@ class FrmProFormsController{
                 break;
                 case 'back_button':
                     global $frm_vars;
-                    if ( !$frm_vars['prev_page'] || !is_array($frm_vars['prev_page']) || !isset($frm_vars['prev_page'][$form->id]) || empty($frm_vars['prev_page'][$form->id]) ) {
+                    if ( ! $frm_vars['prev_page'] || ! is_array($frm_vars['prev_page']) || ! isset($frm_vars['prev_page'][$form->id]) || empty($frm_vars['prev_page'][$form->id]) ) {
                         unset($replace_with);
                     } else {
                         $classes = apply_filters('frm_back_button_class', array(), $form);
@@ -186,7 +187,7 @@ class FrmProFormsController{
                     $replace_with = __('Save Draft', 'formidable');
                 break;
                 case 'save_draft':
-                    if(!is_user_logged_in() or !isset($form->options['save_draft']) or $form->options['save_draft'] != 1 or (isset($values['is_draft']) and !$values['is_draft'])){
+                    if ( ! is_user_logged_in() || ! isset($form->options['save_draft']) || $form->options['save_draft'] != 1 || ( isset($values['is_draft']) && ! $values['is_draft'] ) ) {
                         //remove button if user is not logged in, drafts are not allowed, or editing an entry that is not a draft
                         unset($replace_with);
                     }else{
@@ -280,7 +281,8 @@ class FrmProFormsController{
 
         );
 
-        extract(wp_parse_args($atts, $defaults));
+        $atts = wp_parse_args($atts, $defaults);
+        extract($atts);
 
         if ( empty($id) ) {
             $id = 'frm_logic_'. $key .'_'. $meta_name;
@@ -309,7 +311,7 @@ class FrmProFormsController{
 
 	public static function add_form_row() {
 	    $field_id = (int) $_POST['field_id'];
-	    if ( !$field_id ) {
+	    if ( ! $field_id ) {
 	        die();
 	    }
 
@@ -361,11 +363,11 @@ class FrmProFormsController{
         $displays = FrmProDisplay::getAll(array(), 'post_title');
 
 ?>
-        <h4 for="frmsc_<?php echo $shortcode ?>_id" class="frm_left_label"><?php _e('Select a view:', 'formidable') ?></h4>
-        <select id="frmsc_<?php echo $shortcode ?>_id">
+        <h4 for="frmsc_<?php echo esc_attr( $shortcode ) ?>_id" class="frm_left_label"><?php _e( 'Select a view:', 'formidable' ) ?></h4>
+        <select id="frmsc_<?php echo esc_attr( $shortcode ) ?>_id">
             <option value=""> </option>
             <?php foreach ( $displays as $display ) { ?>
-            <option value="<?php echo $display->ID ?>"><?php echo $display->post_title ?></option>
+            <option value="<?php echo esc_attr( $display->ID ) ?>"><?php echo esc_html( $display->post_title ) ?></option>
             <?php } ?>
         </select>
         <div class="frm_box_line"></div>
@@ -415,14 +417,14 @@ class FrmProFormsController{
     ?>
         <h4 class="frm_left_label"><?php _e('Select a field:', 'formidable') ?></h4>
 
-        <select class="frm_get_field_selection" id="frm_form_frmsc_<?php echo $shortcode ?>_id">
+        <select class="frm_get_field_selection" id="frm_form_frmsc_<?php echo esc_attr( $shortcode ) ?>_id">
             <option value="">&mdash; <?php _e('Select Form', 'formidable') ?> &mdash;</option>
             <?php foreach ( $form_list as $form_opts ) { ?>
-            <option value="<?php echo $form_opts->id ?>"><?php echo '' == $form_opts->name ? __('(no title)', 'formidable') : FrmAppHelper::truncate($form_opts->name, 30) ?></option>
+            <option value="<?php echo esc_attr( $form_opts->id ) ?>"><?php echo '' == $form_opts->name ? __( '(no title)', 'formidable' ) : esc_html( FrmAppHelper::truncate($form_opts->name, 30) ) ?></option>
             <?php } ?>
         </select>
 
-        <span id="frm_form_frmsc_<?php echo $shortcode ?>_id_fields">
+        <span id="frm_form_frmsc_<?php echo esc_attr( $shortcode ) ?>_id_fields">
         </span>
 
         <div class="frm_box_line"></div>
@@ -484,7 +486,7 @@ class FrmProFormsController{
 ?>
     <h4 class="frm_left_label"><?php _e('Insert an entry ID/key:', 'formidable') ?></h4>
 
-    <input type="text" value="" id="frmsc_<?php echo $shortcode ?>_id" />
+    <input type="text" value="" id="frmsc_<?php echo esc_attr( $shortcode ) ?>_id" />
 
     <div class="frm_box_line"></div>
 <?php

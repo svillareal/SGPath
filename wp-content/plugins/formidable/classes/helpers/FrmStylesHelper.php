@@ -58,7 +58,7 @@ class FrmStylesHelper{
     public static function enqueue_jquery_css() {
         $theme_css = FrmStylesController::get_style_val('theme_css');
         if ( $theme_css != -1 ) {
-            wp_enqueue_style('jquery-theme', FrmStylesHelper::jquery_css_url($theme_css), array(), FrmAppHelper::plugin_version());
+            wp_enqueue_style('jquery-theme', self::jquery_css_url($theme_css), array(), FrmAppHelper::plugin_version());
         }
     }
 
@@ -140,18 +140,18 @@ class FrmStylesHelper{
 
         $name = ( 'arrow' == $type ) ? 'collapse_icon' : 'repeat_icon';
 ?>
-    	<select name="<?php echo $frm_style->get_field_name($name) ?>" id="frm_<?php echo $name ?>" class="frm_icon_font frm_multiselect hide-if-js">
+    	<select name="<?php echo esc_attr( $frm_style->get_field_name($name) ) ?>" id="frm_<?php echo esc_attr( $name ) ?>" class="frm_icon_font frm_multiselect hide-if-js">
             <?php foreach ( $icons as $key => $icon ) { ?>
-    	    <option value="<?php echo $key ?>" <?php selected($style->post_content[$name], $key) ?>>
+    	    <option value="<?php echo esc_attr( $key ) ?>" <?php selected( $style->post_content[$name], $key ) ?>>
                 <?php echo '&#xe'. $icon['+'] .'; &#xe'. $icon['-'] .';'; ?>
             </option>
             <?php } ?>
     	</select>
 
-        <div class="btn-group hide-if-no-js" id="frm_<?php echo $name ?>_select">
+        <div class="btn-group hide-if-no-js" id="frm_<?php echo esc_attr( $name ) ?>_select">
             <button class="multiselect dropdown-toggle btn btn-default" data-toggle="dropdown" type="button">
-                <i class="frm_icon_font <?php echo FrmStylesHelper::icon_key_to_class($style->post_content[$name], '+', $type) ?>"></i>
-                <i class="frm_icon_font <?php echo FrmStylesHelper::icon_key_to_class($style->post_content[$name], '-', $type) ?>"></i>
+                <i class="frm_icon_font <?php echo esc_attr( self::icon_key_to_class( $style->post_content[$name], '+', $type ) ) ?>"></i>
+                <i class="frm_icon_font <?php echo esc_attr( self::icon_key_to_class( $style->post_content[$name], '-', $type ) ) ?>"></i>
                 <b class="caret"></b>
             </button>
             <ul class="multiselect-container frm-dropdown-menu">
@@ -159,10 +159,10 @@ class FrmStylesHelper{
                 <li <?php echo ( $style->post_content['collapse_icon'] == $key ) ? 'class="active"' : '' ?>>
                     <a href="javascript:void(0);">
                         <label>
-                            <input type="radio" value="<?php echo $key ?>"/>
+                            <input type="radio" value="<?php echo esc_attr( $key ) ?>"/>
                             <span>
-                                <i class="frm_icon_font <?php echo FrmStylesHelper::icon_key_to_class($key, '+', $type) ?>"></i>
-                                <i class="frm_icon_font <?php echo FrmStylesHelper::icon_key_to_class($key, '-', $type) ?>"></i>
+                                <i class="frm_icon_font <?php echo esc_attr( self::icon_key_to_class( $key, '+', $type ) ) ?>"></i>
+                                <i class="frm_icon_font <?php echo esc_attr( self::icon_key_to_class( $key, '-', $type ) ) ?>"></i>
                             </span>
                         </label>
                     </a>

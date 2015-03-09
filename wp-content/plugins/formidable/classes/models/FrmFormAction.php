@@ -10,7 +10,7 @@ class FrmFormAction {
 
     public $form_id;        // The ID of the form to evaluate
 	public $number = false;	// Unique ID number of the current instance.
-	public $id = false;		// Unique ID string of the current instance (id_base-number)
+	public $id = '';		// Unique ID string of the current instance (id_base-number)
 	public $updated = false;	// Set true when we update the data after a POST submit - makes sure we don't do it twice.
 
 	// Member functions that you must over-ride.
@@ -209,7 +209,7 @@ class FrmFormAction {
         foreach ( $action->post_content as $key => $val ) {
             if ( is_numeric($val) && isset($frm_duplicate_ids[$val]) ) {
                 $action->post_content[$key] = $frm_duplicate_ids[$val];
-            } else if ( !is_array($val) ) {
+            } else if ( ! is_array( $val ) ) {
                 $action->post_content[$key] = FrmFieldsHelper::switch_field_ids($val);
             } else if ( isset($switch[$key]) && is_array($switch[$key]) ) {
                 // loop through each value if empty
@@ -367,8 +367,8 @@ class FrmFormAction {
 
 	    add_filter( 'posts_where' , 'FrmFormActionsController::limit_by_type' );
         $query = array(
-            'post_type'     => FrmFormsController::$action_post_type,
-            'post_status'   => 'all',
+            'post_type'     => FrmFormActionsController::$action_post_type,
+            'post_status'   => 'any',
             'numberposts'   => 99,
             'order'         => 'ASC',
             'suppress_filters' => false,
@@ -384,7 +384,7 @@ class FrmFormAction {
 
         remove_filter( 'posts_where' , 'FrmFormActionsController::limit_by_type' );
 
-        if ( ! $actions ) {
+        if ( empty($actions) ) {
             return array();
         }
 
@@ -435,7 +435,7 @@ class FrmFormAction {
 
 	    $this->form_id = $form_id;
 
-	    $query = $wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE post_type=%s", FrmFormsController::$action_post_type);
+	    $query = $wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE post_type=%s", FrmFormActionsController::$action_post_type);
 	    if ( $form_id ) {
 	        $query .= $wpdb->prepare(" AND menu_order=%d", $form_id);
 	    }
@@ -482,7 +482,8 @@ class FrmFormAction {
 	* Migrate settings from form->options into new action.
 	*/
 	public function migrate_to_2($form, $update = 'update') {
-	    $action = $this->prepare_new($form->id);
+        $action = $this->prepare_new($form->id);
+        $form->options = maybe_unserialize($form->options);
 
         // fill with existing options
         foreach ( $action->post_content as $name => $val ) {
@@ -497,7 +498,7 @@ class FrmFormAction {
         // check if action already exists
         $post_id = get_posts( array(
             'name'          => $action->post_name,
-            'post_type'     => FrmFormsController::$action_post_type,
+            'post_type'     => FrmFormActionsController::$action_post_type,
             'post_status'   => $action->post_status,
             'numberposts'   => 1,
         ) );

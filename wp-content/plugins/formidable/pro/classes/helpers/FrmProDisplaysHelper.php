@@ -4,7 +4,7 @@ class FrmProDisplaysHelper{
 
     public static function setup_new_vars(){
         $values = array();
-        $defaults = FrmProDisplaysHelper::get_default_opts();
+        $defaults = self::get_default_opts();
         foreach ($defaults as $var => $default)
             $values[$var] = FrmAppHelper::get_param($var, $default);
 
@@ -17,7 +17,7 @@ class FrmProDisplaysHelper{
         }
 
         $values = (object) $post;
-        $defaults = FrmProDisplaysHelper::get_default_opts();
+        $defaults = self::get_default_opts();
 
         foreach ( array('form_id', 'entry_id', 'post_id', 'dyncontent', 'param', 'type', 'show_count', 'insert_loc') as $var ) {
             $values->{'frm_'. $var} = get_post_meta($post->ID, 'frm_'. $var, true);
@@ -68,13 +68,16 @@ class FrmProDisplaysHelper{
 
     public static function prepare_duplicate_view( &$post ) {
         $post = self::get_current_view($post);
-        $post = FrmProDisplaysHelper::setup_edit_vars($post);
+        $post = self::setup_edit_vars($post);
     }
 
-    /*
-    * Check if a view has been duplicated
+    /**
+    * Check if a View has been duplicated. If it has, get the View object to be duplicated. If it has not been duplicated, just get the new post object.
+    *
+    * @param $post object
+    * @return the View to be copied or the View that is being created (if it is not being duplicated)
     */
-    public static function get_current_view($post) {
+    public static function get_current_view( $post ) {
         if ( $post->post_type == FrmProDisplaysController::$post_type && isset($_GET['copy_id']) ) {
             global $copy_display;
             return $copy_display;

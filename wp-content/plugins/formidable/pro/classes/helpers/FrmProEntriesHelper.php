@@ -7,17 +7,19 @@ class FrmProEntriesHelper{
         if ( $action != 'new' ) {
             // make sure there is an entry id in the url if the action is being set in the url
             $entry_id = isset($_GET['entry']) ? $_GET['entry'] : 0;
-            if ( empty($entry_id) && ( ! $_POST || !isset($_POST['frm_action']) ) ) {
+            if ( empty($entry_id) && ( ! $_POST || ! isset($_POST['frm_action']) ) ) {
                 $action = 'new';
             }
         }
 
         $user_ID = get_current_user_id();
-        if (!$form or !$user_ID)
+        if ( ! $form || ! $user_ID ) {
             return $action;
+        }
 
-        if(!$form->editable)
+        if ( ! $form->editable ) {
             $action = 'new';
+        }
 
         $is_draft = false;
         if($action == 'destroy')
@@ -28,15 +30,17 @@ class FrmProEntriesHelper{
             if($action == 'update' and ($form->id == FrmAppHelper::get_param('form_id'))){
                 //don't change the action is this is the wrong form
             }else{
+                $checking_drafts = false;
                 $query = $wpdb->prepare('user_id = %d AND form_id = %d', $user_ID, $form->id);
                 if ( isset($form->options['save_draft']) && $form->options['save_draft'] && ( ! $form->editable || ! isset($form->options['single_entry']) || ! $form->options['single_entry'] || $form->options['single_entry_type'] != 'user' ) ) {
                     $query .= ' AND is_draft = 1';
+                    $checking_drafts = true;
                 }
 
                 $meta = $wpdb->get_var('SELECT id FROM '. $wpdb->prefix .'frm_items WHERE '. $query);
 
                 if ( $meta ) {
-                    if ( isset($args['is_draft']) ) {
+                    if ( $checking_drafts ) {
                         $is_draft = 1;
                     }
 
@@ -104,11 +108,11 @@ class FrmProEntriesHelper{
                 return false;
             }
 
-            if ( $form->editable && !FrmAppHelper::user_has_permission($form->options['open_editable_role']) && !FrmAppHelper::user_has_permission($form->options['editable_role']) ) {
+            if ( $form->editable && ! FrmAppHelper::user_has_permission( $form->options['open_editable_role'] ) && ! FrmAppHelper::user_has_permission( $form->options['editable_role'] ) ) {
                 // make sure user cannot edit their own entry, even if a higher user role can unless it's a draft
-                if ( is_object($entry) && !$entry->is_draft ) {
+                if ( is_object($entry) && ! $entry->is_draft ) {
                     return false;
-                } else if ( !is_object($entry) ) {
+                } else if ( ! is_object($entry) ) {
                     $where .= ' and is_draft=1';
                 }
             }
@@ -117,10 +121,10 @@ class FrmProEntriesHelper{
            $where .= $wpdb->prepare(" and user_id=%d", $user_ID);
         }
 
-        if ( !$form->editable ) {
+        if ( ! $form->editable ) {
             $where .= ' and is_draft=1';
 
-            if ( is_object($entry) && !$entry->is_draft ) {
+            if ( is_object($entry) && ! $entry->is_draft ) {
                 return false;
             }
         }
@@ -246,7 +250,7 @@ class FrmProEntriesHelper{
 
         if ( $footer ) {
             if ( apply_filters('frm_show_delete_all', current_user_can('frm_edit_entries'), $form_id) ) {
-            ?><div class="frm_uninstall alignleft actions"><a href="?page=formidable-entries&amp;frm_action=destroy_all<?php echo $form_id ? '&amp;form='. $form_id : '' ?>" class="button" onclick="return confirm('<?php _e('Are you sure you want to permanently delete ALL the entries in this form?', 'formidable') ?>')"><?php _e('Delete ALL Entries', 'formidable') ?></a></div>
+            ?><div class="frm_uninstall alignleft actions"><a href="?page=formidable-entries&amp;frm_action=destroy_all<?php echo $form_id ? '&amp;form='. (int) $form_id : '' ?>" class="button" onclick="return confirm('<?php _e( 'Are you sure you want to permanently delete ALL the entries in this form?', 'formidable' ) ?>')"><?php _e( 'Delete ALL Entries', 'formidable' ) ?></a></div>
 <?php
             }
             return;
@@ -307,7 +311,7 @@ class FrmProEntriesHelper{
 
         $where_item = '';
         $join = ' (';
-        if ( !is_array($search_str) ) {
+        if ( ! is_array($search_str) ) {
             $search_str = explode(' ', $search_str);
         }
 
@@ -315,7 +319,7 @@ class FrmProEntriesHelper{
             $no_esc_search = $search_param;
             $search_param = FrmAppHelper::esc_like( $search_param );
 
-            if ( !is_numeric($fid) ) {
+            if ( ! is_numeric($fid) ) {
                 $where_item .= (empty($where_item)) ? ' (' : ' OR';
 
                 if ( in_array($fid, array('created_at', 'updated_at')) ) {
@@ -372,7 +376,8 @@ class FrmProEntriesHelper{
                 }
 
                 if ( FrmAppHelper::is_admin_page('formidable-entries') ) {
-                    $include_drafts = true;
+                    // Search both drafts and non-drafts when on the back-end
+                    $include_drafts = 'both';
                 } else {
                     $include_drafts = false;
                 }

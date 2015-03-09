@@ -1,15 +1,15 @@
 <?php
 if ( 'date' == $field['type'] ) {
 ?>
-<input type="text" id="<?php echo $html_id ?>" name="<?php echo $field_name ?>" value="<?php echo esc_attr($field['value']) ?>" <?php do_action('frm_field_input_html', $field) ?>/>
+<input type="text" id="<?php echo esc_attr( $html_id ) ?>" name="<?php echo esc_attr( $field_name ) ?>" value="<?php echo esc_attr( $field['value'] ) ?>" <?php do_action( 'frm_field_input_html', $field ) ?>/>
 <?php
 
-    if ( ! isset($field['read_only']) || !$field['read_only'] || ( $field['read_only'] && isset($frm_vars['readonly']) && $frm_vars['readonly'] == 'disabled' ) ) {
-        if ( !isset($frm_vars['datepicker_loaded']) || !is_array($frm_vars['datepicker_loaded']) ) {
+    if ( ! isset($field['read_only']) || ! $field['read_only'] || ( $field['read_only'] && isset($frm_vars['readonly']) && $frm_vars['readonly'] == 'disabled' ) ) {
+        if ( ! isset($frm_vars['datepicker_loaded']) || ! is_array($frm_vars['datepicker_loaded']) ) {
             $frm_vars['datepicker_loaded'] = array();
         }
 
-        if ( !isset($frm_vars['datepicker_loaded'][$html_id]) ) {
+        if ( ! isset($frm_vars['datepicker_loaded'][ $html_id ]) ) {
             $static_html_id = FrmFieldsHelper::get_html_id($field);
             if ( $html_id != $static_html_id ) {
                 // user wildcard for repeating fields
@@ -25,17 +25,17 @@ if ( 'date' == $field['type'] ) {
 } else if ( $field['type'] == 'time' ) {
 
     if ( $field['unique'] ) {
-        if ( !isset($frm_vars['timepicker_loaded']) || !is_array($frm_vars['timepicker_loaded']) ) {
+        if ( ! isset($frm_vars['timepicker_loaded']) || ! is_array($frm_vars['timepicker_loaded']) ) {
             $frm_vars['timepicker_loaded'] = array();
         }
 
-        if ( ! isset($frm_vars['timepicker_loaded'][$html_id]) ) {
+        if ( ! isset($frm_vars['timepicker_loaded'][ $html_id ]) ) {
             $frm_vars['timepicker_loaded'][$html_id] = true;
         }
     }
 
     if ( isset($field['options']['H']) ) {
-        if ( !empty($field['value']) && !is_array($field['value']) ) {
+        if ( ! empty($field['value']) && ! is_array($field['value']) ) {
             $h = explode(':', $field['value']);
             $m = explode(' ', $h[1]);
             $h = reset($h);
@@ -49,29 +49,29 @@ if ( 'date' == $field['type'] ) {
             $h = $m = $a = '';
         }
 ?>
-<select name="<?php echo $field_name ?>[H]" id="<?php echo $html_id ?>_H" <?php do_action('frm_field_input_html', $field) ?>>
-    <?php foreach($field['options']['H'] as $hour){ ?>
-        <option value="<?php echo $hour ?>" <?php selected($h, $hour) ?>><?php echo $hour ?></option>
+<select name="<?php echo esc_attr( $field_name ) ?>[H]" id="<?php echo esc_attr( $html_id ) ?>_H" <?php do_action( 'frm_field_input_html', $field ) ?>>
+    <?php foreach ( $field['options']['H'] as $hour ) { ?>
+        <option value="<?php echo esc_attr( $hour ) ?>" <?php selected( $h, $hour ) ?>><?php echo $hour ?></option>
     <?php } ?>
 </select> :
-<select name="<?php echo $field_name ?>[m]" id="<?php echo $html_id ?>_m" <?php do_action('frm_field_input_html', $field) ?>>
+<select name="<?php echo esc_attr( $field_name ) ?>[m]" id="<?php echo esc_attr( $html_id ) ?>_m" <?php do_action( 'frm_field_input_html', $field ) ?>>
     <?php foreach($field['options']['m'] as $min){ ?>
-        <option value="<?php echo $min ?>" <?php selected($m, $min) ?>><?php echo $min ?></option>
+        <option value="<?php echo esc_attr( $min ) ?>" <?php selected( $m, $min ) ?>><?php echo $min ?></option>
     <?php } ?>
 </select>
 <?php   if ( isset($field['options']['A']) ) { ?>
-<select name="<?php echo $field_name ?>[A]" id="<?php echo $html_id ?>_A" <?php do_action('frm_field_input_html', $field) ?>>
-    <?php foreach($field['options']['A'] as $am){ ?>
-        <option value="<?php echo $am ?>" <?php selected($a, $am) ?>><?php echo $am ?></option>
+<select name="<?php echo esc_attr( $field_name ) ?>[A]" id="<?php echo esc_attr( $html_id ) ?>_A" <?php do_action( 'frm_field_input_html', $field ) ?>>
+    <?php foreach ( $field['options']['A'] as $am ) { ?>
+        <option value="<?php echo esc_attr( $am ) ?>" <?php selected( $a, $am ) ?>><?php echo $am ?></option>
     <?php } ?>
 </select>
 <?php
         }
     } else {
 ?>
-<select name="<?php echo $field_name ?>" id="<?php echo $html_id ?>" <?php do_action('frm_field_input_html', $field) ?>>
+<select name="<?php echo esc_attr( $field_name ) ?>" id="<?php echo esc_attr( $html_id ) ?>" <?php do_action( 'frm_field_input_html', $field ) ?>>
     <?php foreach ( $field['options'] as $t ) { ?>
-        <option value="<?php echo $t ?>" <?php selected($field['value'], $t) ?>><?php echo $t ?></option>
+        <option value="<?php echo esc_attr( $t ) ?>" <?php selected( $field['value'], $t ) ?>><?php echo esc_html( $t ) ?></option>
     <?php } ?>
 </select>
 <?php
@@ -81,28 +81,30 @@ if ( 'date' == $field['type'] ) {
         FrmProFieldsHelper::tags_to_list($field, $entry_id);
     }
 ?>
-<input type="text" id="<?php echo $html_id ?>" name="<?php echo $field_name ?>" value="<?php echo esc_attr($field['value']) ?>" <?php do_action('frm_field_input_html', $field) ?>/>
+<input type="text" id="<?php echo esc_attr( $html_id ) ?>" name="<?php echo esc_attr( $field_name ) ?>" value="<?php echo esc_attr( $field['value'] ) ?>" <?php do_action( 'frm_field_input_html', $field ) ?>/>
 <?php
 } else if ( in_array($field['type'], array('number', 'password', 'range')) ) {
 ?>
-<input type="<?php echo ( $frm_settings->use_html || $field['type'] == 'password' ) ? $field['type'] : 'text'; ?>" id="<?php echo $html_id ?>" name="<?php echo $field_name ?>" value="<?php echo esc_attr($field['value']) ?>" <?php do_action('frm_field_input_html', $field) ?>/>
+<input type="<?php echo ( $frm_settings->use_html || $field['type'] == 'password' ) ? esc_attr( $field['type'] ) : 'text'; ?>" id="<?php echo esc_attr( $html_id ) ?>" name="<?php echo esc_attr( $field_name ) ?>" value="<?php echo esc_attr( $field['value'] ) ?>" <?php do_action( 'frm_field_input_html', $field ) ?>/>
 <?php
 } else if ( $field['type'] == 'phone' ) {
     $field['type'] = 'tel';
 ?>
-<input type="<?php echo ( $frm_settings->use_html ) ? $field['type'] : 'text'; ?>" id="<?php echo $html_id ?>" name="<?php echo $field_name ?>" value="<?php echo esc_attr($field['value']) ?>" <?php do_action('frm_field_input_html', $field) ?>/>
+<input type="<?php echo ( $frm_settings->use_html ) ? esc_attr( $field['type'] ) : 'text'; ?>" id="<?php echo esc_attr( $html_id ) ?>" name="<?php echo esc_attr( $field_name ) ?>" value="<?php echo esc_attr( $field['value'] ) ?>" <?php do_action( 'frm_field_input_html', $field ) ?>/>
 <?php
     $field['type'] = 'phone';
     FrmProFieldsHelper::setup_input_masks($field);
 } else if ($field['type'] == 'image' ) { ?>
-<input type="<?php echo ($frm_settings->use_html) ? 'url' : 'text'; ?>" id="<?php echo $html_id ?>" name="<?php echo $field_name ?>" value="<?php echo esc_attr($field['value']) ?>" <?php do_action('frm_field_input_html', $field) ?>/>
-<?php if ( $field['value'] ) { ?><img src="<?php echo $field['value'] ?>" height="50px" /><?php }
+<input type="<?php echo ($frm_settings->use_html) ? 'url' : 'text'; ?>" id="<?php echo esc_attr( $html_id ) ?>" name="<?php echo esc_attr( $field_name ) ?>" value="<?php echo esc_attr( $field['value'] ) ?>" <?php do_action( 'frm_field_input_html', $field ) ?>/>
+<?php if ( $field['value'] ) {
+        ?><img src="<?php echo $field['value'] ?>" height="50px" /><?php
+    }
 
 } else if ( $field['type'] == 'scale' ) {
     require(FrmAppHelper::plugin_path() .'/pro/classes/views/frmpro-fields/10radio.php');
 
     if ( isset($field['star']) && $field['star'] ) {
-        if ( !isset($frm_vars['star_loaded']) || !is_array($frm_vars['star_loaded']) ) {
+        if ( ! isset($frm_vars['star_loaded']) || ! is_array($frm_vars['star_loaded']) ) {
             $frm_vars['star_loaded'] = array(true);
         }
     }
@@ -129,7 +131,7 @@ if ( 'date' == $field['type'] ) {
         $e_args = apply_filters('frm_rte_options', $e_args, $field);
 
         if ( $field['size'] ) { ?>
-<style type="text/css">#wp-field_<?php echo $field['field_key'] ?>-wrap{width:<?php echo $field['size'] . ( is_numeric($field['size']) ? 'px' : '' ); ?>;}</style><?php
+<style type="text/css">#wp-field_<?php echo esc_attr( $field['field_key'] ) ?>-wrap{width:<?php echo $field['size'] . ( is_numeric($field['size']) ? 'px' : '' ); ?>;}</style><?php
         }
 
         wp_editor(str_replace('&quot;', '"', $field['value']), $html_id . ((isset($frm_vars['ajax_edit']) && $frm_vars['ajax_edit']) ? $frm_vars['ajax_edit'] : '' ),  $e_args);
@@ -142,23 +144,23 @@ if ( 'date' == $field['type'] ) {
         unset($e_args);
     } else {
 ?>
-<textarea name="<?php echo $field_name ?>" id="<?php echo $html_id ?>" style="height:<?php echo ($field['max']) ? ( (int) $field['max'] * 17 ) : 125 ?>px;<?php
+<textarea name="<?php echo esc_attr( $field_name ) ?>" id="<?php echo esc_attr( $html_id ) ?>" style="height:<?php echo ($field['max']) ? ( (int) $field['max'] * 17 ) : 125 ?>px;<?php
 if ( ! $field['size'] ) {
     ?>width:<?php echo FrmStylesController::get_style_val('field_width');
-} ?>" <?php do_action('frm_field_input_html', $field) ?>><?php echo FrmAppHelper::esc_textarea($field['value']) ?></textarea>
+} ?>" <?php do_action( 'frm_field_input_html', $field ) ?>><?php echo FrmAppHelper::esc_textarea($field['value']) ?></textarea>
 <?php
     }
 } else if ( $field['type'] == 'file' ) {
 
-    if ( isset($field['read_only']) && $field['read_only'] && (!isset($frm_vars['readonly']) || $frm_vars['readonly'] != 'disabled') ) {
+    if ( isset($field['read_only']) && $field['read_only'] && ( ! isset($frm_vars['readonly']) || $frm_vars['readonly'] != 'disabled') ) {
         // Read only file upload field shows the entry without an upload button
         foreach ( (array) maybe_unserialize($field['value']) as $media_id ) {
-            if ( !is_numeric($media_id) ) {
+            if ( ! is_numeric($media_id) ) {
                 continue;
             }
 ?>
 <input type="hidden" name="<?php
-    echo $field_name;
+    echo esc_attr( $field_name );
     if ( isset($field['multiple']) && $field['multiple'] ) {
         echo '[]';
     }
@@ -168,22 +170,22 @@ if ( ! $field['size'] ) {
         }
     } else if ( isset($field['multiple']) && $field['multiple'] ) {
 		$media_ids = maybe_unserialize($field['value']);
-		if ( !is_array($media_ids) && strpos($media_ids, ',') ) {
+		if ( ! is_array( $media_ids ) && strpos( $media_ids, ',' ) ) {
 			$media_ids = explode(',', $media_ids);
 		}
 
 		foreach ( (array) $media_ids as $media_id ) {
 			$media_id = trim($media_id);
-            if ( !is_numeric($media_id) ) {
+            if ( ! is_numeric($media_id) ) {
                 continue;
             }
 
             $media_id = (int) $media_id;
 ?>
-<div id="frm_uploaded_<?php echo $media_id ?>" class="frm_uploaded_files">
-<input type="hidden" name="<?php echo $field_name ?>[]" value="<?php echo esc_attr($media_id) ?>" />
-<div class="frm_file_icon"><?php echo FrmProFieldsHelper::get_file_icon($media_id); ?></div>
-<a href="javascript:void(0)" class="frm_remove_link"><?php _e('Remove', 'formidable') ?></a>
+<div id="frm_uploaded_<?php echo esc_attr( $media_id ) ?>" class="frm_uploaded_files">
+<input type="hidden" name="<?php echo esc_attr( $field_name ) ?>[]" value="<?php echo esc_attr( $media_id ) ?>" />
+<div class="frm_file_icon"><?php echo FrmProFieldsHelper::get_file_icon( $media_id ); ?></div>
+<a href="javascript:void(0)" class="frm_remove_link"><?php _e( 'Remove', 'formidable' ) ?></a>
 </div>
 <?php
 		    unset($media_id);
@@ -191,16 +193,16 @@ if ( ! $field['size'] ) {
         unset($media_ids);
 
         if ( empty($field_value) ) { ?>
-<input type="hidden" name="<?php echo $field_name ?>[]" value="" />
+<input type="hidden" name="<?php echo esc_attr( $field_name ) ?>[]" value="" />
 <?php   } ?>
 
-<input type="file" data-fid="<?php echo $field['id'] ?>" multiple="multiple" name="<?php echo $file_name; ?>[]" id="<?php echo $html_id ?>" <?php do_action('frm_field_input_html', $field) ?> />
+<input type="file" data-fid="<?php echo esc_attr( $field['id'] ) ?>" multiple="multiple" name="<?php echo esc_attr( $file_name ); ?>[]" id="<?php echo esc_attr( $html_id ) ?>" <?php do_action( 'frm_field_input_html', $field ) ?> />
 <?php
     } else {
         // single upload field
 ?>
-<input type="file" name="<?php echo $file_name ?>" id="<?php echo $html_id ?>" <?php do_action('frm_field_input_html', $field) ?> /><br/>
-<input type="hidden" name="<?php echo $field_name ?>" value="<?php echo esc_attr(is_array($field['value']) ? reset($field['value']) : $field['value']) ?>" />
+<input type="file" name="<?php echo esc_attr( $file_name ) ?>" id="<?php echo esc_attr( $html_id ) ?>" <?php do_action( 'frm_field_input_html', $field ) ?> /><br/>
+<input type="hidden" name="<?php echo esc_attr( $field_name ) ?>" value="<?php echo esc_attr( is_array($field['value']) ? reset( $field['value'] ) : $field['value'] ) ?>" />
 <?php
         echo FrmProFieldsHelper::get_file_icon($field['value']);
     }
@@ -208,17 +210,17 @@ if ( ! $field['size'] ) {
     include_once(FrmAppHelper::plugin_path() .'/pro/classes/views/frmpro-entries/loading.php');
 
 } else if ( $field['type'] == 'data' ) { ?>
-<div id="frm_data_field_<?php echo $field['id'] ?>_container">
+<div class="frm_data_field_container">
 <?php require(FrmAppHelper::plugin_path() .'/pro/classes/views/frmpro-fields/data-options.php'); ?>
 </div>
 <?php
 
 } else if ( $field['type'] == 'form' ) {
-    if ( !is_numeric($field['form_select']) ) {
+    if ( ! is_numeric($field['form_select']) ) {
         return;
     }
 
-    if ( !isset($errors) ) {
+    if ( ! isset($errors) ) {
         $errors = array();
     }
 

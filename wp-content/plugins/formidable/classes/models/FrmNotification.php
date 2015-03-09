@@ -1,7 +1,7 @@
 <?php
 
 class FrmNotification{
-    function __construct(){
+    public function __construct(){
         if ( ! defined('ABSPATH') ) {
             die('You are not allowed to call this page directly.');
         }
@@ -148,12 +148,12 @@ class FrmNotification{
         return $sent_to;
     }
 
-    function entry_created($entry_id, $form_id) {
+    public function entry_created($entry_id, $form_id) {
         _deprecated_function( __FUNCTION__, '2.0', 'FrmFormActionsController::trigger_actions("create", '. $form_id .', '. $entry_id .', "email")');
         FrmFormActionsController::trigger_actions('create', $form_id, $entry_id, 'email');
     }
 
-    function send_notification_email($to_email, $subject, $message, $from = '', $from_name = '', $plain_text = true, $attachments = array(), $reply_to = '') {
+    public function send_notification_email($to_email, $subject, $message, $from = '', $from_name = '', $plain_text = true, $attachments = array(), $reply_to = '') {
         _deprecated_function( __FUNCTION__, '2.0', 'FrmNotification::send_email' );
 
         return self::send_email(compact(
@@ -163,7 +163,112 @@ class FrmNotification{
         ));
     }
 
-    static function send_email($atts) {
+    /**
+    * Put To, BCC, CC, Reply To, and From fields in Name <test@mail.com> format
+    * Formats that should work: Name, "Name", test@mail.com, <test@mail.com>, Name <test@mail.com>,
+    * "Name" <test@mail.com>, Name test@mail.com, "Name" test@mail.com, Name<test@mail.com>, "Name"<test@mail.com>
+    * "First Last" <test@mail.com>
+    *
+    * Things that won't work: First Last (with no email entered)
+    * @since 2.0
+    * @param $atts array of email fields, pass by reference
+    * @param $admin_email
+    */
+    private static function format_email_fields( &$atts, $admin_email ) {
+
+        // If from is empty or is set to admin_email, set it now
+        $atts['from'] = ( empty($atts['from']) || $atts['from'] == '[admin_email]' ) ? $admin_email : $atts['from'];
+
+        // Filter values in these fields
+        $filter_fields = array('to_email','bcc','cc','from','reply_to');
+
+        foreach ( $filter_fields as $f ) {
+            // If empty, just skip it
+            if ( empty($atts[$f]) ) {
+                continue;
+            }
+
+            // to_email, cc, and bcc can be an array
+            if ( is_array($atts[$f]) ) {
+                foreach ( $atts[$f] as $key => $val ) {
+                    self::format_single_field( $atts, $f, $val, $key );
+                    unset( $key, $val );
+                }
+                unset($f);
+                continue;
+            }
+
+            self::format_single_field( $atts, $f, $atts[$f] );
+        }
+
+        // If reply-to isn't set, make it match the from settings
+        if ( empty( $atts['reply_to'] ) ) {
+            $atts['reply_to'] = $atts['from'];
+        }
+
+        if ( ! is_array($atts['to_email']) && '[admin_email]' == $atts['to_email'] ) {
+            $atts['to_email'] = $admin_email;
+        }
+    }
+
+    /**
+    * Format individual email fields
+    *
+    * @since 2.0
+    * @param $atts array, pass by reference
+    * @param $f string (to, from, reply_to, etc)
+    * @param $val string - value saved in field
+    * @param $key int - if in array, this will be set
+    */
+    private static function format_single_field( &$atts, $f, $val, $key = false ) {
+        $val = trim($val);
+
+        // If just a plain email is used
+        if ( is_email($val) ) {
+            // add sender's name if not included in $from
+            if ( $f == 'from' ) {
+                $part_2 = $atts[$f];
+                $part_1  = $atts['from_name'] ? $atts['from_name'] : wp_specialchars_decode( FrmAppHelper::site_name(), ENT_QUOTES );
+            } else {
+                return;
+            }
+        } else {
+            $parts = explode(' ', $val);
+            $part_2 = end($parts);
+
+            // If inputted correcly, $part_2 should be an email
+            if ( is_email( $part_2 ) ) {
+                $part_1 = trim( str_replace( $part_2, '', $val ) );
+
+            // In case someone just puts a name in the From or Reply To field
+            } else if ( in_array( $f, array( 'from', 'reply_to' ) ) ) {
+                $part_1 = $part_2;
+                $part_2 = get_option('admin_email');
+
+            // In case someone just puts a name in any other email field
+            } else {
+                if ( false !== $key ) {
+                    unset( $atts[$f][$key] );
+                    return;
+                }
+                $atts[$f] = '';
+                return;
+            }
+        }
+
+        // Set up formatted value
+        $final_val = $part_1 . ' <'. $part_2 .'>';
+        $final_val = str_replace('"', '', $final_val);
+
+        // If value is an array
+        if ( false !== $key ) {
+            $atts[$f][$key] = $final_val;
+            return;
+        }
+        $atts[$f] = $final_val;
+    }
+
+    public static function send_email($atts) {
         $admin_email = get_option('admin_email');
         $defaults = array(
             'to_email'      => $admin_email,
@@ -179,58 +284,8 @@ class FrmNotification{
         );
         $atts = wp_parse_args($atts, $defaults);
 
-        //senders e-mail address
-        $atts['from'] = ( empty($atts['from']) || $atts['from'] == '[admin_email]' ) ? $admin_email : $atts['from'];
-
-        //Allow name <test@mail.com> format in To, BCC, CC, Reply To, and From fields
-        $filter_fields = array('to_email','bcc','cc','from','reply_to');
-        // TODO: Simplify
-        foreach ( $filter_fields as $f ) {
-            if ( empty($atts[$f]) ) {
-                continue;
-            }
-            if ( is_array($atts[$f]) ) {//to_email, cc, and bcc can be an array
-                foreach ( $atts[$f] as $key => $val ) {
-                    $val = trim($val);
-                    if ( is_email($val) ) {
-                        continue;
-                    } else {
-                        $parts = explode(' ', $val);
-                        $part_2 = end($parts);
-                        $part_1 = trim(str_replace($part_2, '', $val));
-                        $atts[$f][$key] = $part_1 . ' <'. $part_2 .'>';
-                        $atts[$f][$key] = str_replace('"', '', $atts[$f][$key]);
-                        unset($part_1,$part_2,$val);
-                    }
-                }
-                unset($f);
-                continue;
-            }
-            if ( is_email($atts[$f]) ) {
-                // add sender's name if not included in $from
-                if ( $f == 'from' ) {
-                    $part_2 = $atts[$f];
-                    $part_1  = ( '' == $atts['from_name'] ) ? wp_specialchars_decode( FrmAppHelper::site_name(), ENT_QUOTES ) : $atts['from_name'];
-                } else {
-                    continue;
-                }
-            } else {
-                $parts = explode(' ', $atts[$f]);
-                $part_2 = end($parts);
-                $part_1 = trim(str_replace($part_2, '', $atts[$f]));
-            }
-            $atts[$f] = $part_1 . ' <'. $part_2 .'>';
-            $atts[$f] = str_replace('"', '', $atts[$f]);
-            unset($part_1, $part_2, $f);
-        }
-
-        if ( empty($atts['reply_to']) ) {
-            $atts['reply_to'] = $atts['from'];
-        }
-
-        if ( ! is_array($atts['to_email']) && '[admin_email]' == $atts['to_email'] ) {
-            $atts['to_email'] = $admin_email;
-        }
+        // Put To, BCC, CC, Reply To, and From fields in the correct format
+        self::format_email_fields( $atts, $admin_email );
 
         $recipient      = $atts['to_email']; //recipient
         $header         = array();

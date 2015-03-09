@@ -1,4 +1,4 @@
-<table class="form_results<?php echo ( $atts['style'] ? FrmFormsHelper::get_form_style_class() : '' ); ?>" id="form_results<?php echo $form->id ?>" cellspacing="0">
+<table class="form_results<?php echo ( $atts['style'] ? FrmFormsHelper::get_form_style_class() : '' ); ?>" id="form_results<?php echo (int) $form->id ?>" cellspacing="0">
     <thead>
     <tr>
     <?php if ( in_array('id', $atts['fields']) ) { ?>
@@ -24,9 +24,9 @@
     $class = 'odd';
 
     foreach($entries as $entry){  ?>
-        <tr class="frm_<?php echo $class ?>">
+        <tr class="frm_<?php echo esc_attr( $class ) ?>">
         <?php if ( in_array('id', $atts['fields']) ) { ?>
-            <td><?php echo $entry->id ?></dh>
+            <td><?php echo (int) $entry->id ?></dh>
         <?php }
             foreach ( $form_cols as $col ) { ?>
             <td valign="top">

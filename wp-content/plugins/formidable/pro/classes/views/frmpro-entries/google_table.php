@@ -3,8 +3,8 @@
 } ?>
 <script type="text/javascript">
 google.load('visualization', '1.0', {'packages':['table']});
-google.setOnLoadCallback(get_frm_table_<?php echo $form->id ?>);
-function get_frm_table_<?php echo $form->id ?>(){
+google.setOnLoadCallback(get_frm_table_<?php echo (int) $form->id ?>);
+function get_frm_table_<?php echo (int) $form->id ?>(){
 var data=new google.visualization.DataTable();
 <?php if ( in_array('id', $atts['fields']) ) { ?>
 data.addColumn('number','<?php _e('ID', 'formidable') ?>');
@@ -28,7 +28,7 @@ foreach ( $form_cols as $col ) {
         unset($count);
     }
 ?>
-data.addColumn('<?php echo $type ?>','<?php echo addslashes($col->name); ?>');
+data.addColumn('<?php echo esc_attr( $type ) ?>','<?php echo addslashes($col->name); ?>');
 <?php
     unset($col, $type);
 }
@@ -50,7 +50,7 @@ $i = 0;
 foreach ( $entries as $entry ) {
     $c = 0;
     if ( in_array('id', $atts['fields']) ) { ?>
-data.setCell(<?php echo $i ?>,<?php echo $c ?>,<?php echo $entry->id ?>);
+data.setCell(<?php echo $i ?>,<?php echo $c ?>,<?php echo (int) $entry->id ?>);
 <?php
         $c++;
     }
@@ -116,10 +116,10 @@ data.setCell(0,<?php echo $c ?>,'<?php echo $atts['clickable'] ? make_clickable(
     }
 }
 ?>
-    var chart=new google.visualization.Table(document.getElementById('frm_google_table_<?php echo $form->id ?>'));
+    var chart=new google.visualization.Table(document.getElementById('frm_google_table_<?php echo (int) $form->id ?>'));
     chart.draw(data,<?php echo json_encode($options) ?>);
 }
 </script>
 
-<div class="form_results<?php echo $atts['style'] ? FrmFormsHelper::get_form_style_class($form) : ''; ?>" id="form_results<?php echo $form->id ?>">
-<div id="frm_google_table_<?php echo $form->id ?>"></div></div>
+<div class="form_results<?php echo $atts['style'] ? FrmFormsHelper::get_form_style_class($form) : ''; ?>" id="form_results<?php echo (int) $form->id ?>">
+<div id="frm_google_table_<?php echo (int) $form->id ?>"></div></div>

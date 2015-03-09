@@ -129,7 +129,7 @@ class FrmField{
 
       wp_cache_delete( $id, 'frm_field' );
       $field = self::getOne($id);
-      if ( !$field ) {
+      if ( ! $field ) {
           return false;
       }
 
@@ -180,12 +180,12 @@ class FrmField{
         return stripslashes_deep($results);
     }
 
-    public static function get_all_types_in_form($form_id, $type, $limit = '') {
+    public static function get_all_types_in_form($form_id, $type, $limit = '', $inc_sub = 'exclude') {
         if ( ! $form_id ) {
             return array();
         }
 
-        $results = get_transient('frm_all_form_fields_'. $form_id .'exclude');
+        $results = get_transient('frm_all_form_fields_'. $form_id . $inc_sub);
         if ( $results !== false ) {
             $fields = array();
             $count = 0;
@@ -196,7 +196,7 @@ class FrmField{
 
                 $fields[$result->id] = $result;
                 $count++;
-                if ( $limit === 1 ) {
+                if ( $limit == 1 ) {
                     $fields = $result;
                     break;
                 }
@@ -213,6 +213,7 @@ class FrmField{
         self::$use_cache = false;
         $results = self::getAll(array('fi.form_id' => (int) $form_id, 'fi.type' => $type), 'field_order', $limit);
         self::$use_cache = true;
+        self::include_sub_fields($results, $inc_sub, $type);
 
         return $results;
     }
@@ -243,27 +244,37 @@ class FrmField{
         self::$use_cache = false;
         $results = self::getAll(array('fi.form_id' => (int) $form_id), 'field_order', $limit);
         self::$use_cache = true;
-
-        if ( 'include' == $inc_sub ) {
-            $form_fields = $results;
-            foreach ( $form_fields as $k => $field ) {
-                if ( 'form' != $field->type || ! isset($field->field_options['form_select']) ) {
-                    continue;
-                }
-                $sub_fields = self::get_all_for_form($field->field_options['form_select']);
-                if ( ! empty($sub_fields) ) {
-                    array_splice($results, $k, 1, $sub_fields);
-                }
-                unset($field, $sub_fields);
-            }
-            unset($form_fields);
-        }
+        self::include_sub_fields($results, $inc_sub, 'all');
 
         if ( empty($limit) ) {
             set_transient('frm_all_form_fields_'. $form_id . $inc_sub, $results, 60*60*6);
         }
 
         return $results;
+    }
+
+    public static function include_sub_fields(&$results, $inc_sub, $type = 'all') {
+        if ( 'include' != $inc_sub ) {
+            return;
+        }
+
+        $form_fields = $results;
+        foreach ( $form_fields as $k => $field ) {
+            if ( 'form' != $field->type || ! isset($field->field_options['form_select']) ) {
+                continue;
+            }
+
+            if ( $type == 'all' ) {
+                $sub_fields = self::get_all_for_form($field->field_options['form_select']);
+            } else {
+                $sub_fields = self::get_all_types_in_form($field->form_id, $type);
+            }
+
+            if ( ! empty($sub_fields) ) {
+                array_splice($results, $k, 1, $sub_fields);
+            }
+            unset($field, $sub_fields);
+        }
     }
 
     public static function getAll($where = array(), $order_by = '', $limit = '', $blog_id = false) {

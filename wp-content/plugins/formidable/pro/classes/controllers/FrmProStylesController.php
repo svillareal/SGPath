@@ -26,7 +26,7 @@ class FrmProStylesController extends FrmStylesController{
             return $style;
         }
 
-        parent::load_styler($style);
+        self::load_styler($style);
     }
 
     public static function destroy() {
@@ -37,7 +37,7 @@ class FrmProStylesController extends FrmStylesController{
 
         $message = __('Your styling settings have been deleted.', 'formidable');
 
-        parent::edit('default', $message);
+        self::edit('default', $message);
     }
 
     public static function pro_route($action) {

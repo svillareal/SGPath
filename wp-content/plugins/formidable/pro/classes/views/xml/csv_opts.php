@@ -10,7 +10,7 @@
                 continue;
             }
         ?>
-            <option value="<?php echo $form->id ?>"><?php echo ($form->name == '') ? '(no title)' : $form->name ?></option>
+            <option value="<?php echo (int) $form->id ?>"><?php echo ( $form->name == '' ) ? __( '(no title)' ) : esc_html( $form->name ) ?></option>
         <?php } ?>
         </select>
     </p>

@@ -124,7 +124,7 @@ class FrmFieldsHelper{
         }
 
         $defaults = self::get_default_field_opts($type, $form_id);
-        $defaults['field_options']['custom_html'] = FrmFieldsHelper::get_default_html($type);
+        $defaults['field_options']['custom_html'] = self::get_default_html($type);
 
         $values = array();
 
@@ -302,8 +302,9 @@ class FrmFieldsHelper{
         if (apply_filters('frm_normal_field_type_html', true, $type)){
             $input = (in_array($type, array('radio', 'checkbox', 'data'))) ? '<div class="frm_opt_container">[input]</div>' : '[input]';
             $for = '';
-            if(!in_array($type, array('radio', 'checkbox', 'data', 'scale')))
+            if ( ! in_array( $type, array('radio', 'checkbox', 'data', 'scale') ) ) {
                 $for = 'for="field_[key]"';
+            }
 
             $default_html = <<<DEFAULT_HTML
 <div id="frm_field_[id]_container" class="frm_form_field form-field [required_class][error_class]">
@@ -342,6 +343,11 @@ DEFAULT_HTML;
         //replace [id]
         $html = str_replace('[id]', $field_id, $html);
 
+        // Remove the for attribute for captcha
+        if ( $field['type'] == 'captcha' ) {
+            $html = str_replace(' for="field_[key]"', '', $html);
+        }
+
         // set the label for
         $html = str_replace('field_[key]', $html_id, $html);
 
@@ -350,8 +356,9 @@ DEFAULT_HTML;
 
         //replace [description] and [required_label] and [error]
         $required = ($field['required'] == '0') ? '' : $field['required_indicator'];
-        if(!is_array($errors))
+        if ( ! is_array( $errors ) ) {
             $errors = array();
+        }
         $error = isset($errors['field'. $field_id]) ? $errors['field'. $field_id] : false;
 
         //If field type is section heading, add class so a bottom margin can be added to either the h3 or description
@@ -364,9 +371,9 @@ DEFAULT_HTML;
         }
 
         foreach (array('description' => $field['description'], 'required_label' => $required, 'error' => $error) as $code => $value){
-            if (!$value or $value == '')
+            if ( ! $value || $value == '' ) {
                 $html = preg_replace('/(\[if\s+'.$code.'\])(.*?)(\[\/if\s+'.$code.'\])/mis', '', $html);
-            else{
+            } else{
                 $html = str_replace('[if '.$code.']', '', $html);
         	    $html = str_replace('[/if '.$code.']', '', $html);
             }
@@ -380,7 +387,7 @@ DEFAULT_HTML;
 
         //replace [label_position]
         $field['label'] = apply_filters('frm_html_label_position', $field['label'], $field, $form);
-        $field['label'] = ($field['label'] and $field['label'] != '') ? $field['label'] : 'top';
+        $field['label'] = ( $field['label'] && $field['label'] != '' ) ? $field['label'] : 'top';
         $html = str_replace('[label_position]', ( ( in_array( $field['type'], array('divider', 'end_divider', 'break') ) ) ? $field['label'] : ' frm_primary_label'), $html);
 
         //replace [field_name]
@@ -395,7 +402,7 @@ DEFAULT_HTML;
         }
 
         //Add classes to inline confirmation field (if it doesn't already have classes set)
-        if ( isset($field['conf_field']) && $field['conf_field'] == 'inline' && !$field['classes'] ) {
+        if ( isset($field['conf_field']) && $field['conf_field'] == 'inline' && ! $field['classes'] ) {
             $error_class .= ' frm_first_half';
         }
 
@@ -413,7 +420,7 @@ DEFAULT_HTML;
         $html = str_replace('[error_class]', $error_class, $html);
 
         //replace [entry_key]
-        $entry_key = (isset($_GET) and isset($_GET['entry'])) ? $_GET['entry'] : '';
+        $entry_key = ( $_GET && isset($_GET['entry']) ) ? $_GET['entry'] : '';
         $html = str_replace('[entry_key]', $entry_key, $html);
 
         //replace [input]
@@ -523,13 +530,13 @@ DEFAULT_HTML;
         wp_enqueue_script('recaptcha-api');
 
 ?>
-<div id="field_<?php echo $field['field_key'] ?>" class="g-recaptcha" data-sitekey="<?php echo $frm_settings->pubkey ?>"></div>
+<div id="field_<?php echo esc_attr( $field['field_key'] ) ?>" class="g-recaptcha" data-sitekey="<?php echo esc_attr( $frm_settings->pubkey ) ?>"></div>
 <?php
     }
 
     public static function show_single_option($field) {
         $field_name = $field['name'];
-        $html_id = FrmFieldsHelper::get_html_id($field);
+        $html_id = self::get_html_id($field);
         foreach ( $field['options'] as $opt_key => $opt ) {
             $field_val = apply_filters('frm_field_value_saved', $opt, $opt_key, $field);
             $opt = apply_filters('frm_field_label_seen', $opt, $opt_key, $field);
@@ -621,13 +628,13 @@ DEFAULT_HTML;
 
     public static function get_term_link($tax_id) {
         $tax = get_taxonomy($tax_id);
-        if ( !$tax ) {
+        if ( ! $tax ) {
             return;
         }
 
         $link = sprintf(
-            __('Please add options from the WordPress "%1$s" page', 'formidable'),
-            '<a href="'. esc_url(admin_url('edit-tags.php?taxonomy='. $tax->name)) .'" target="_blank">'. ( empty($tax->labels->name) ? __('Categories') : $tax->labels->name ) .'</a>'
+            __( 'Please add options from the WordPress "%1$s" page', 'formidable' ),
+            '<a href="'. esc_url( admin_url( 'edit-tags.php?taxonomy='. $tax->name ) ) .'" target="_blank">'. ( empty($tax->labels->name) ? __( 'Categories' ) : $tax->labels->name ) .'</a>'
         );
         unset($tax);
 
@@ -781,7 +788,7 @@ DEFAULT_HTML;
                         $time_format = ' ';
                     } else {
                         $atts['format'] = get_option('date_format');
-                        $time_format = false;
+                        $time_format = '';
                     }
 
                     $this_tag = str_replace('-', '_', $tag);
@@ -855,7 +862,7 @@ DEFAULT_HTML;
     * @since 2.0
     * @return string
     */
-    public static function dynamic_default_values( $tag, $atts = array() ) {
+    public static function dynamic_default_values( $tag, $atts = array(), $return_array = false ) {
         $new_value = '';
         switch ( $tag ) {
             case 'admin_email':
@@ -871,7 +878,7 @@ DEFAULT_HTML;
                 $new_value = FrmAppHelper::site_name();
                 break;
             case 'get':
-                $new_value = self::process_get_shortcode( $atts );
+                $new_value = self::process_get_shortcode( $atts, $return_array );
                 break;
         }
 
@@ -934,7 +941,7 @@ DEFAULT_HTML;
      }
 
     public static function get_field_types($type){
-        $frm_field_selection = FrmFieldsHelper::field_selection();
+        $frm_field_selection = self::field_selection();
         $field_types = array();
 
         $single_input = array(
@@ -945,7 +952,7 @@ DEFAULT_HTML;
         $multiple_input = array('radio', 'checkbox', 'select', 'scale');
         $other_type = array('divider', 'html', 'break');
 
-        $pro_field_selection = FrmFieldsHelper::pro_field_selection();
+        $pro_field_selection = self::pro_field_selection();
 
         if ( in_array($type, $single_input) ) {
             foreach ( $single_input as $input ) {
@@ -975,7 +982,7 @@ DEFAULT_HTML;
     }
 
     public static function show_default_blank_js($default_blank){ ?>
-    <a href="javascript:void(0)" class="frm_bstooltip <?php echo ($default_blank) ? '' :'frm_inactive_icon '; ?>frm_default_val_icons frm_action_icon frm_error_icon frm_icon_font" title="<?php echo $default_blank ? __('Default value will NOT pass form validation', 'formidable') : __('Default value will pass form validation', 'formidable'); ?>"></a>
+    <a href="javascript:void(0)" class="frm_bstooltip <?php echo $default_blank ? '' : 'frm_inactive_icon '; ?>frm_default_val_icons frm_action_icon frm_error_icon frm_icon_font" title="<?php echo $default_blank ? esc_attr( 'Default value will NOT pass form validation', 'formidable' ) : esc_attr( 'Default value will pass form validation', 'formidable' ); ?>"></a>
     <?php
     }
 

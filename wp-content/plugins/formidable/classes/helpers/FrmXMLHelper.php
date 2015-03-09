@@ -43,7 +43,7 @@ class FrmXMLHelper{
 
         $dom = new DOMDocument;
 		$success = $dom->loadXML( file_get_contents( $file ) );
-		if ( !$success ) {
+		if ( ! $success ) {
 			return new WP_Error( 'SimpleXML_parse_error', __( 'There was an error when reading this XML file', 'formidable' ), libxml_get_errors() );
 		}
 
@@ -51,7 +51,7 @@ class FrmXMLHelper{
 		unset( $dom );
 
 		// halt if loading produces an error
-		if ( !$xml ) {
+		if ( ! $xml ) {
 			return new WP_Error( 'SimpleXML_parse_error', __( 'There was an error when reading this XML file', 'formidable' ), libxml_get_errors() );
 		}
 
@@ -114,7 +114,7 @@ class FrmXMLHelper{
 
             // if template, allow to edit if form keys match, otherwise, creation date must also match
             $edit_query = array('form_key' => $form['form_key'], 'is_template' => $form['is_template']);
-            if ( !$form['is_template'] ) {
+            if ( ! $form['is_template'] ) {
                 $edit_query['created_at'] = $form['created_at'];
             }
 
@@ -183,7 +183,7 @@ class FrmXMLHelper{
 
     		    $f = apply_filters('frm_duplicated_field', $f);
 
-    		    if ( $this_form ) {
+    		    if ( ! empty($this_form) ) {
     		        // check for field to edit by field id
     		        if ( isset($form_fields[$f['id']]) ) {
     		            FrmField::update( $f['id'], $f );
@@ -465,6 +465,9 @@ class FrmXMLHelper{
         }
     }
 
+    /**
+     * @param string $message
+     */
     public static function parse_message($result, &$message, &$errors) {
         if ( is_wp_error($result) ) {
             $errors[] = $result->get_error_message();

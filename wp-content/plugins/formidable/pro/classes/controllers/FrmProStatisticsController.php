@@ -112,7 +112,7 @@ class FrmProStatisticsController{
                 unset($lkey, $l);
             }
 
-            if ( isset($args['max']) && ! empty($args['max']) ) {
+            if ( isset($args['max']) && $args['max'] != '' ) {
                 $vals['options']['vAxis']['maxValue'] = $args['max'];
             }
 
@@ -184,7 +184,7 @@ class FrmProStatisticsController{
         self::get_entry_ids( $field, $args );
         
         // If there are no matching entry IDs for filtering values, end now
-        if ( $args['atts'] && !$args['entry_ids'] ) {
+        if ( $args['atts'] && ! $args['entry_ids'] ) {
             return;
         }
 
@@ -262,7 +262,7 @@ class FrmProStatisticsController{
 
         // Modify post inputs
         $field_options = '';
-        if ( !$args['atts'] ) {
+        if ( ! $args['atts'] ) {
             self::mod_post_inputs( $inputs, $field_options, $field, $form_posts, $args );
         }
 
@@ -292,7 +292,7 @@ class FrmProStatisticsController{
         // Get all inputs for this field
         $inputs = self::get_generic_inputs( $field, $args );
 
-        if ( !$inputs ) {
+        if ( ! $inputs ) {
             return;
         }
 
@@ -371,18 +371,18 @@ class FrmProStatisticsController{
     public static function field_opt_order_vals( &$temp_values, $field ) {
         $reorder_vals = array();
         foreach ( $field->options as $opt ) {
-            if ( !$opt ) {
+            if ( ! $opt ) {
                 continue;
             }
             if ( is_array( $opt ) ) {
-                if ( !isset( $opt['label'] ) || !$opt['label'] ) {
+                if ( ! isset( $opt['label'] ) || ! $opt['label'] ) {
                     continue;
                 }
                 $opt = strtolower( $opt['label'] );
             } else {
                 $opt = strtolower( $opt );
             }
-            if ( !isset( $temp_values[$opt] ) ) {
+            if ( ! isset( $temp_values[$opt] ) ) {
                 continue;
             }
             $reorder_vals[$opt] = $temp_values[$opt];
@@ -415,7 +415,7 @@ class FrmProStatisticsController{
         } else {
             $other_label = false;
             foreach ( $field->options as $opt_key => $opt ) {
-                if ( !$opt ) {
+                if ( ! $opt ) {
                     continue;
                 }
                 // If field option is "other" option
@@ -436,7 +436,7 @@ class FrmProStatisticsController{
                 } else if ( is_array( $opt) ) {
                     $opt_label = strtolower( $opt['label'] );
                     $opt_value = strtolower( $opt['value'] );
-                    if ( !$opt_value || !$opt_label ) {
+                    if ( ! $opt_value || ! $opt_label ) {
                         continue;
                     }
                 } else {
@@ -523,7 +523,7 @@ class FrmProStatisticsController{
         }
 
         // If x axis is not set, only set up cols as if there were one field
-        if ( !$args['x_axis'] ) {
+        if ( ! $args['x_axis'] ) {
             $args['fields'] = array( $field->id => $field );
         }
 
@@ -564,7 +564,7 @@ class FrmProStatisticsController{
 
             foreach ( $ids as $id_key => $f ) {
                 $ids[$id_key] = $f = trim($f);
-                if ( !$f ) {
+                if ( ! $f ) {
                     unset( $ids[$id_key] );
                     continue;
                 }
@@ -616,7 +616,7 @@ class FrmProStatisticsController{
     * @param $args - arguments array
     */
     public static function get_entry_ids( $field, &$args ) {
-        if ( !$args['entry_ids'] && !$args['atts'] ) {
+        if ( ! $args['entry_ids'] && ! $args['atts'] ) {
             return;
         }
 
@@ -659,7 +659,7 @@ class FrmProStatisticsController{
         $args['x_field'] = false;
 
         // If there is an x_axis and it is a field ID or key
-        if ( $args['x_axis'] && !in_array( $args['x_axis'], array( 'created_at', 'updated_at' ) ) ) {
+        if ( $args['x_axis'] && ! in_array( $args['x_axis'], array( 'created_at', 'updated_at' ) ) ) {
 			$args['x_field'] = FrmField::getOne( $args['x_axis'] );
 		}
     }
@@ -758,7 +758,7 @@ class FrmProStatisticsController{
             }
             unset($f, $f_id);
         }
-        if ( !$q ) {
+        if ( empty($q) ) {
             $f_inputs = array();
         }
 
@@ -787,7 +787,7 @@ class FrmProStatisticsController{
         }
 
         // There is no data, so don't graph
-        if ( !$inputs || !$x_inputs ) {
+        if ( ! $inputs || ! $x_inputs ) {
             return array();// TODO: When do I want to return an array and when do I want to return false?
 		}
 
@@ -807,16 +807,16 @@ class FrmProStatisticsController{
     * @return $inputs - cleaned inputs array
     */
     public static function clean_inputs( &$inputs, $field, $args ) {
-        if ( !$inputs ) {
+        if ( ! $inputs ) {
             return false;
         }
 
 	    //Break out any inner arrays (for checkbox or multi-select fields) and add them to the end of the $inputs array
-	    if ( !$args['x_axis'] && FrmFieldsHelper::is_field_with_multiple_values( $field ) ) {
+	    if ( ! $args['x_axis'] && FrmFieldsHelper::is_field_with_multiple_values( $field ) ) {
             $count = 0;
 		    foreach ( $inputs as $k => $i ) {
 			    $i = maybe_unserialize($i);
-			    if ( !is_array($i) ) {
+			    if ( ! is_array( $i ) ) {
 				    unset($k, $i);
 				    continue;
 			    }
@@ -855,7 +855,7 @@ class FrmProStatisticsController{
     * @param $args - arguments array
     */
     public static function mod_post_inputs( &$inputs, &$field_options, $field, $form_posts, $args ) {
-        if ( !$form_posts ) {
+        if ( ! $form_posts ) {
             return;
         }
 
@@ -921,13 +921,15 @@ class FrmProStatisticsController{
         if ( $x_inputs ) {
             $x_temp = array();
             foreach ( $x_inputs as $x_input ) {
-                if ( !$x_input )
+                if ( ! $x_input ) {
                     continue;
+                }
 
-                if ( $args['x_field'] )
+                if ( $args['x_field'] ) {
                     $x_temp[$x_input['item_id']] = $x_input['meta_value'];
-                else
+                } else {
                     $x_temp[$x_input['id']] = $x_input[$args['x_axis']];
+                }
             }
             $x_inputs = apply_filters('frm_graph_value', $x_temp, ($args['x_field'] ? $args['x_field'] : $args['x_axis']), $args);
             unset($x_temp, $x_input);
@@ -939,7 +941,7 @@ class FrmProStatisticsController{
                 $y_temp[$input['item_id']] = $input['meta_value'];
             }
             foreach ( $args['ids'] as $f_id ) {
-                if ( !isset( $f_values[$f_id] ) ) {
+                if ( ! isset( $f_values[ $f_id ] ) ) {
                     $f_values[$f_id] = array();
                 }
                 $f_values[$f_id][key($y_temp)] = 0;
@@ -960,18 +962,19 @@ class FrmProStatisticsController{
     * @param $args array
     */
     public static function format_f_inputs( &$f_inputs, &$f_values, $args ) {
-        if ( !$f_inputs ) {
+        if ( ! $f_inputs ) {
             return;
         }
-        foreach( $f_inputs as $f_id => $f ) {
+        foreach ( $f_inputs as $f_id => $f ) {
             $temp = array();
-            foreach( $f as $input ){
+            foreach ( $f as $input ) {
                 if ( is_array( $input ) ){
                     $temp[$input['item_id']] = $input['meta_value'];
 
                     foreach ( $args['ids'] as $d ) {
-                        if ( !isset( $f_values[$d][$input['item_id']] ) )
+                        if ( ! isset( $f_values[ $d ][ $input['item_id'] ] ) ) {
                             $f_values[$d][$input['item_id']] = 0;
+                        }
 
                         unset($d);
                     }
@@ -1009,7 +1012,7 @@ class FrmProStatisticsController{
         // Remove deleted users from values and show display name instead of user ID number
         foreach ( $temp_values as $user_id => $count ) {
             $user_info = get_userdata( $user_id );
-            if ( !$user_info ) {
+            if ( ! $user_info ) {
                 unset( $temp_values[$user_id] );
                 continue;
             }
@@ -1056,7 +1059,7 @@ class FrmProStatisticsController{
     * @param $args - arguments array
     */
     public static function get_final_x_axis_values( &$values, &$f_values, &$labels, &$tooltips, $inputs, $x_inputs, $f_inputs, $args ){
-        if ( !isset( $x_inputs ) || !$x_inputs ) {
+        if ( ! isset( $x_inputs ) || ! $x_inputs ) {
             return;
         }
         $calc_array = array();
@@ -1064,13 +1067,13 @@ class FrmProStatisticsController{
         //TODO: CHECK IF other option works with x axis
         foreach ( $inputs as $entry_id => $in ) {
             $entry_id = (int) $entry_id;
-            if ( !isset( $values[$entry_id] ) ) {
+            if ( ! isset( $values[$entry_id] ) ) {
                 $values[$entry_id] = 0;
             }
 
             $labels[$entry_id] = ( isset( $x_inputs[$entry_id] ) ) ? $x_inputs[$entry_id] : '';
 
-            if ( !isset( $calc_array[$entry_id] ) ) {
+            if ( ! isset( $calc_array[ $entry_id ] ) ) {
                 $calc_array[$entry_id] = array('count' => 0);
             }
 
@@ -1097,24 +1100,26 @@ class FrmProStatisticsController{
 
         $calc_array = array();
         foreach ( $f_inputs as $f_id => $f ) {
-            if ( !isset( $calc_array[$f_id] ) ) {
+            if ( ! isset( $calc_array[$f_id] ) ) {
                 $calc_array[$f_id] = array();
             }
 
             foreach ( $f as $entry_id => $in ) {
                 $entry_id = (int) $entry_id;
-                if(!isset($labels[$entry_id])){
+                if ( ! isset( $labels[ $entry_id ] ) ) {
                     $labels[$entry_id] = (isset($x_inputs[$entry_id])) ? $x_inputs[$entry_id] : '';
                     $values[$entry_id] = 0;
                 }
 
-                if(!isset($calc_array[$f_id][$entry_id]))
+                if ( ! isset( $calc_array[ $f_id ][ $entry_id ] ) ) {
                     $calc_array[$f_id][$entry_id] = array('count' => 0);
+                }
 
-                if(!isset($f_values[$f_id][$entry_id]))
+                if ( ! isset( $f_values[ $f_id ][ $entry_id ] ) ) {
                     $f_values[$f_id][$entry_id] = 0;
+                }
 
-                if($args['data_type'] == 'total' or $args['data_type'] == 'average'){
+                if ( $args['data_type'] == 'total' || $args['data_type'] == 'average' ) {
                     $f_values[$f_id][$entry_id] += (float) $in;
                     $calc_array[$f_id][$entry_id]['total'] = $f_values[$f_id][$entry_id];
                     $calc_array[$f_id][$entry_id]['count']++;
@@ -1168,10 +1173,12 @@ class FrmProStatisticsController{
                 unset($values[$used_vals[$label]]);
 
                 foreach($args['ids'] as $f_id){
-                    if(!isset($f_values[$f_id][$l_key]))
-                        $f_values[$f_id][$l_key] = 0;
-                    if(!isset($f_values[$f_id][$used_vals[$label]]))
+                    if ( ! isset($f_values[ $f_id ][ $l_key ]) ) {
+                        $f_values[ $f_id ][ $l_key ] = 0;
+                    }
+                    if ( ! isset( $f_values[ $f_id ][ $used_vals[ $label ] ] ) ) {
                         $f_values[$f_id][$used_vals[$label]] = 0;
+                    }
 
                     $f_values[$f_id][$l_key] += $f_values[$f_id][$used_vals[$label]];
                     unset($f_values[$f_id][$used_vals[$label]]);
@@ -1182,9 +1189,10 @@ class FrmProStatisticsController{
             }
             $used_vals[$label] = $l_key;
 
-            if($args['data_type'] == 'average'){
-                if(!isset($calc_array[$label]))
+            if ( $args['data_type'] == 'average' ) {
+                if ( ! isset( $calc_array[ $label ] ) ) {
                     $calc_array[$label] = 0;
+                }
                 $calc_array[$label]++;
             }
 
@@ -1243,12 +1251,13 @@ class FrmProStatisticsController{
 
             // Add the zero count days
             foreach($dates_array as $date_str){
-                if(!in_array($date_str, $labels)){
+                if ( ! in_array($date_str, $labels) ) {
                     $labels[$date_str] = $date_str;
                     $values[$date_str] = 0;
                     foreach($args['ids'] as $f_id){
-                        if(!isset($f_values[$f_id][$date_str]))
+                        if ( ! isset( $f_values[ $f_id ][ $date_str ] ) ) {
                             $f_values[$f_id][$date_str] = 0;
+                        }
                     }
                 }
             }
@@ -1259,7 +1268,7 @@ class FrmProStatisticsController{
         asort($labels);
 
         foreach($labels as $l_key => $l){
-            if ( ( ( isset( $args['x_field'] ) && $args['x_field'] && $args['x_field']->type == 'date') || in_array( $args['x_axis'], array('created_at', 'updated_at') ) ) && !$args['group_by'] ){
+            if ( ( ( isset( $args['x_field'] ) && $args['x_field'] && $args['x_field']->type == 'date') || in_array( $args['x_axis'], array('created_at', 'updated_at') ) ) && ! $args['group_by'] ) {
                 if ( $args['type'] != 'pie' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $l) ) {
                     $frmpro_settings = new FrmProSettings();
                     $labels[$l_key] = FrmProAppHelper::convert_date($l, 'Y-m-d', $frmpro_settings->date_format);
@@ -1292,7 +1301,7 @@ class FrmProStatisticsController{
     * @param $args - arguments array
     */
     public static function graph_by_period( &$values, &$f_values, &$labels, &$tooltips, $args ) {
-        if ( !isset( $args['group_by'] ) || !in_array( $args['group_by'], array( 'month','quarter' ) ) ) {
+        if ( ! isset( $args['group_by'] ) || ! in_array( $args['group_by'], array( 'month','quarter' ) ) ) {
             return;
         }
 
@@ -1505,22 +1514,25 @@ class FrmProStatisticsController{
         // Get the dates array
         if($type == 'HOUR'){
             for($e = $start_timestamp; $e <= $end_timestamp; $e += 60*60){
-                if(!in_array(date('Y-m-d H', $e) .':00:00' , $dates_array))
+                if ( ! in_array(date('Y-m-d H', $e) .':00:00' , $dates_array) ) {
                     $dates_array[] = date('Y-m-d H', $e) .':00:00';
+                }
             }
 
             $date_format = get_option('time_format');
         }else if($type == 'MONTH'){
             for($e = $start_timestamp; $e <= $end_timestamp; $e += 60*60*24*25){
-                if(!in_array(date('Y-m', $e) .'-01', $dates_array))
+                if ( ! in_array(date('Y-m', $e) .'-01', $dates_array) ) {
                     $dates_array[] = date('Y-m', $e) .'-01';
+                }
             }
 
             $date_format = 'F Y';
         }else if($type == 'YEAR'){
             for($e = $start_timestamp; $e <= $end_timestamp; $e += 60*60*24*364){
-                if(!in_array(date('Y', $e) .'-01-01', $dates_array))
+                if ( ! in_array( date('Y', $e) .'-01-01', $dates_array ) ) {
                     $dates_array[] = date('Y', $e) .'-01-01';
+                }
             }
 
             $date_format = 'Y';
@@ -1573,7 +1585,7 @@ class FrmProStatisticsController{
 
         global $frm_google_chart;
         $js_content = '<script type="text/javascript">';
-        if(!$frm_google_chart){
+        if ( ! $frm_google_chart ) {
             $js_content = '<script type="text/javascript" src="https://www.google.com/jsapi"></script>';
             $js_content .= '<script type="text/javascript">';
             $js_content .= "google.load('visualization','1.0',{'packages':['corechart']});\n";
@@ -1645,8 +1657,8 @@ class FrmProStatisticsController{
         // Make sure x_order is set up to work with abc
 
         // If no id, stop now
-        if ( !$atts || !$atts['id'] ) {
-            echo 'You must include a field id or key in your graph shortcode.';
+        if ( ! $atts || ! $atts['id'] ) {
+            echo __( 'You must include a field id or key in your graph shortcode.', 'formidable' );
             return;
         }
 
@@ -1677,8 +1689,8 @@ class FrmProStatisticsController{
         unset( $atts['include_js'] );
 
         // Reverse compatibility for id2, id3, and id4
-        if ( !$atts['ids'] && ( $atts['id2'] || $atts['id3'] || $atts['id4'] ) ) {
-            echo 'Id2, id3, and id4 are deprecated. Please use ids instead.';
+        if ( ! $atts['ids'] && ( $atts['id2'] || $atts['id3'] || $atts['id4'] ) ) {
+            _deprecated_argument( __FUNCTION__, '1.07.05', __( 'id2, id3, and id4 are deprecated. Please use ids instead.', 'formidable' ) );
             $atts['ids'] = array( $atts['id2'], $atts['id3'], $atts['id4'] );
             $atts['ids'] = implode(',', $atts['ids']);
             unset( $atts['id2'], $atts['id3'], $atts['id4'] );
@@ -1705,7 +1717,7 @@ class FrmProStatisticsController{
         }
 
         // Reverse compatibility for x_order=0
-        if ( !$atts['x_order'] ) {
+        if ( ! $atts['x_order'] ) {
             $atts['x_order'] = 'field_opts';
         }
 
@@ -1713,7 +1725,7 @@ class FrmProStatisticsController{
         // Reverse compatibility for response_count
         if ( $atts['limit'] ) {
             $atts['x_order'] = 'desc';
-        } if ( !$atts['limit'] ) {
+        } if ( ! $atts['limit'] ) {
             $atts['limit'] = $atts['response_count'];
         }
 
@@ -1750,7 +1762,7 @@ class FrmProStatisticsController{
 
             foreach ( $atts['id'] as $key => $id ) {
                 //If using field keys, retrieve the field IDs
-        		if ( !is_numeric( $id ) ) {
+        		if ( ! is_numeric( $id ) ) {
         			$atts['id'][$key] = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$wpdb->prefix}frm_fields WHERE field_key=%s", $id ) );
         		}
                 unset( $key, $id );
@@ -1769,12 +1781,12 @@ class FrmProStatisticsController{
             unset( $atts['id']);
         }
 
-        if ( !empty( $atts['colors'] ) ) {
+        if ( ! empty( $atts['colors'] ) ) {
             $atts['colors'] = explode( ',', $atts['colors'] );
         }
 
         $js_content = '<script type="text/javascript">';
-        if ( $include_js && !$frm_google_chart){
+        if ( $include_js && ! $frm_google_chart ) {
             $js_content = '<script type="text/javascript" src="https://www.google.com/jsapi"></script>';
             $js_content .= '<script type="text/javascript">';
             $js_content .= "google.load('visualization', '1.0', {'packages':['". ( $atts['type'] == 'geo' ? 'geochart' : 'corechart')."']});\n";
@@ -1785,7 +1797,7 @@ class FrmProStatisticsController{
         }
 
         global $frm_gr_count;
-        if ( !$frm_gr_count ) {
+        if ( ! $frm_gr_count ) {
             $frm_gr_count = 0;
         }
 

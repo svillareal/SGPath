@@ -30,7 +30,7 @@ class FrmProSettings extends FrmSettings{
             $this->date_format = 'm/d/Y';
         }
 
-        if ( !isset($this->cal_date_format) ) {
+        if ( ! isset($this->cal_date_format) ) {
             $this->cal_date_format = 'mm/dd/yy';
         }
 

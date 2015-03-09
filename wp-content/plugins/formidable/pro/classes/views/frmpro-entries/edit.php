@@ -4,8 +4,8 @@
         <?php do_action('frm_entry_inside_h2', $form); ?>
     </h2>
 
-	<div class="frm_forms<?php echo FrmFormsHelper::get_form_style_class($values); ?>" id="frm_form_<?php echo $form->id ?>_container">
-        <form enctype="multipart/form-data" method="post" id="form_<?php echo $form->form_key ?>" class="frm-show-form">
+	<div class="frm_forms<?php echo FrmFormsHelper::get_form_style_class($values); ?>" id="frm_form_<?php echo (int) $form->id ?>_container">
+        <form enctype="multipart/form-data" method="post" id="form_<?php echo esc_attr( $form->form_key ) ?>" class="frm-show-form">
 
         <div id="poststuff">
         <div id="post-body" class="metabox-holder columns-2">

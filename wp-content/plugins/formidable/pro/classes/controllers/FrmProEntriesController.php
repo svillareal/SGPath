@@ -2,22 +2,10 @@
 
 class FrmProEntriesController{
 
-    public static function head() {
-        $theme_css = FrmStylesController::get_style_val('theme_css');
-        if ( $theme_css == -1 ) {
-            return;
-        }
-
-        $css_file = array(FrmStylesHelper::jquery_css_url($theme_css));
-
-        require(FrmAppHelper::plugin_path() .'/classes/views/shared/head.php');
-    }
-
     public static function admin_js() {
         $frm_settings = FrmAppHelper::get_settings();
 
         add_filter('manage_'. sanitize_title($frm_settings->menu) .'_page_formidable-entries_columns', 'FrmProEntriesController::manage_columns', 25);
-        add_action('admin_head-'. sanitize_title($frm_settings->menu) .'_page_formidable-entries', 'FrmProEntriesController::head');
 
         if ( current_user_can('administrator') && ! current_user_can('frm_edit_entries') ) {
             global $wp_roles;
@@ -42,6 +30,13 @@ class FrmProEntriesController{
             wp_enqueue_script('jquery-ui-widget');
             wp_enqueue_script('jquery-ui-accordion');
         }
+
+        $theme_css = FrmStylesController::get_style_val('theme_css');
+        if ( $theme_css == -1 ) {
+            return;
+        }
+
+        wp_enqueue_style($theme_css, FrmStylesHelper::jquery_css_url($theme_css));
     }
 
     public static function remove_fullscreen($init){
@@ -254,11 +249,11 @@ class FrmProEntriesController{
         $_SERVER['REQUEST_URI'] = str_replace('&frm_action=new', '', $_SERVER['REQUEST_URI']);
 
         global $frm_vars;
-        if ( !isset($frm_vars['created_entries'][$form->id]) || !$frm_vars['created_entries'][$form->id] ) {
+        if ( ! isset($frm_vars['created_entries'][ $form->id ]) || ! $frm_vars['created_entries'][ $form->id ] ) {
             $frm_vars['created_entries'][$form->id] = array();
         }
 
-        if ( !isset($frm_vars['created_entries'][$_POST['form_id']]['entry_id']) ) {
+        if ( ! isset($frm_vars['created_entries'][ $_POST['form_id'] ]['entry_id']) ) {
             $record = $frm_vars['created_entries'][$form->id]['entry_id'] = FrmEntry::create( $_POST );
         }
 
@@ -354,8 +349,9 @@ class FrmProEntriesController{
         }else{
             $frm_settings = FrmAppHelper::get_settings();
 
-            if(!is_array($items))
+            if ( ! is_array($items) ) {
                 $items = explode(',', $items);
+            }
 
             if($bulkaction == 'delete'){
                 if(!current_user_can('frm_delete_entries')){
@@ -378,7 +374,7 @@ class FrmProEntriesController{
                 $form_id = $params['form'];
                 if ( ! $form_id ) {
                     $form = FrmForm::getAll("is_template=0 AND (status is NULL OR status = '' OR status = 'published')", 'name', 1);
-                    if ( $form ) {
+                    if ( ! empty($form) ) {
                         $form_id = $form->id;
                     } else {
                         $errors[] = __('No form was found', 'formidable');
@@ -428,7 +424,13 @@ class FrmProEntriesController{
     }
 
     public static function remove_draft_hooks($entry_id) {
-        if ( !FrmProEntriesHelper::get_field('is_draft', $entry_id) ) {
+        if ( ! FrmProEntriesHelper::get_field('is_draft', $entry_id) ) {
+            return;
+        }
+
+        // don't let sub entries remove these hooks
+        $entry = FrmEntry::getOne($entry_id);
+        if ( $entry->parent_item_id ) {
             return;
         }
 
@@ -492,8 +494,9 @@ class FrmProEntriesController{
             }
 
             //don't update if going back
-            if (isset($_POST['frm_page_order_'. $form->id]) or FrmProFormsHelper::going_to_prev($form->id))
+            if ( isset($_POST['frm_page_order_'. $form->id]) || FrmProFormsHelper::going_to_prev($form->id) ) {
                 return;
+            }
 
             FrmEntry::update( $params['id'], $_POST );
 
@@ -565,7 +568,7 @@ class FrmProEntriesController{
         $entry = FrmProEntriesHelper::user_can_edit($entry_key, $form);
         unset($entry_key);
 
-        if ( $entry && !is_array($entry) ) {
+        if ( $entry && ! is_array($entry) ) {
             $entry = FrmEntry::getAll( $where, '', 1, true);
         }
 
@@ -610,7 +613,7 @@ class FrmProEntriesController{
             return;
         }
 
-        if ( $form->editable && ( ( isset($form->options['open_editable']) && $form->options['open_editable'] ) || !isset($form->options['open_editable']) ) && isset($form->options['open_editable_role']) && FrmAppHelper::user_has_permission($form->options['open_editable_role']) ) {
+        if ( $form->editable && ( ( isset($form->options['open_editable']) && $form->options['open_editable'] ) || ! isset($form->options['open_editable']) ) && isset($form->options['open_editable_role']) && FrmAppHelper::user_has_permission($form->options['open_editable_role']) ) {
             $meta = true;
         } else {
             $meta = $wpdb->get_var($wpdb->prepare('SELECT id FROM '. $wpdb->prefix .'frm_items WHERE user_id=%d AND id=%d AND form_id=%d', $user_ID, $entry_id, $form->id ));
@@ -748,7 +751,7 @@ class FrmProEntriesController{
         if(is_object($submit))
             $submit = $submit->name;
 
-        if(!isset($frm_vars['prev_page'][$form->id]) and isset($_POST['item_meta']) and empty($errors) and $form->id == FrmAppHelper::get_param('form_id')){
+        if ( ! isset($frm_vars['prev_page'][$form->id]) && isset($_POST['item_meta']) && empty($errors) && $form->id == FrmAppHelper::get_param('form_id') ) {
             $show_form = (isset($form->options['show_form'])) ? $form->options['show_form'] : true;
             if ( FrmProFormsHelper::saving_draft() || FrmProFormsHelper::going_to_prev($form->id) ) {
                 $show_form = true;
@@ -765,7 +768,7 @@ class FrmProEntriesController{
                     do_action('frm_success_action', $conf_method, $form, $form->options, $id, $success_args);
                 }
             }
-        }else if(isset($frm_vars['prev_page'][$form->id]) or !empty($errors)){
+        } else if ( isset($frm_vars['prev_page'][$form->id]) || ! empty($errors) ) {
             $jump_to_form = true;
         }
 
@@ -801,10 +804,10 @@ class FrmProEntriesController{
     }
 
     public static function confirmation($method, $form, $form_options, $entry_id, $args=array()){
-        $opt = ( !isset($args['action']) || $args['action'] == 'create' ) ? 'success' : 'edit';
+        $opt = ( ! isset($args['action']) || $args['action'] == 'create' ) ? 'success' : 'edit';
         if ( $method == 'page' && is_numeric($form_options[$opt .'_page_id']) ) {
             global $post;
-            if ( !$post || $form_options[$opt .'_page_id'] != $post->ID ) {
+            if ( ! $post || $form_options[$opt .'_page_id'] != $post->ID ) {
                 $page = get_post($form_options[$opt .'_page_id']);
                 $old_post = $post;
                 $post = $page;
@@ -890,8 +893,9 @@ class FrmProEntriesController{
     }
 
     public static function create_entry_from_post_box($post_type, $post=false){
-        if(!$post or !isset($post->ID) or $post_type == 'attachment' or $post_type == 'link')
+        if ( ! $post || ! isset($post->ID) || $post_type == 'attachment' || $post_type == 'link' ) {
             return;
+        }
 
         global $wpdb, $frm_vars;
 
@@ -902,8 +906,9 @@ class FrmProEntriesController{
 
         //don't show meta box if no forms are set up to create this post type
         $forms = $wpdb->get_results("SELECT id, name FROM {$wpdb->prefix}frm_forms where options LIKE '%s:9:\"post_type\";s:". strlen($post_type) .":\"". $post_type ."\";%' AND options LIKE '%s:11:\"create_post\";s:1:\"1\";%'");
-        if(!$forms)
+        if ( ! $forms ) {
             return;
+        }
 
         $frm_vars['post_forms'] = $forms;
 
@@ -937,14 +942,17 @@ success:function(msg){jQuery('#frm_create_entry').fadeOut('slow');}
     }
 
     public static function create_post_entry($id=false, $post_id=false){
-        if(!$id)
+        if ( ! $id ) {
             $id = $_POST['id'];
+        }
 
-        if(!$post_id)
+        if ( ! $post_id ) {
             $post_id = $_POST['post_id'];
+        }
 
-        if(!is_numeric($id) or !is_numeric($post_id))
+        if ( ! is_numeric($id) || ! is_numeric($post_id) ) {
             return;
+        }
 
         $post = get_post($post_id);
 
@@ -962,13 +970,14 @@ success:function(msg){jQuery('#frm_create_entry').fadeOut('slow');}
         $results = $wpdb->insert( $wpdb->prefix .'frm_items', $values );
         unset($values);
 
-        if(!$results)
+        if ( ! $results ) {
             die();
+        }
 
         $entry_id = $wpdb->insert_id;
         $user_id_field = FrmField::get_all_types_in_form($id, 'user_id', 1);
 
-        if($user_id_field){
+        if ( $user_id_field ) {
             $new_values = array(
                 'meta_value' => $post->post_author,
                 'item_id' => $entry_id,
@@ -980,8 +989,9 @@ success:function(msg){jQuery('#frm_create_entry').fadeOut('slow');}
         }
 
         $display = FrmProDisplay::get_auto_custom_display(array('form_id' => $id, 'entry_id' => $entry_id));
-        if($display)
+        if ( $display ) {
             update_post_meta($post->ID, 'frm_display_id', $display->ID);
+        }
 
         die();
     }
@@ -990,7 +1000,7 @@ success:function(msg){jQuery('#frm_create_entry').fadeOut('slow');}
 
     /* Export to CSV */
     public static function csv($form_id=false, $search = '', $fid = ''){
-        if(!$form_id){
+        if ( ! $form_id ) {
             $form_id = FrmAppHelper::get_param('form');
             $search = FrmAppHelper::get_param(isset($_REQUEST['s']) ? 's' : 'search');
             $fid = FrmAppHelper::get_param('fid');
@@ -998,7 +1008,7 @@ success:function(msg){jQuery('#frm_create_entry').fadeOut('slow');}
 
         FrmAppHelper::permission_check('frm_view_entries');
 
-        if( !ini_get('safe_mode') ){
+        if ( ! ini_get('safe_mode') ) {
             set_time_limit(0); //Remove time limit to execute this function
             $mem_limit = str_replace('M', '', ini_get('memory_limit'));
             if ( (int) $mem_limit < 256 ) {
@@ -1889,30 +1899,32 @@ success:function(msg){jQuery('#frm_create_entry').fadeOut('slow');}
 
     public static function entry_delete_link($atts){
         global $post, $frm_vars;
-        extract(shortcode_atts(array(
+        $atts = shortcode_atts(array(
             'id' => (isset($frm_vars['editing_entry']) ? $frm_vars['editing_entry'] : false), 'label' => __('Delete'),
             'confirm' => __('Are you sure you want to delete that entry?', 'formidable'),
             'class' => '', 'page_id' => (($post) ? $post->ID : 0), 'html_id' => false, 'prefix' => '',
             'title' => '',
-        ), $atts));
+        ), $atts);
 
-        $entry_id = ( $id && is_numeric($id) ) ? $id : ( FrmAppHelper::is_admin() ? FrmAppHelper::get_param('id', false) : FrmAppHelper::get_param('entry', false) );
+        $entry_id = ( $atts['id'] && is_numeric($atts['id']) ) ? $atts['id'] : ( FrmAppHelper::is_admin() ? FrmAppHelper::get_param('id', false) : FrmAppHelper::get_param('entry', false) );
 
-        if(empty($entry_id))
+        if ( empty($entry_id) ) {
             return '';
+        }
 
         // Check if user has permission to delete before showing link
-        if ( !FrmProEntriesHelper::user_can_delete($entry_id) ) {
+        if ( ! FrmProEntriesHelper::user_can_delete($entry_id) ) {
             return '';
         }
 
         $frm_vars['forms_loaded'][] = true;
 
-        if(!empty($prefix)){
-            if(!$html_id)
-                $html_id = "frm_delete_{$entry_id}";
+        if ( ! empty($atts['prefix']) ) {
+            if ( ! $atts['html_id'] ) {
+                $atts['html_id'] = 'frm_delete_'. $entry_id;
+            }
 
-            $link = "<a href='javascript:frmDeleteEntry($entry_id,\"$prefix\")' class='frm_delete_link $class' id='$html_id' onclick='return confirm(\"". $confirm ."\")'>$label</a>\n";
+            $link = "<a href='javascript:frmDeleteEntry(". $entry_id .",\"". $atts['prefix'] ."\")' class='frm_delete_link ". $atts['class'] ."' id='". $atts['html_id'] ."' onclick='return confirm(\"". $atts['confirm'] ."\")'>". $atts['label'] ."</a>\n";
             return $link;
         }
 
@@ -1920,33 +1932,35 @@ success:function(msg){jQuery('#frm_create_entry').fadeOut('slow');}
 
         // Delete entry now
         $action = FrmAppHelper::get_param('frm_action');
-        if($action == 'destroy'){
+        if ( $action == 'destroy' ) {
             $entry_key = FrmAppHelper::get_param('entry');
-            if(is_numeric($entry_key) and $entry_key == $entry_id){
+            if ( is_numeric($entry_key) && $entry_key == $entry_id ) {
                 $link = self::ajax_destroy(false, false, false);
-                if(!empty($link)){
+                if ( ! empty($link) ) {
                     $new_link = '<div class="frm_message">'. $link .'</div>';
-                    if(empty($label))
-                       return;
+                    if ( empty($atts['label']) ) {
+                        return;
+                    }
 
-                    if($link == __('Your entry was successfully deleted', 'formidable'))
+                    if ( $link == __('Your entry was successfully deleted', 'formidable') ) {
                         return $new_link;
-                    else
+                    } else {
                         $link = $new_link;
+                    }
 
                     unset($new_link);
                 }
             }
         }
 
-        $delete_link = wp_nonce_url(admin_url('admin-ajax.php') . '?action=frm_entries_destroy&entry='. $entry_id .'&redirect='. $page_id, 'frm_ajax', 'nonce');
-        if(empty($label)){
+        $delete_link = wp_nonce_url(admin_url('admin-ajax.php') . '?action=frm_entries_destroy&entry='. $entry_id .'&redirect='. $atts['page_id'], 'frm_ajax', 'nonce');
+        if ( empty($atts['label']) ) {
             $link .= $delete_link;
-        }else{
-            if ( empty($title) ) {
-                $title = $label;
+        } else {
+            if ( empty($atts['title']) ) {
+                $atts['title'] = $atts['label'];
             }
-            $link .= '<a href="'. esc_url($delete_link) .'" class="'. $class .'" onclick="return confirm(\''. $confirm .'\')" title="'. esc_attr($title) .'">'. $label .'</a>'. "\n";
+            $link .= '<a href="'. esc_url($delete_link) .'" class="'. $atts['class'] .'" onclick="return confirm(\''. $atts['confirm'] .'\')" title="'. esc_attr($atts['title']) .'">'. $atts['label'] .'</a>'. "\n";
         }
 
         return $link;
@@ -2067,11 +2081,13 @@ success:function(msg){jQuery('#frm_create_entry').fadeOut('slow');}
             return;
         }
 
-        if(!$entry_id)
+        if ( ! $entry_id ) {
             $entry_id = FrmAppHelper::get_param('entry_id');
+        }
 
-        if(!$form_id)
+        if ( ! $form_id ) {
             $form_id = FrmAppHelper::get_param('form_id');
+        }
 
         $form = FrmForm::getOne($form_id);
         $expiration = isset($form->options['cookie_expiration']) ? ( (float) $form->options['cookie_expiration'] *60*60 ) : 30000000;
@@ -2081,7 +2097,7 @@ success:function(msg){jQuery('#frm_create_entry').fadeOut('slow');}
 
     public static function ajax_create(){
         $form = FrmForm::getOne($_POST['form_id']);
-        if(!$form){
+        if ( ! $form ) {
             echo false;
             die();
         }
@@ -2119,7 +2135,7 @@ success:function(msg){jQuery('#frm_create_entry').fadeOut('slow');}
                 echo FrmFormsController::show_form($form->id);
 
                 // trigger the footer scripts if there is a form to show
-                if ( $errors || !isset($form->options['show_form']) || $form->options['show_form'] || !isset($processed) ) {
+                if ( $errors || ! isset( $form->options['show_form'] ) || $form->options['show_form'] || ! isset( $processed ) ) {
                     self::register_scripts();
 
                     self::enqueue_footer_js();
@@ -2136,7 +2152,7 @@ success:function(msg){jQuery('#frm_create_entry').fadeOut('slow');}
 
                     $keep_styles = apply_filters('frm_ajax_load_styles', array('dashicons', 'jquery-theme'));
                     foreach ( $wp_styles->registered as $s => $info ) {
-                        if ( !is_array($keep_styles) || !in_array($s, $keep_styles) ) {
+                        if ( ! is_array($keep_styles) || ! in_array($s, $keep_styles) ) {
                             $wp_styles->done[] = $s;
                         }
 
@@ -2263,13 +2279,15 @@ success:function(msg){jQuery('#frm_create_entry').fadeOut('slow');}
         $frm_vars['ajax_edit'] = ($entry_id) ? $entry_id : true;
         $_GET['entry'] = $entry_id;
 
-        if($post_id and is_numeric($post_id)){
+        if ( $post_id && is_numeric($post_id) ) {
             global $post;
-            if(!$post)
+            if ( ! $post ) {
                 $post = get_post($post_id);
+            }
         }
 
         wp_enqueue_script('formidable');
+        $frm_vars['footer_loaded'] = true;
 
         echo "<script type='text/javascript'>
 /*<![CDATA[*/
@@ -2281,8 +2299,8 @@ $('#frm_form_". $id ."_container .frm-show-form').submit(window.frmOnSubmit);
         echo FrmFormsController::get_form_shortcode(compact('id', 'entry_id'));
 
         $frm_vars['ajax_edit'] = false;
-        //if(!isset($_POST) or (!isset($_POST['action']) and !isset($_POST['frm_action])))
-        //    echo self::footer_js();
+
+        echo self::after_footer_loaded();
 
         die();
     }
@@ -2296,37 +2314,38 @@ $('#frm_form_". $id ."_container .frm-show-form').submit(window.frmOnSubmit);
 
         $entry_id = (int) $entry_id;
 
-        if(!$entry_id)
+        if ( ! $entry_id ) {
             die();
+        }
 
         $where = $wpdb->prepare( is_numeric($field_id) ? "fi.id=%d" : "field_key=%s", $field_id);
 
         $field = FrmField::getAll($where, '', ' LIMIT 1');
 
-        if ( !$field || !FrmProEntriesHelper::user_can_edit($entry_id, $field->form_id) ) {
+        if ( ! $field || ! FrmProEntriesHelper::user_can_edit( $entry_id, $field->form_id ) ) {
             die();
         }
 
         $post_id = false;
-        if ( isset($field->field_options['post_field']) && !empty($field->field_options['post_field']) ) {
+        if ( isset($field->field_options['post_field']) && ! empty($field->field_options['post_field']) ) {
             $post_id = $wpdb->get_var($wpdb->prepare("SELECT post_id FROM {$wpdb->prefix}frm_items WHERE id=%d", $entry_id ));
         }
 
-        if(!$post_id){
+        if ( ! $post_id ) {
             $updated = FrmEntryMeta::update_entry_meta($entry_id, $field_id, $meta_key = null, $value);
 
-            if ( !$updated ) {
+            if ( ! $updated ) {
                 $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->prefix}frm_item_metas WHERE item_id = %d and field_id = %d", $entry_id, $field_id));
                 $updated = FrmEntryMeta::add_entry_meta($entry_id, $field_id, '', $value);
             }
             wp_cache_delete( $entry_id, 'frm_entry');
         }else{
-            switch($field->field_options['post_field']){
+            switch ( $field->field_options['post_field'] ) {
                 case 'post_custom':
                     $updated = update_post_meta($post_id, $field->field_options['custom_field'], maybe_serialize($value));
                 break;
                 case 'post_category':
-                    $taxonomy = (isset($field->field_options['taxonomy']) and !empty($field->field_options['taxonomy'])) ? $field->field_options['taxonomy'] : 'category';
+                    $taxonomy = ( isset($field->field_options['taxonomy']) && ! empty($field->field_options['taxonomy']) ) ? $field->field_options['taxonomy'] : 'category';
                     $updated = wp_set_post_terms( $post_id, $value, $taxonomy );
                 break;
                 default:
@@ -2350,7 +2369,7 @@ $('#frm_form_". $id ."_container .frm-show-form').submit(window.frmOnSubmit);
     }
 
     public static function send_email(){
-        if(current_user_can('frm_view_forms') or current_user_can('frm_edit_forms') or current_user_can('frm_edit_entries')){
+        if ( current_user_can('frm_view_forms') || current_user_can('frm_edit_forms') || current_user_can('frm_edit_entries') ) {
             $entry_id = FrmAppHelper::get_param('entry_id');
             $form_id = FrmAppHelper::get_param('form_id');
 

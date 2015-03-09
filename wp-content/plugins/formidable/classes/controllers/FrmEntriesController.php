@@ -1,6 +1,6 @@
 <?php
 
-class FrmEntriesController{
+class FrmEntriesController {
 
     public static function menu() {
         if ( current_user_can('administrator') && !current_user_can('frm_view_entries') ) {
@@ -9,11 +9,10 @@ class FrmEntriesController{
             $wp_roles->add_cap( 'administrator', 'frm_delete_entries' );
         }
 
-        $frm_settings = FrmAppHelper::get_settings();
-
-        add_submenu_page('formidable', $frm_settings->menu .' | '. __('Entries', 'formidable'), __('Entries', 'formidable'), 'frm_view_entries', 'formidable-entries', 'FrmEntriesController::route' );
+        add_submenu_page('formidable', 'Formidable | '. __('Entries', 'formidable'), __('Entries', 'formidable'), 'frm_view_entries', 'formidable-entries', 'FrmEntriesController::route' );
 
         if ( ! isset($_GET['frm_action']) || ! in_array($_GET['frm_action'], array('edit', 'show')) ) {
+            $frm_settings = FrmAppHelper::get_settings();
             add_filter('manage_'. sanitize_title($frm_settings->menu) .'_page_formidable-entries_columns', 'FrmEntriesController::manage_columns' );
             add_filter('manage_'. sanitize_title($frm_settings->menu) .'_page_formidable-entries_sortable_columns', 'FrmEntriesController::sortable_columns' );
             add_filter('get_user_option_manage'. sanitize_title($frm_settings->menu) .'_page_formidable-entriescolumnshidden', 'FrmEntriesController::hidden_columns' );
@@ -70,8 +69,8 @@ class FrmEntriesController{
         global $frm_vars, $wpdb;
         $form_id = FrmEntriesHelper::get_current_form_id();
 
-        $columns[$form_id .'_id'] = 'ID';
-        $columns[$form_id .'_item_key'] = __('Entry Key', 'formidable');
+        $columns[ $form_id .'_id' ] = 'ID';
+        $columns[ $form_id .'_item_key' ] = __('Entry Key', 'formidable');
 
         if ( ! $form_id ) {
             return $columns;
@@ -84,35 +83,36 @@ class FrmEntriesController{
                 continue;
             }
 
-            if ( isset($form_col->field_options['separate_value']) && $form_col->field_options['separate_value'] ) {
-                $columns[$form_id .'_frmsep_'. $form_col->field_key] = FrmAppHelper::truncate($form_col->name, 35);
-            }
-
-            if ( $form_col->type == 'form' && isset($form_col->field_options['form_select']) && !empty($form_col->field_options['form_select']) ) {
+            if ( $form_col->type == 'form' && isset( $form_col->field_options['form_select'] ) && ! empty( $form_col->field_options['form_select'] ) ) {
                 $sub_form_cols = FrmField::get_all_for_form($form_col->field_options['form_select']);
 
                 if ( $sub_form_cols ) {
                     foreach ( $sub_form_cols as $k => $sub_form_col ) {
                         if ( in_array($sub_form_col->type, FrmFieldsHelper::no_save_fields()) ) {
-                            unset($sub_form_cols[$k]);
+                            unset( $sub_form_cols[ $k ] );
                             continue;
                         }
-                        $columns[$form_id .'_'. $sub_form_col->field_key .'-_-'. $form_col->id] = FrmAppHelper::truncate($sub_form_col->name, 35);
+                        $columns[ $form_id .'_'. $sub_form_col->field_key .'-_-'. $form_col->id ] = FrmAppHelper::truncate( $sub_form_col->name, 35 );
                         unset($sub_form_col);
                     }
                 }
                 unset($sub_form_cols);
-            } else if ( $form_col->form_id != $form_id ) {
-                $columns[$form_id .'_'. $form_col->field_key .'-_-form'. $form_col->form_id] = FrmAppHelper::truncate($form_col->name, 35);
             } else {
-                $columns[$form_id .'_'. $form_col->field_key] = FrmAppHelper::truncate($form_col->name, 35);
-            }
+                $col_id = $form_col->field_key;
+                if ( $form_col->form_id != $form_id ) {
+                    $col_id .= '-_-form'. $form_col->form_id;
+                }
 
+                if ( isset($form_col->field_options['separate_value']) && $form_col->field_options['separate_value'] ) {
+                    $columns[ $form_id .'_frmsep_'. $col_id ] = FrmAppHelper::truncate( $form_col->name, 35 );
+                }
+                $columns[ $form_id .'_'. $col_id ] = FrmAppHelper::truncate( $form_col->name, 35 );
+            }
         }
 
-        $columns[$form_id .'_created_at'] = __('Entry creation date', 'formidable');
-        $columns[$form_id .'_updated_at'] = __('Entry update date', 'formidable');
-        $columns[$form_id .'_ip'] = 'IP';
+        $columns[ $form_id .'_created_at' ] = __( 'Entry creation date', 'formidable' );
+        $columns[ $form_id .'_updated_at' ] = __( 'Entry update date', 'formidable' );
+        $columns[ $form_id .'_ip' ] = 'IP';
 
         $frm_vars['cols'] = $columns;
 
@@ -143,18 +143,21 @@ class FrmEntriesController{
     public static function update_hidden_cols($meta_id, $object_id, $meta_key, $meta_value ){
         $frm_settings = FrmAppHelper::get_settings();
 
-        if($meta_key != 'manage'.  sanitize_title($frm_settings->menu) .'_page_formidable-entriescolumnshidden')
+        $sanitized = sanitize_title($frm_settings->menu);
+        if ( $meta_key != 'manage'.  $sanitized .'_page_formidable-entriescolumnshidden' ) {
             return;
+        }
 
         global $frm_vars;
         if ( ! isset($frm_vars['prev_hidden_cols']) || ! $frm_vars['prev_hidden_cols'] ) {
             return; //don't continue if there's no previous value
         }
 
-        foreach($meta_value as $mk => $mv){
+        foreach ( $meta_value as $mk => $mv ) {
             //remove blank values
-            if(empty($mv))
-                unset($meta_value[$mk]);
+            if ( empty( $mv )  ) {
+                unset( $meta_value[ $mk ] );
+            }
         }
 
         $cur_form_prefix = reset($meta_value);
@@ -170,8 +173,10 @@ class FrmEntriesController{
 
             $form_prefix = explode('_', $prev_hidden);
             $form_prefix = $form_prefix[0];
-            if($form_prefix == $cur_form_prefix) //don't add back columns that are meant to be hidden
+            if ( $form_prefix == $cur_form_prefix ) {
+                //don't add back columns that are meant to be hidden
                 continue;
+            }
 
             $meta_value[] = $prev_hidden;
             $save = true;
@@ -180,7 +185,7 @@ class FrmEntriesController{
 
         if($save){
             $user = wp_get_current_user();
-            update_user_option($user->ID, 'manage'.  sanitize_title($frm_settings->menu) .'_page_formidable-entriescolumnshidden', $meta_value, true);
+            update_user_option( $user->ID, 'manage'.  $sanitized .'_page_formidable-entriescolumnshidden', $meta_value, true );
         }
     }
 
@@ -244,10 +249,11 @@ class FrmEntriesController{
             return $result;
 
         global $frm_vars;
-        if(isset($frm_vars['current_form']) and $frm_vars['current_form'])
+        if ( isset($frm_vars['current_form']) && $frm_vars['current_form'] ) {
             $frm_vars['current_form']->options = maybe_unserialize($frm_vars['current_form']->options);
+        }
 
-        if(isset($frm_vars['current_form']) and $frm_vars['current_form'] and isset($frm_vars['current_form']->options['hidden_cols']) and !empty($frm_vars['current_form']->options['hidden_cols'])){
+        if ( isset($frm_vars['current_form']) && $frm_vars['current_form'] && isset($frm_vars['current_form']->options['hidden_cols']) && ! empty($frm_vars['current_form']->options['hidden_cols']) ) {
             $result = $frm_vars['current_form']->options['hidden_cols'];
         }else{
             $cols = $frm_vars['cols'];
@@ -263,8 +269,7 @@ class FrmEntriesController{
                 if($i > $max_columns)
                     $result[] = $col_key; //remove some columns by default
                 $i--;
-                unset($col_key);
-                unset($col);
+                unset($col_key, $col);
             }
         }
 
@@ -418,13 +423,15 @@ class FrmEntriesController{
         global $frm_vars;
 
         $form = FrmForm::getOne($_POST['form_id']);
-        if(!$form)
+        if ( ! $form ) {
             return;
+        }
 
         $params = self::get_params($form);
 
-        if(!isset($frm_vars['form_params']))
+        if ( ! isset($frm_vars['form_params']) ) {
             $frm_vars['form_params'] = array();
+        }
         $frm_vars['form_params'][$form->id] = $params;
 
         if(isset($frm_vars['created_entries'][$_POST['form_id']]))
@@ -459,8 +466,9 @@ class FrmEntriesController{
     }
 
     private static function _delete_entry($entry_id, $form){
-        if(!$form)
+        if ( ! $form ) {
             return;
+        }
 
         $form->options = maybe_unserialize($form->options);
         if ( isset($form->options['no_save']) && $form->options['no_save'] ) {
@@ -607,8 +615,9 @@ class FrmEntriesController{
 
         $values = array();
         $values['posted_form_id'] = FrmAppHelper::get_param('form_id');
-        if (!is_numeric($values['posted_form_id']))
+        if ( ! is_numeric($values['posted_form_id']) ) {
             $values['posted_form_id'] = FrmAppHelper::get_param('form');
+        }
 
         if ($form->id == $values['posted_form_id']){ //if there are two forms on the same page, make sure not to submit both
             foreach ($default_values as $var => $default){

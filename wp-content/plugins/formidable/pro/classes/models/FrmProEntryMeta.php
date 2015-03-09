@@ -9,146 +9,46 @@ class FrmProEntryMeta{
 
         if ( $field->type == 'date' ) {
             $values['meta_value'] = FrmProAppHelper::maybe_convert_to_db_date($values['meta_value'], 'Y-m-d');
-        } else if ( $field->type == 'number' && !is_numeric($values['meta_value']) ) {
+        } else if ( $field->type == 'number' && ! is_numeric($values['meta_value']) ) {
             $values['meta_value'] = (float) $values['meta_value'];
         }
 
         return $values;
     }
 
-    public static function create($entry, $form_id) {
-        global $wpdb;
-
-        if ( !isset($_FILES) || !is_numeric($entry) ) {
-            return;
+    /**
+    * Upload files and add new tags
+    *
+    * @since 2.0
+    * @param $values array (posted values)
+    * @param $field_id integer
+    * @param $entry_id integer
+    * @return $values array
+    *
+    */
+    public static function prepare_data_before_db( $values, $field_id, $entry_id ){
+        // If confirmation field, exit now
+        if ( ! is_numeric( $field_id ) ) {
+            return $values;
         }
 
-        FrmEntriesHelper::maybe_get_entry($entry);
+        // Get the field object
+        $field = FrmField::getOne($field_id);
 
-        if ( !$entry ) {
-            return;
+        // If a file upload field, upload file and get the media ID
+        if ( $field->type == 'file' ) {
+            // Get new meta values for file upload fields
+            self::prepare_file_upload_meta( $values, $field, $entry_id );
+
+        // If tags field, create new tags
+        } else if ( $field->type == 'tag' ) {
+            // Create new tags
+            self::create_new_tags( $field, $entry_id, $values );
         }
-
-        $fields = FrmField::getAll($wpdb->prepare('fi.form_id=%d and (fi.type=%s or fi.type=%s)', $entry->form_id, 'file', 'tag'));
-        $values = isset($_POST['item_meta']) ? $_POST['item_meta'] : array();
-        $file_name = '';
-
-        if ( empty($entry->parent_item_id) && $form_id == $entry->form_id ) {
-            $form = FrmForm::getOne($form_id);
-            if ( $form->parent_form_id ) {
-                // if this is a child form, tell this where to look for inputs
-                $form_id = $form->parent_form_id;
-            }
-        }
-
-        if ( ( ! empty($entry->parent_item_id) || $form_id != $entry->form_id ) && isset($values['key_pointer']) ) {
-            $key_pointer = $_POST['item_meta']['key_pointer'];
-            $parent_field = $_POST['item_meta']['parent_field'];
-
-            $file_name .= '-'. $key_pointer;
-            if ( isset($values[$parent_field]) && isset($values[$parent_field][$key_pointer]) ) {
-                $values = $values[$parent_field][$key_pointer];
-            }
-        }
-
-        foreach ( $fields as $field ) {
-            self::prepare_file_upload($field, $entry, $file_name, $values);
-
-            if ( ! isset($values[$field->id]) ) {
-                continue;
-            }
-
-            self::create_new_tags($field, $entry, $values);
-            unset($field);
-        }
+        return $values;
     }
 
-    private static function prepare_file_upload($field, $entry, $file_name, $values) {
-        if ( $field->type != 'file' ) {
-            return;
-        }
-
-        $file_name = 'file'. $field->id . $file_name;
-
-        global $frm_vars;
-
-        if ( isset($values[$field->id]) ) {
-            // keep existing files attached to post
-            if ( isset($frm_vars['media_id'][$field->id]) ) {
-                $frm_vars['media_id'][$field->id] = array_merge((array) $values[$field->id], (array) $frm_vars['media_id'][$field->id]);
-            } else {
-                $frm_vars['media_id'][$field->id] = $values[$field->id];
-            }
-        }
-
-        if ( ! isset($_FILES[$file_name]) || empty($_FILES[$file_name]['name']) || (int) $_FILES[$file_name]['size'] == 0 ) {
-            return;
-        }
-
-        if ( ! isset($frm_vars['loading']) || ! $frm_vars['loading'] ) {
-            $frm_vars['loading'] = true;
-        }
-
-        $media_ids = FrmProAppHelper::upload_file($file_name);
-        $mids = array();
-
-        foreach ( (array) $media_ids as $media_id ) {
-            if ( is_numeric($media_id) ) {
-               $mids[] = $media_id;
-            } else {
-                foreach ( $media_id->errors as $error ) {
-                    if ( ! is_array($error[0]) ) {
-                        echo $error[0];
-                    }
-                    unset($error);
-                }
-            }
-
-            unset($media_id);
-        }
-
-        if ( empty($mids) ) {
-            return;
-        }
-
-        FrmEntryMeta::delete_entry_meta($entry->id, $field->id);
-        //TODO: delete media?
-
-        if ( isset($field->field_options['multiple']) && $field->field_options['multiple'] ) {
-            if ( isset($values[$field->id]) ) {
-                $mids = array_merge( (array) $values[$field->id], $mids );
-            }
-
-            FrmEntryMeta::add_entry_meta($entry->id, $field->id, null, $mids);
-        } else {
-            $mids = reset($mids);
-            FrmEntryMeta::add_entry_meta($entry->id, $field->id, null, $mids);
-
-            if ( isset($values[$field->id]) && count($values[$field->id]) == 1 && $values[$field->id] != $mids ) {
-                $frm_vars['detached_media'][] = $values[$field->id];
-            }
-
-        }
-
-        if ( ! isset($frm_vars['media_id']) ) {
-            $frm_vars['media_id'] = array();
-        }
-
-        if ( is_array($mids) ) {
-            $mids = array_filter($mids);
-        }
-        $_POST['item_meta'][$field->id] = $frm_vars['media_id'][$field->id] = $mids;
-
-        if ( isset($_POST['frm_wp_post']) && isset($field->field_options['post_field']) && $field->field_options['post_field'] ) {
-            $_POST['frm_wp_post_custom'][$field->id .'='. $field->field_options['custom_field']] = $mids;
-        }
-    }
-
-    private static function create_new_tags($field, $entry, $values) {
-        if ( $field->type != 'tag' ) {
-            return;
-        }
-
+    private static function create_new_tags($field, $entry_id, $values) {
         $tax_type = ( isset($field->field_options['taxonomy']) && ! empty($field->field_options['taxonomy']) ) ? $field->field_options['taxonomy'] : 'frm_tag';
 
         $tags = explode(',', stripslashes($values[$field->id]));
@@ -173,7 +73,7 @@ class FrmProEntryMeta{
             $terms[] = $slug;
         }
 
-        wp_set_object_terms($entry->id, $terms, $tax_type);
+        wp_set_object_terms($entry_id, $terms, $tax_type);
 
     }
 
@@ -181,7 +81,7 @@ class FrmProEntryMeta{
         $field->temp_id = $args['id'];
 
         // Keep current value for "Other" fields because it is needed for correct validation
-        if ( !$args['other'] ) {
+        if ( ! $args['other'] ) {
             FrmEntriesHelper::get_posted_value($field, $value, $args);
         }
 
@@ -499,6 +399,7 @@ class FrmProEntryMeta{
         }
         
         $entry_id = ( $_POST && isset($_POST['id']) ) ? $_POST['id'] : false;
+
         // get the child entry id for embedded or repeated fields
         if ( isset($field->temp_id) ) {
             $temp_id_parts = explode('-i', $field->temp_id);
@@ -506,6 +407,7 @@ class FrmProEntryMeta{
                 $entry_id = $temp_id_parts[1];
             }
         }
+
         if ( $field->type == 'time' ) {
             //TODO: add server-side validation for unique date-time
         } else if ( $field->type == 'date' ) {
@@ -642,6 +544,171 @@ class FrmProEntryMeta{
         }
     }
 
+    /**
+    * Get media ID(s) to be saved to database and set global media ID values
+    *
+    * @since 2.0
+    * @param $values array (posted values)
+    * @param $field_id integer
+    * @param $entry_id integer
+    * @return $values array
+    *
+    */
+    private static function prepare_file_upload_meta( &$values, $field, $entry_id ) {
+        // If there are no files to be uploaded, exit now
+        if ( ! isset( $_FILES ) ) {
+            return;
+        }
+
+        // Assume this field is not repeating
+        $repeating = $key_pointer = $parent_field = $file_name = false;
+
+        // Get file name
+        self::get_file_name( $field->id, $file_name, $parent_field, $key_pointer, $repeating );
+
+        // If there isn't a file uploaded in this field, exit now
+        if ( ! isset( $_FILES[$file_name]) || empty($_FILES[$file_name]['name']) || (int) $_FILES[$file_name]['size'] == 0 ) {
+            return;
+        }
+
+        // Upload the file now
+        $media_ids = FrmProAppHelper::upload_file($file_name);
+
+        // Get filtered media IDs
+        $mids = self::get_final_media_ids( $media_ids, $field, $values );
+
+        // If no media IDs to upload, end now
+        if ( empty($mids) ) {
+            return;
+        }
+
+        // Get global frm_vars variable
+        global $frm_vars;
+
+        // Set up progress bar to display on form submission
+        if ( ! isset($frm_vars['loading']) || ! $frm_vars['loading'] ) {
+            $frm_vars['loading'] = true;
+        }
+
+        // Set up global media_id vars. This will be used for post fields.
+        if ( ! isset( $frm_vars['media_id'] ) ) {
+            $frm_vars['media_id'] = array();
+        }
+
+        // If not inside of a repeating section, set the media IDs for this field
+        if ( ! $repeating ) {
+            $frm_vars['media_id'][$field->id] = $mids;
+        }
+
+        // Set new posted values
+        self::set_file_posted_vals( $field->id, $mids, array( 'repeating' => $repeating, 'parent_field' => $parent_field, 'key_pointer' => $key_pointer ) );
+
+        // If this is a post field
+        if ( isset( $_POST['frm_wp_post'] ) && isset( $field->field_options['post_field'] ) && $field->field_options['post_field'] ) {
+            $_POST['frm_wp_post_custom'][$field->id .'='. $field->field_options['custom_field']] = $mids;
+        }
+    }
+
+    /**
+    *
+    * @since 2.0
+    * @param $field_id
+    * @param $new_value to set
+    * @param $args array with repeating, key_pointer, and parent_field
+    */
+    private static function set_file_posted_vals( $field_id, $new_value, $args = array() ) {
+        // If in repeating section
+        if ( $args['repeating'] ) {
+            $_POST['item_meta'][$args['parent_field']][$args['key_pointer']][$field_id] = $new_value;
+
+        // If not in repeating section
+        } else {
+            $_POST['item_meta'][$field_id] = $new_value;
+        }
+    }
+
+    /**
+    * Get final meta value for file upload fields and print errors if there are any
+    *
+    * @since 2.0
+    * @param $media_ids, usually array
+    * @param $field object
+    * @param $values array to save to database
+    * @return $mids array of numeric media ids
+    */
+    private static function get_final_media_ids( $media_ids, $field, &$values ) {
+        $mids = array();
+        foreach ( (array) $media_ids as $media_id ) {
+            if ( is_numeric($media_id) ) {
+               $mids[] = $media_id;
+            } else {
+                foreach ( $media_id->errors as $error ) {
+                    if ( ! is_array($error[0]) ) {
+                        echo $error[0];
+                    }
+                    unset($error);
+                }
+            }
+            unset($media_id);
+        }
+
+        // If no media IDs to upload, end now
+        if ( empty( $mids ) ) {
+            return;
+        }
+
+        // Get the new meta_value for multi-file uploads
+        if ( isset($field->field_options['multiple']) && $field->field_options['multiple'] ) {
+            if ( isset($values[$field->id]) ) {
+                // Set new value
+                $mids = array_filter($mids);
+                $values[$field->id] = array_merge( (array) $values[$field->id], $mids );
+            }
+
+        // Get the new meta_value for single file uploads
+        } else {
+            $mids = reset($mids);
+
+            if ( isset($values[$field->id]) && count($values[$field->id]) == 1 && $values[$field->id] != $mids ) {
+                $frm_vars['detached_media'][] = $values[$field->id];
+            }
+            // Set new value
+            $values[$field->id] = $mids;
+        }
+
+        return $mids;
+    }
+
+    /**
+    * Get name of uploaded file
+    *
+    * @since 2.0
+    * @param $field_id integer
+    * @param $file_name string, pass by reference
+    * @param $parent_field. Retrieves ID of repeating section.
+    * @param $key_pointer. Gets pointer if in repeating section.
+    * @param $repeating boolean. Tells whether field is inside of repeating section.
+    *
+    */
+    public static function get_file_name( $field_id, &$file_name, &$parent_field, &$key_pointer, &$repeating ) {
+        $file_name = 'file'. $field_id;
+
+        // Check if there are repeating sections in the form, and adjust the filename accordingly
+        if ( isset( $_POST['item_meta']['key_pointer'] ) && isset( $_POST['item_meta']['parent_field'] ) ) {
+            // Get the current pointer
+            $key_pointer = $_POST['item_meta']['key_pointer'];
+
+            // Get the current parent
+            $parent_field = $_POST['item_meta']['parent_field'];
+
+            // Check if the current field is inside of the parent/pointer
+            if ( isset( $_POST['item_meta'][$parent_field][$key_pointer][$field_id] ) ) {
+                $file_name .= '-'. $key_pointer;
+                $repeating = true;
+            }
+        }
+    }
+
     /*
     * Get metas for post or non-post fields
     *
@@ -651,7 +718,7 @@ class FrmProEntryMeta{
         global $wpdb;
 
         // If field is not a post field
-        if ( !isset( $field->field_options['post_field'] ) || !$field->field_options['post_field'] ) {
+        if ( ! isset( $field->field_options['post_field'] ) || ! $field->field_options['post_field'] ) {
             $query = 'SELECT em.meta_value FROM '. $wpdb->prefix .'frm_item_metas em ';
             $query .= 'INNER JOIN '. $wpdb->prefix .'frm_items e ON (e.id=em.item_id)';
             $query .= $wpdb->prepare('WHERE em.field_id=%d', $field->id) . ' AND e.is_draft=0';
@@ -676,7 +743,7 @@ class FrmProEntryMeta{
         } else {
             //TODO: Make this work
             return array();
-            $field_options = FrmProFieldsHelper::get_category_options( $field );
+            //$field_options = FrmProFieldsHelper::get_category_options( $field );
         }
 
         // Add queries for additional args

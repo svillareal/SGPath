@@ -1,7 +1,6 @@
 <?php
 
 class FrmFormsController{
-    public static $action_post_type = 'frm_form_actions';
 
     public static function trigger_load_form_hooks() {
         FrmHooksController::trigger_load_hook( 'load_form_hooks' );
@@ -15,9 +14,7 @@ class FrmFormsController{
     }
 
     public static function menu(){
-        $frm_settings = FrmAppHelper::get_settings();
-
-        add_submenu_page('formidable', $frm_settings->menu .' | '. __('Forms', 'formidable'), __('Forms', 'formidable'), 'frm_view_forms', 'formidable', 'FrmFormsController::route' );
+        add_submenu_page('formidable', 'Formidable | '. __('Forms', 'formidable'), __('Forms', 'formidable'), 'frm_view_forms', 'formidable', 'FrmFormsController::route' );
 
 	    add_filter('get_user_option_managetoplevel_page_formidablecolumnshidden', 'FrmFormsController::hidden_columns' );
 
@@ -27,7 +24,6 @@ class FrmFormsController{
 
     public static function head(){
         wp_enqueue_script('formidable-editinplace');
-        wp_enqueue_script('jquery-frm-themepicker');
 
         if ( wp_is_mobile() ) {
     		wp_enqueue_script( 'jquery-touch-punch' );
@@ -43,7 +39,7 @@ class FrmFormsController{
         FrmAppHelper::permission_check('frm_view_forms');
 
         $params = FrmFormsHelper::get_params();
-        $errors = FrmFormsController::process_bulk_form_actions(array());
+        $errors = self::process_bulk_form_actions(array());
         $errors = apply_filters('frm_admin_list_form_action', $errors);
 
         return self::display_forms_list($params, '', false, $errors);
@@ -92,7 +88,7 @@ class FrmFormsController{
 
         $id = isset($values['id']) ? (int) $values['id'] : (int) FrmAppHelper::get_param('id');
 
-        if ( ! current_user_can('frm_edit_forms') || ( $_POST && (!isset($values['frm_save_form']) || !wp_verify_nonce($values['frm_save_form'], 'frm_save_form_nonce'))) ) {
+        if ( ! current_user_can( 'frm_edit_forms' ) || ( $_POST && ( ! isset( $values['frm_save_form'] ) || ! wp_verify_nonce( $values['frm_save_form'], 'frm_save_form_nonce' ) ) ) ) {
             $frm_settings = FrmAppHelper::get_settings();
             $errors = array( 'form' => $frm_settings->admin_permission );
         } else {
@@ -110,8 +106,6 @@ class FrmFormsController{
         }else{
             FrmForm::update( $id, $values, true );
             die(FrmAppHelper::js_redirect(admin_url('admin.php?page=formidable&frm_action=settings&id='. $id)));
-            //$message = __('Form was Successfully Created', 'formidable');
-            //return self::settings($record, $message);
         }
     }
 
@@ -125,8 +119,9 @@ class FrmFormsController{
     public static function settings($id=false, $message=''){
         FrmAppHelper::permission_check('frm_edit_forms');
 
-        if(!$id or !is_numeric($id))
-            $id = isset($values['id']) ? (int) $values['id'] : (int) FrmAppHelper::get_param('id');
+        if ( ! $id || ! is_numeric($id) ) {
+            $id = (int) FrmAppHelper::get_param('id');
+        }
         return self::get_settings_vars($id, '', $message);
     }
 
@@ -183,7 +178,7 @@ class FrmFormsController{
 
         $errors = FrmForm::validate($values);
         $permission_error = FrmAppHelper::permission_nonce_error('frm_edit_forms', 'frm_save_form', 'frm_save_form_nonce');
-        if ( $permission_error ) {
+        if ( $permission_error !== false ) {
             $errors['form'] = $permission_error;
         }
 
@@ -226,10 +221,14 @@ class FrmFormsController{
 
     public static function page_preview(){
         $params = FrmFormsHelper::get_params();
-        if (!$params['form']) return;
+        if ( ! $params['form'] ) {
+            return;
+        }
 
         $form = FrmForm::getOne($params['form']);
-        if(!$form) return;
+        if ( ! $form ) {
+            return;
+        }
         return self::show_form($form->id, '', true, true);
     }
 
@@ -257,7 +256,9 @@ class FrmFormsController{
         $controller = FrmAppHelper::get_param('controller');
         $key = (isset($_GET['form']) ? $_GET['form'] : (isset($_POST['form']) ? $_POST['form'] : ''));
         $form = FrmForm::getAll(array('form_key' => $key), '', 1);
-        if (!$form) $form = FrmForm::getAll('', '', 1);
+        if ( empty($form) ) {
+            $form = FrmForm::getAll('', '', 1);
+        }
 
         require(FrmAppHelper::plugin_path() .'/classes/views/frm-entries/direct.php');
         die();
@@ -333,7 +334,7 @@ class FrmFormsController{
     private static function delete_all() {
         //check nonce url
         $permission_error = FrmAppHelper::permission_nonce_error('frm_delete_forms', '_wpnonce', 'bulk-toplevel_page_formidable');
-        if ( $permission_error ) {
+        if ( $permission_error !== false ) {
             self::display_forms_list('', '', 1, array($permission_error));
             return;
         }
@@ -353,7 +354,7 @@ class FrmFormsController{
 
         $trash_forms = $wpdb->get_results($wpdb->prepare("SELECT id, options FROM {$wpdb->prefix}frm_forms WHERE status = %s", 'trash'));
 
-        if ( !$trash_forms ) {
+        if ( ! $trash_forms ) {
             return;
         }
 
@@ -364,7 +365,7 @@ class FrmFormsController{
         $count = 0;
         foreach ( $trash_forms as $form ) {
             $form->options = maybe_unserialize($form->options);
-            if ( !isset($form->options['trash_time']) || $form->options['trash_time'] < $delete_timestamp ) {
+            if ( ! isset( $form->options['trash_time'] ) || $form->options['trash_time'] < $delete_timestamp ) {
                 FrmForm::destroy($form->id);
                 $count++;
             }
@@ -403,11 +404,11 @@ class FrmFormsController{
             die();
         }
 
-        $form_id = '';
-        $opts = array();
-
         echo '<div id="sc-opts-'. $shortcode .'" class="frm_shortcode_option">';
         echo '<input type="radio" name="frmsc" value="'. esc_attr($shortcode) .'" id="sc-'. esc_attr($shortcode) .'" style="display:none;" />';
+
+        $form_id = '';
+        $opts = array();
         switch( $shortcode ) {
             case 'formidable':
                 $form_id = 'id';
@@ -419,47 +420,10 @@ class FrmFormsController{
                 );
             break;
         }
-
         $opts = apply_filters('frm_sc_popup_opts', $opts, $shortcode);
 
-        if ( ! empty($form_id) ) {
-            ?>
-            <h4 for="frmsc_<?php echo $shortcode .'_'. $form_id ?>" class="frm_left_label"><?php _e('Select a form:', 'formidable') ?></h4>
-            <?php FrmFormsHelper::forms_dropdown( 'frmsc_'. $shortcode .'_'. $form_id ); ?>
-            <div class="frm_box_line"></div>
-            <?php
-        }
+        include(FrmAppHelper::plugin_path() .'/classes/views/frm-forms/shortcode_opts.php');
 
-        if ( ! empty($opts) ) { ?>
-            <h4><?php _e('Options', 'formidable') ?></h4>
-            <ul>
-            <?php
-            foreach ( $opts as $opt => $val ) {
-                if ( isset($val['type']) && 'text' == $val['type'] ) { ?>
-                <li><label class="setting" for="frmsc_<?php echo $shortcode .'_'. $opt ?>">
-                    <span><?php echo $val['label'] ?></span>
-                    <input type="text" id="frmsc_<?php echo $shortcode .'_'. $opt ?>" value="<?php echo esc_attr($val['val']) ?>" />
-                    </label>
-                <li>
-                <?php } else if ( isset($val['type']) && 'select' == $val['type'] ) { ?>
-                <li><label class="setting" for="frmsc_<?php echo $shortcode .'_'. $opt ?>">
-                    <span><?php echo $val['label'] ?></span>
-                    <select id="frmsc_<?php echo $shortcode .'_'. $opt ?>">
-                        <?php foreach ( $val['opts'] as $select_opt => $select_label ) { ?>
-                        <option value="<?php echo esc_attr($select_opt) ?>"><?php echo $select_label ?></option>
-                        <?php } ?>
-                    </select>
-                    </label>
-                </li>
-                <?php } else { ?>
-                <li><label class="setting" for="frmsc_<?php echo $shortcode .'_'. $opt ?>"><input type="checkbox" id="frmsc_<?php echo $shortcode .'_'. $opt ?>" value="<?php echo esc_attr($val['val']) ?>" /> <?php echo $val['label'] ?></label><li>
-            <?php
-                }
-            }
-            ?>
-            </ul>
-            <?php
-        }
         echo '</div>';
 
         die();
@@ -470,8 +434,9 @@ class FrmFormsController{
 
         global $wpdb, $frm_vars;
 
-        if(!$params)
+        if ( ! $params ) {
             $params = FrmFormsHelper::get_params();
+        }
 
         $wp_list_table = new FrmFormsListHelper( compact('params') );
 
@@ -557,7 +522,7 @@ class FrmFormsController{
         global $frm_vars;
 
         $form = FrmForm::getOne( $id );
-        if ( !$form ) {
+        if ( ! $form ) {
             wp_die( __('You are trying to edit a form that does not exist.', 'formidable') );
         }
 
@@ -666,7 +631,7 @@ class FrmFormsController{
             FrmEntriesHelper::maybe_get_entry($entry);
         }
 
-        if ( !$entry ) {
+        if ( ! $entry ) {
             return $content;
         }
 
@@ -707,12 +672,12 @@ class FrmFormsController{
         }
 
         $permission_error = FrmAppHelper::permission_nonce_error('', '_wpnonce', 'bulk-toplevel_page_formidable');
-        if ( $permission_error ) {
+        if ( $permission_error !== false ) {
             $errors[] = $permission_error;
             return $errors;
         }
 
-        if ( !is_array($ids) ) {
+        if ( ! is_array($ids) ) {
             $ids = explode(',', $ids);
         }
 
@@ -759,12 +724,14 @@ class FrmFormsController{
             $values['form_key'] = $filename;
             $values['is_template'] = $template;
             $values['status'] = 'published';
-            if($default) $values['default_template'] = 1;
+            if ( $default ) {
+                $values['default_template'] = 1;
+            }
 
             include($templates[$i]);
 
             //get updated form
-            if ( isset($form) && $form ) {
+            if ( isset($form) && ! empty($form) ) {
                 $old_id = $form->id;
                 $form = FrmForm::getOne($form->id);
             } else {
@@ -960,12 +927,12 @@ class FrmFormsController{
         $frm_settings = FrmAppHelper::get_settings();
 
         // don't show a draft form on a page
-        if ( $form->status == 'draft' && (!$post || $post->ID != $frm_settings->preview_page_id) ) {
+        if ( $form->status == 'draft' && ( ! $post || $post->ID != $frm_settings->preview_page_id ) ) {
             return __('Please select a valid form', 'formidable');
         }
 
         // don't show the form if user should be logged in
-        if ( $form->logged_in && !is_user_logged_in() ) {
+        if ( $form->logged_in && ! is_user_logged_in() ) {
             return do_shortcode($frm_settings->login_msg);
         }
 
@@ -1048,9 +1015,16 @@ class FrmFormsController{
             return;
         }
 
-        $saved_message = isset($form->options['success_msg']) ? $form->options['success_msg'] : $frm_settings->success_msg;
-        $saved_message = apply_filters('frm_content', $saved_message, $form, $created);
-        $message = ($created && is_numeric($created)) ? '<div class="frm_message" id="message">'. wpautop(do_shortcode($saved_message)) .'</div>' : '<div class="frm_error_style">'. $frm_settings->failed_msg .'</div>';
+        if ( $created && is_numeric($created) ){
+            $message = isset($form->options['success_msg']) ? $form->options['success_msg'] : $frm_settings->success_msg;
+            $class = 'frm_message';
+        } else {
+            $message = $frm_settings->failed_msg;
+            $class = 'frm_error_style';
+        }
+        $message = apply_filters('frm_content', $message, $form, $created);
+        $message = '<div class="'. $class .'">'. wpautop(do_shortcode($message)) .'</div>';
+        $message = apply_filters('frm_main_feedback', $message, $form, $created);
 
         if ( ! isset($form->options['show_form']) || $form->options['show_form'] ) {
             require(FrmAppHelper::plugin_path() .'/classes/views/frm-entries/new.php');

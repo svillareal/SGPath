@@ -1,6 +1,7 @@
 <?php
-if(!isset($tax_meta))
+if ( ! isset($tax_meta) ) {
     $tax_meta = $field_vars['meta_name'] . $tax_key;
+}
 
 $selected_type = '';
 ?>

@@ -14,7 +14,7 @@ do_action('frm_csv_headers', array('form_id' => $form_id, 'fields' => $form_cols
 //echo chr(239) . chr(187) . chr(191);
 
 foreach ($form_cols as $col){
-    if ( isset($col->field_options['separate_value']) && $col->field_options['separate_value'] && !in_array($col->type, array('user_id', 'file', 'data', 'date')) ) {
+    if ( isset($col->field_options['separate_value']) && $col->field_options['separate_value'] && ! in_array($col->type, array('user_id', 'file', 'data', 'date')) ) {
         echo '"'. str_replace('"', '""', FrmProEntriesHelper::encode_value(strip_tags($col->name .' '. __('(label)', 'formidable')), $charset, $to_encoding)) .'"'. $col_sep;
     }
 
@@ -136,8 +136,9 @@ foreach($entries as $entry){
     if($comments){
         foreach($comments as $comment){
             $c = maybe_unserialize($comment->meta_value);
-            if(!isset($c['comment']))
+            if ( ! isset($c['comment']) ) {
                 continue;
+            }
 
             $place_holder--;
             $co = FrmProEntriesHelper::encode_value($c['comment'], $charset, $to_encoding);

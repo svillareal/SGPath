@@ -1,8 +1,9 @@
 
 <?php
 
-if ( !$item_ids )
+if ( ! $item_ids ) {
     return;
+}
 
 global $wp_query;
 $wp_query->in_the_loop = true; // Fake being in the loop.
@@ -78,4 +79,3 @@ foreach ( (array) $terms as $term ) {
 	<term><term_id><?php echo $term->term_id ?></term_id><term_taxonomy><?php echo $term->taxonomy; ?></term_taxonomy><?php if(!empty($term->name)){ echo '<term_name>' . FrmXMLHelper::cdata( $term->name ) . '</term_name>';} ?><?php if(!empty($term->description)){ ?><term_description><?php echo FrmXMLHelper::cdata( $term->description ) ?></term_description><?php } ?><term_slug><?php echo $term->slug; ?></term_slug></term>
 <?php
 }
-?>

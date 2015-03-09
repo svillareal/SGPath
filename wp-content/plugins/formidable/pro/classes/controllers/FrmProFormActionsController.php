@@ -109,7 +109,10 @@ class FrmProFormActionsController{
         FrmFormActionsController::trigger_actions('update', $form_id, $entry_id);
     }
 
-    public static function trigger_delete_actions($entry_id, $entry) {
+    public static function trigger_delete_actions($entry_id, $entry = false) {
+        if ( ! empty($entry) ) {
+            $entry = FrmEntry::getOne($entry_id);
+        }
         FrmFormActionsController::trigger_actions('delete', $entry->form_id, $entry);
     }
 
@@ -129,12 +132,15 @@ class FrmProFormActionsController{
 
         $limit = (int) apply_filters( 'postmeta_form_limit', 40 );
     	$cf_keys = $wpdb->get_col( "SELECT meta_key FROM $wpdb->postmeta GROUP BY meta_key ORDER BY meta_key LIMIT $limit" );
-    	if(!is_array($cf_keys))
+    	if ( ! is_array($cf_keys) ) {
             $cf_keys = array();
-        if(!in_array('_thumbnail_id', $cf_keys))
+        }
+        if ( ! in_array('_thumbnail_id', $cf_keys) ) {
             $cf_keys[] = '_thumbnail_id';
-        if ( !empty($cf_keys) )
+        }
+        if ( ! empty($cf_keys) ) {
     		natcasesort($cf_keys);
+        }
 
         include(FrmAppHelper::plugin_path() .'/pro/classes/views/frmpro-form-actions/_custom_field_row.php');
         die();

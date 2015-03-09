@@ -9,8 +9,8 @@
 </tr>
 <?php }
 
-if ( in_array($display['type'], array('radio', 'checkbox', 'select')) && (!isset($field['post_field']) || ($field['post_field'] != 'post_category' && $field['post_field'] != 'post_status')) ) { ?>
-<tr><td><label><?php _e('Separate values', 'formidable'); ?></label> <span class="frm_help frm_icon_font frm_tooltip_icon" title="<?php echo sprintf(__('Add a separate value to use for calculations, email routing, saving to the database, and many other uses. The option values are saved while the option labels are shown in the form. Use [%s] to show the saved value in emails or views.', 'formidable'), $field['id'] .' show=value') ?>" ></span></td>
+if ( in_array($display['type'], array('radio', 'checkbox', 'select')) && ( ! isset($field['post_field']) || ($field['post_field'] != 'post_category' && $field['post_field'] != 'post_status')) ) { ?>
+<tr><td><label><?php _e('Separate values', 'formidable'); ?></label> <span class="frm_help frm_icon_font frm_tooltip_icon" title="<?php echo sprintf( __( 'Add a separate value to use for calculations, email routing, saving to the database, and many other uses. The option values are saved while the option labels are shown in the form. Use [%s] to show the saved value in emails or views.', 'formidable' ), $field['id'] .' show=value' ) ?>" ></span></td>
     <td><label for="separate_value_<?php echo $field['id'] ?>"><input type="checkbox" name="field_options[separate_value_<?php echo $field['id'] ?>]" id="separate_value_<?php echo $field['id'] ?>" value="1" <?php checked($field['separate_value'], 1) ?> class="frm_toggle_sep_values" /> <?php _e('Use separate values', 'formidable'); ?></label></td>
 </tr>
 <?php
@@ -43,7 +43,7 @@ if ($field['type'] == 'data'){
 }
 
 if ($display['type'] == 'select' or $field['type'] == 'data'){ ?>
-<tr id="frm_multiple_cont_<?php echo $field['id'] ?>" <?php echo ($field['type'] == 'data' and (!isset($field['data_type']) or $field['data_type'] != 'select')) ? ' class="frm_hidden"' : ''; ?>>
+<tr id="frm_multiple_cont_<?php echo $field['id'] ?>" <?php echo ( $field['type'] == 'data' && (! isset($field['data_type']) || $field['data_type'] != 'select' ) ) ? ' class="frm_hidden"' : ''; ?>>
     <td><?php _e('Multiple select', 'formidable') ?></td>
     <td><label for="multiple_<?php echo $field['id'] ?>"><input type="checkbox" name="field_options[multiple_<?php echo $field['id'] ?>]" id="multiple_<?php echo $field['id'] ?>" value="1" <?php echo (isset($field['multiple']) and $field['multiple'])? 'checked="checked"':''; ?> />
     <?php _e('enable multiselect', 'formidable') ?></label>
@@ -156,20 +156,19 @@ if ($display['type'] == 'select' or $field['type'] == 'data'){ ?>
                     $mcount = count($mimes);
                     $third = ceil($mcount/3);
                     $c = 0;
-                    if ( !isset($field['ftypes']) ) {
+                    if ( ! isset($field['ftypes']) ) {
                         $field['ftypes'] = array();
                     }
 
-                    foreach($mimes as $ext_preg => $mime){
-                        if($c == $third or (($c/2) == $third)){ ?>
+                    foreach ( $mimes as $ext_preg => $mime ) {
+                        if ( $c == $third || ( ( $c/2 ) == $third ) ) { ?>
                     </div>
                     <div class="alignleft" style="width:33% !important">
                     <?php } ?>
                     <label for="ftypes_<?php echo $field['id'] ?>_<?php echo sanitize_key($ext_preg) ?>"><input type="checkbox" id="ftypes_<?php echo $field['id'] ?>_<?php echo sanitize_key($ext_preg) ?>" name="field_options[ftypes_<?php echo $field['id'] ?>][<?php echo $ext_preg ?>]" value="<?php echo $mime ?>" <?php FrmAppHelper::checked($field['ftypes'], $mime); ?> /> <span class="howto"><?php echo str_replace('|', ', ', $ext_preg); ?></span></label><br/>
                     <?php
                         $c++;
-                        unset($ext_preg);
-                        unset($mime);
+                        unset($ext_preg, $mime);
                     }
                     unset($c);
                     unset($mcount);
@@ -278,7 +277,10 @@ if ( $display['calc'] ) { ?>
 <tr><td><?php _e('Calculations', 'formidable') ?></td>
     <td><label for="use_calc_<?php echo $field['id'] ?>"><input type="checkbox" value="1" name="field_options[use_calc_<?php echo $field['id'] ?>]" <?php checked($field['use_calc'], 1) ?> class="use_calc" id="use_calc_<?php echo $field['id'] ?>" onchange="frm_show_div('frm_calc_opts<?php echo $field['id'] ?>',this.checked,true,'#')" />
         <?php _e('Calculate the default value for this field', 'formidable') ?></label>
-        <div id="frm_calc_opts<?php echo $field['id'] ?>" <?php if(!$field['use_calc']) echo 'class="frm_hidden"'; ?>>
+        <div id="frm_calc_opts<?php echo $field['id'] ?>" <?php
+            if ( ! $field['use_calc'] ) {
+                echo 'class="frm_hidden"';
+            } ?>>
             <select class="frm_shortcode_select frm_insert_val" data-target="frm_calc_<?php echo $field['id'] ?>">
                 <option value="">&mdash; <?php _e('Select a value to insert into the box below', 'formidable') ?> &mdash;</option>
             </select><br/>
@@ -312,7 +314,7 @@ if ( $display['logic'] ) { ?>
     unset($all_select);
 
             if(!empty($field['hide_field'])){
-                foreach($field['hide_field'] as $meta_name => $hide_field){
+                foreach ( (array) $field['hide_field'] as $meta_name => $hide_field ) {
                     include(FrmAppHelper::plugin_path() .'/pro/classes/views/frmpro-fields/_logic_row.php');
                 }
             }
@@ -323,4 +325,4 @@ if ( $display['logic'] ) { ?>
 
     </td>
 </tr>
-<?php } ?>
+<?php }

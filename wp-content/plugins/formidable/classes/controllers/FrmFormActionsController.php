@@ -115,7 +115,7 @@ class FrmFormActionsController{
         }
 
     	foreach ( $form_actions as $action ) {
-    	    if ( !isset($action_map[$action->post_excerpt]) ) {
+    	    if ( ! isset( $action_map[ $action->post_excerpt ] ) ) {
     	        // don't try and show settings if action no longer exists
     	        continue;
     	    }
@@ -177,7 +177,7 @@ class FrmFormActionsController{
             $f = (array) $f;
             $opts = (array) $f['field_options'];
             $f = array_merge($opts, $f);
-            if ( !isset($f['post_field']) ) {
+            if ( ! isset( $f['post_field'] ) ) {
                 $f['post_field'] = '';
             }
             $values['fields'][] = $f;
@@ -220,6 +220,9 @@ class FrmFormActionsController{
         self::trigger_actions('create', $form_id, $entry_id);
     }
 
+    /**
+     * @param string $event
+     */
     public static function trigger_actions($event, $form, $entry, $type = 'all') {
         $form_actions = FrmFormActionsHelper::get_action_for_form((is_object($form) ? $form->id : $form), $type);
 
@@ -294,7 +297,7 @@ class FrmFormActionsController{
             return;
         }
 
-        $action_controls = FrmFormActionsController::get_form_actions( );
+        $action_controls = self::get_form_actions( );
 
         foreach ( $action_controls as $action_control ) {
             $action_control->duplicate_form_actions($form_id, $args['old_id']);
@@ -305,7 +308,7 @@ class FrmFormActionsController{
     public static function limit_by_type( $where ) {
         global $frm_vars, $wpdb;
 
-        if ( !isset($frm_vars['action_type']) ) {
+        if ( ! isset( $frm_vars['action_type'] ) ) {
             return $where;
         }
 
@@ -338,7 +341,7 @@ class Frm_Form_Action_Factory {
 
 		foreach ( $keys as $key ) {
 			// don't register new action if old action with the same id is already registered
-			if ( !isset($this->actions[$key]) ) {
+			if ( ! isset( $this->actions[$key] ) ) {
 			    $this->actions[$key]->_register();
 			}
 		}

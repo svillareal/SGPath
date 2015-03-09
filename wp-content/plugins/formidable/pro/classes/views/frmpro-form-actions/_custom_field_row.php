@@ -7,7 +7,7 @@
         $cf_keys[] = $custom_data['meta_name'];
     }
 
-    if ( !isset($cf_keys) || empty($cf_keys) ) { ?>
+    if ( ! isset($cf_keys) || empty($cf_keys) ) { ?>
     <input type="text" value="<?php echo $echo ? esc_attr($custom_data['meta_name']) : '' ?>" name="<?php echo $action_control->get_field_name('post_custom_fields') ?>[<?php echo $sanitized_name ?>][meta_name]" class="frm_enternew" />
     <?php }else{ ?>
     <select name="<?php echo $action_control->get_field_name('post_custom_fields') ?>[<?php echo $sanitized_name ?>][meta_name]" class="frm_cancelnew">
@@ -37,9 +37,10 @@
     <select name="<?php echo $action_control->get_field_name('post_custom_fields') ?>[<?php echo $sanitized_name ?>][field_id]" class="frm_single_post_field">
         <option value=""><?php _e( '&mdash; Select Field &mdash;', 'formidable' ); ?></option>
         <?php
-        if(!empty($values['fields'])){
-            if(!isset($custom_data['field_id']))
+        if ( ! empty($values['fields']) ) {
+            if ( ! isset($custom_data['field_id']) ) {
                 $custom_data['field_id'] = '';
+            }
 
         foreach($values['fields'] as $fo){
             $fo = (array) $fo;
@@ -59,4 +60,5 @@
         </div>
     </td>
 </tr>
-<?php unset($sanitized_name); ?>
+<?php
+unset($sanitized_name);

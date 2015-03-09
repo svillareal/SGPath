@@ -85,7 +85,7 @@ class FrmProFieldsHelper{
 
                     case 'get':
                         $atts['prev_val'] = $prev_val;
-                        $new_value = FrmFieldsHelper::dynamic_default_values( $shortcode, $atts );
+                        $new_value = FrmFieldsHelper::dynamic_default_values( $shortcode, $atts, $return_array );
                     break;
 
                     case 'auto_id':
@@ -242,6 +242,22 @@ class FrmProFieldsHelper{
         }
 
         return $new_value;
+    }
+
+    /*
+    * Get the input name and id
+    * Called when loading a dynamic DFE field
+    * @since 2.0
+    */
+    public static function get_html_id_from_container(&$field_name, &$html_id, $field, $hidden_field_id) {
+        $id_parts = explode('-', str_replace('_container', '', $hidden_field_id));
+        $plus = ( count($id_parts) == 3 ) ? '-' . end($id_parts) : ''; // this is in a sub field
+        $html_id = FrmFieldsHelper::get_html_id($field, $plus);
+        if ( $plus != '' ) {
+            // get the name for the sub field
+            $field_name .= '['. $id_parts[1] .']['. end($id_parts) .']';
+        }
+        $field_name .= '['. $field['id'] .']';
     }
 
     public static function setup_new_field_vars($values){
@@ -423,6 +439,7 @@ class FrmProFieldsHelper{
         $tags = get_the_terms( $post_id, $values['taxonomy'] );
         if ( empty($tags) ) {
             $values['value'] = '';
+            return;
         }
 
         $names = array();
@@ -529,7 +546,7 @@ class FrmProFieldsHelper{
         global $frm_vars;
 
         //conditional rules only once on the page
-        if ( FrmAppHelper::doing_ajax() ) {
+        if ( FrmAppHelper::doing_ajax() && ( ! isset($frm_vars['footer_loaded']) || $frm_vars['footer_loaded'] !== true ) ) {
             return;
         }
 
@@ -589,7 +606,7 @@ class FrmProFieldsHelper{
 
                     if ( $sub_field->type == 'data' && $field['org_type'] == 'data' && ( is_numeric($field['form_select']) || $field['form_select'] == 'taxonomy') ) {
                         $condition['LinkedField'] = $field['form_select'];
-                        $condition['DataType'] = $field['data_type'];
+                        $condition['DataType'] = empty($field['data_type']) ? 'data' : $field['data_type'];
                     }
 
                     if ( isset($field['hide_opt']) && ( ! empty($field['hide_opt'][$i2]) || $field['hide_opt'][$i2] == 0) ) {
@@ -625,7 +642,18 @@ class FrmProFieldsHelper{
                 $frm_vars['rules'][$parent_field->id][] = $conf_rule;
             }
 
-            $frm_vars['rules'][$parent_field->id][] = $rule;
+            $included = false;
+            foreach ( $frm_vars['rules'][$parent_field->id] as $checked_cond ) {
+                // this condition is already included
+                if ( $checked_cond == $rule ) {
+                    $included = true;
+                }
+                unset($checked_cond);
+            }
+
+            if ( ! $included ) {
+                $frm_vars['rules'][$parent_field->id][] = $rule;
+            }
 
             unset($rule, $parent_field, $i, $cond);
         }
@@ -634,8 +662,9 @@ class FrmProFieldsHelper{
     public static function get_category_options($field){
         $field = (array) $field;
         $post_type = FrmProFormsHelper::post_type($field['form_id']);
-        if(!isset($field['exclude_cat']))
+        if ( ! isset($field['exclude_cat']) ) {
             $field['exclude_cat'] = 0;
+        }
 
         $exclude = (is_array($field['exclude_cat'])) ? implode(',', $field['exclude_cat']) : $field['exclude_cat'];
         $exclude = apply_filters('frm_exclude_cats', $exclude, $field);
@@ -649,7 +678,7 @@ class FrmProFieldsHelper{
             $args['parent'] = '0';
 
         $args['taxonomy'] = FrmProAppHelper::get_custom_taxonomy($post_type, $field);
-        if ( !$args['taxonomy'] ) {
+        if ( ! $args['taxonomy'] ) {
             return;
         }
 
@@ -672,51 +701,56 @@ class FrmProFieldsHelper{
             'type' => 'checkbox', 'value' => false, 'exclude' => 0, 'hide_id' => false,
             'tax_num' => 0
         );
-        extract(wp_parse_args($args, $defaults));
+        $args = wp_parse_args($args, $defaults);
 
-        if ( !$field || !isset($field['post_field']) || $field['post_field'] != 'post_category' ) {
+        if ( ! $args['field'] || ! isset($args['field']['post_field']) || $args['field']['post_field'] != 'post_category' ) {
             return;
         }
 
-        if ( !$value ) {
-            $value = isset($field['value']) ? $field['value'] : '';
+        if ( ! $args['value'] ) {
+            $args['value'] = isset($args['field']['value']) ? $args['field']['value'] : '';
         }
 
-        if ( !$exclude ) {
-            $exclude = is_array($field['exclude_cat']) ? implode(',', $field['exclude_cat']) : $field['exclude_cat'];
-            $exclude = apply_filters('frm_exclude_cats', $exclude, $field);
+        if ( ! $args['exclude'] ) {
+            $args['exclude'] = is_array($args['field']['exclude_cat']) ? implode(',', $args['field']['exclude_cat']) : $args['field']['exclude_cat'];
+            $args['exclude'] = apply_filters('frm_exclude_cats', $args['exclude'], $args['field']);
         }
 
-        if ( ! $field_name ) {
-            $field_name = 'item_meta['. $field['id'] .']';
+        if ( ! $args['field_name'] ) {
+            $args['field_name'] = 'item_meta['. $args['field']['id'] .']';
         }
 
-        $onchange = '';
-
-        if ( $type == 'checkbox' ) {
-            $field_name .= '[]';
+        if ( $args['type'] == 'checkbox' ) {
+            $args['field_name'] .= '[]';
         }
-        $post_type = FrmProFormsHelper::post_type($field['form_id']);
+        $post_type = FrmProFormsHelper::post_type($args['field']['form_id']);
         $taxonomy = 'category';
 
-        $args = array(
+        $cat_atts = array(
             'orderby' => 'name', 'order' => 'ASC', 'hide_empty' => false,
-            'parent' => $opt_key, 'exclude' => $exclude, 'type' => $post_type
+            'parent' => $args['opt_key'], 'exclude' => $args['exclude'], 'type' => $post_type,
         );
-        if ( !$opt_key ) {
-            $args['taxonomy'] = FrmProAppHelper::get_custom_taxonomy($post_type, $field);
-            if(!$args['taxonomy']){
+        if ( ! $args['opt_key'] ) {
+            $cat_atts['taxonomy'] = FrmProAppHelper::get_custom_taxonomy($post_type, $args['field']);
+            if( ! $cat_atts['taxonomy'] ) {
                 echo '<p>'. __('No Categories', 'formidable' ) .'</p>';
                 return;
             }
 
-            $taxonomy = $args['taxonomy'];
+            $taxonomy = $cat_atts['taxonomy'];
         }
 
-        $children = get_categories($args);
-        $level = ($opt_key) ? 2 : 1;
-    	foreach($children as $key => $cat){  ?>
-    	<div class="frm_catlevel_<?php echo $level ?>"><?php self::_show_category(compact('cat', 'field', 'field_name', 'exclude', 'type', 'value', 'exclude', 'level', 'onchange', 'post_type', 'taxonomy', 'hide_id', 'tax_num')) ?></div>
+        $children = get_categories($cat_atts);
+        unset($cat_atts);
+    
+        $level = $args['opt_key'] ? 2 : 1;
+    	foreach ( $children as $key => $cat ) {  ?>
+    	<div class="frm_catlevel_<?php echo (int) $level ?>"><?php self::_show_category(array(
+            'cat' => $cat, 'field' => $args['field'], 'field_name' => $args['field_name'],
+            'exclude' => $args['exclude'], 'type' => $args['type'], 'value' => $args['value'],
+            'level' => $level, 'onchange' => '', 'post_type' => $post_type,
+            'taxonomy' => $taxonomy, 'hide_id' => $args['hide_id'], 'tax_num' => $args['tax_num'],
+        )) ?></div>
 <?php   }
     }
 
@@ -732,12 +766,12 @@ class FrmProFieldsHelper{
     * @return $max_depth int - max depth of given taxonomy
     */
     public static function get_category_depth( $cat_name, $parent = 0, $cur_depth = 0, $max_depth = 0 ){
-        if ( !$cat_name ) {
+        if ( ! $cat_name ) {
             $cat_name = 'category';
         }
 
         // Return zero if taxonomy is not hierarchical
-        if ( $parent == 0 && !is_taxonomy_hierarchical( $cat_name ) ) {
+        if ( $parent == 0 && ! is_taxonomy_hierarchical( $cat_name ) ) {
             $max_depth = 0;
             return $max_depth;
         }
@@ -786,14 +820,14 @@ class FrmProFieldsHelper{
         }
 
     	?>
-    	<div class="frm_<?php echo $atts['type'] ?>" id="frm_<?php echo $atts['type'] .'_'. $sanitized_name ?>">
-    	    <label for="field_<?php echo $sanitized_name ?>"><input type="<?php echo $atts['type'] ?>" name="<?php echo $atts['field_name'] ?>" <?php
-    	    echo ( isset($hide_id) && $hide_id ) ? '' : 'id="field_'. $sanitized_name .'"';
-    	    ?> value="<?php echo $atts['cat']->cat_ID ?>" <?php
+    	<div class="frm_<?php echo esc_attr( $atts['type'] ) ?>" id="frm_<?php echo esc_attr( $atts['type'] .'_'. $sanitized_name ) ?>">
+    	    <label for="field_<?php echo esc_attr( $sanitized_name ) ?>"><input type="<?php echo esc_attr( $atts['type'] ) ?>" name="<?php echo esc_attr( $atts['field_name'] ) ?>" <?php
+    	    echo ( isset($atts['hide_id']) && $atts['hide_id'] ) ? '' : 'id="field_'. esc_attr( $sanitized_name ) .'"';
+    	    ?> value="<?php echo esc_attr( $atts['cat']->cat_ID ) ?>" <?php
     	    echo $checked;
     	    do_action('frm_field_input_html', $atts['field']);
     	    //echo ($onchange);
-    	    ?> /><?php echo $atts['cat']->cat_name ?></label>
+    	    ?> /><?php echo esc_html( $atts['cat']->cat_name ) ?></label>
 <?php
     	$children = get_categories(array(
     	    'type' => $atts['post_type'], 'orderby' => 'name',
@@ -805,7 +839,7 @@ class FrmProFieldsHelper{
     	    $atts['level']++;
     	    foreach ( $children as $key => $cat ) {
     	        $atts['cat'] = $cat; ?>
-    	<div class="frm_catlevel_<?php echo $atts['level'] ?>"><?php self::_show_category( $atts ); ?></div>
+    	<div class="frm_catlevel_<?php echo esc_attr( $atts['level'] ) ?>"><?php self::_show_category( $atts ); ?></div>
 <?php       }
         }
     	echo '</div>';
@@ -816,13 +850,15 @@ class FrmProFieldsHelper{
         $post_type_object = get_post_type_object($post_type);
         $options = array();
 
-        if(!$post_type_object)
+        if ( ! $post_type_object ) {
             return $options;
+        }
 
         $can_publish = current_user_can($post_type_object->cap->publish_posts);
         $options = get_post_statuses(); //'draft', pending, publish, private
 
-        if(!$can_publish){ // Contributors only get "Unpublished" and "Pending Review"
+        // Contributors only get "Unpublished" and "Pending Review"
+        if ( ! $can_publish ) {
         	unset($options['publish']);
         	if(isset($options['future']))
         	    unset($options['future']);
@@ -845,8 +881,9 @@ class FrmProFieldsHelper{
         $metas = array();
         $selected_field = FrmField::getOne($values['form_select']);
 
-        if(!$selected_field)
+        if ( ! $selected_field ) {
             return array();
+        }
 
         $linked_posts = (isset($selected_field->field_options['post_field']) and
             $selected_field->field_options['post_field'] and
@@ -867,7 +904,8 @@ class FrmProFieldsHelper{
 
             $observed_field_val = maybe_unserialize($observed_field_val);
 
-            $metas = FrmProEntryMetaHelper::meta_through_join($values['hide_field'], $selected_field, $observed_field_val);
+            $metas = array();
+            FrmProEntryMetaHelper::meta_through_join($values['hide_field'], $selected_field, $observed_field_val, false, $metas);
 
         }else if ($values['restrict'] and $user_ID){
             $entry_user = $user_ID;
@@ -1089,6 +1127,12 @@ class FrmProFieldsHelper{
             $prev_page = $set_prev = $next_page - 1;
         } else if ( FrmProFormsHelper::saving_draft() && ! $error ) {
             $next_page = FrmAppHelper::get_param('frm_page_order_'. $form_id, false);
+
+            // If $next_page is zero, assume user clicked "Save Draft" on last page of form
+            if ( $next_page == 0 ) {
+                $next_page = count( $fields ) - 1;
+            }
+
             $prev_page = $set_prev = $next_page - 1;
         }
 
@@ -1128,19 +1172,21 @@ class FrmProFieldsHelper{
             if($ajax){
                 switch ($f->type){
                     case 'date':
-                        if(!isset($frm_vars['datepicker_loaded']) or !is_array($frm_vars['datepicker_loaded']))
+                        if ( ! isset($frm_vars['datepicker_loaded']) || ! is_array($frm_vars['datepicker_loaded']) ) {
                             $frm_vars['datepicker_loaded'] = array();
+                        }
                         $frm_vars['datepicker_loaded']['field_'. $f->field_key] = $ajax_now;
                     break;
                     case 'time':
-                        if(isset($f->field_options['unique']) and $f->field_options['unique']){
-                            if(!isset($frm_vars['timepicker_loaded']))
+                        if ( isset($f->field_options['unique']) && $f->field_options['unique'] ) {
+                            if ( ! isset($frm_vars['timepicker_loaded']) ) {
                                 $frm_vars['timepicker_loaded'] = array();
+                            }
                             $frm_vars['timepicker_loaded']['field_'. $f->field_key] = $ajax_now;
                         }
                     break;
                     case 'phone':
-                        if(isset($f->field_options['format']) and !empty($f->field_options['format']) and strpos($f->field_options['format'], '^') !== 0){
+                        if ( isset($f->field_options['format']) && ! empty($f->field_options['format']) && strpos( $f->field_options['format'], '^' ) !== 0 ) {
                             global $frm_input_masks;
                             $frm_input_masks[$f->id] = $ajax_now ? preg_replace('/\d/', '9', $f->field_options['format']) : false;
                         }
@@ -1157,14 +1203,14 @@ class FrmProFieldsHelper{
             $page_breaks[$f->field_order] = $f;
 
 
-            if(($prev_page or $go_back) and !$get_last){
-                if ((($error or $go_back) and ($f->field_order < $prev_page)) or (!$error and !$go_back and !isset($prev_page_obj) and ($f->field_order == $prev_page))){
+            if ( ( $prev_page || $go_back ) && ! $get_last ) {
+                if (( ( $error || $go_back ) && $f->field_order < $prev_page ) || ( ! $error && ! $go_back && ! isset($prev_page_obj) && $f->field_order == $prev_page ) ) {
                     $prev_page_obj = true;
                     $prev_page = $f->field_order;
-                }else if(isset($set_prev) and $f->field_order < $set_prev){
+                } else if ( isset($set_prev) && $f->field_order < $set_prev ) {
                     $prev_page_obj = true;
                     $prev_page = $f->field_order;
-                }else if(($f->field_order > $prev_page) and !isset($set_next) and (!$next_page or is_numeric($next_page))){
+                } else if ( ( $f->field_order > $prev_page ) && ! isset($set_next) && ( ! $next_page || is_numeric( $next_page ) ) ) {
                     $next_page = $f;
                     $set_next = true;
                 }
@@ -1173,9 +1219,9 @@ class FrmProFieldsHelper{
                 $prev_page_obj = true;
                 $prev_page = $f->field_order;
                 $next_page = false;
-            }else if(!$next_page){
+            } else if ( ! $next_page ) {
                 $next_page = $f;
-            }else if(is_numeric($next_page) and $f->field_order == $next_page){
+            } else if ( is_numeric( $next_page ) && $f->field_order == $next_page ) {
                 $next_page = $f;
             }
 
@@ -1183,17 +1229,18 @@ class FrmProFieldsHelper{
         }
         unset($ajax);
 
-        if (!isset($prev_page_obj) and $prev_page)
+        if ( ! isset($prev_page_obj) && $prev_page ) {
             $prev_page = 0;
+        }
 
         if($prev_page){
             $current_page = $page_breaks[$prev_page];
             if ( self::is_field_hidden($current_page, stripslashes_deep($_POST)) ) {
                 $current_page = apply_filters('frm_get_current_page', $current_page, $page_breaks, $go_back);
-                if(!$current_page or $current_page->field_order != $prev_page){
+                if ( ! $current_page || $current_page->field_order != $prev_page ) {
                     $prev_page = ($current_page) ? $current_page->field_order : 0;
-                    foreach($page_breaks as $o => $pb){
-                        if($o > $prev_page){
+                    foreach ( $page_breaks as $o => $pb ) {
+                        if ( $o > $prev_page ) {
                             $next_page = $pb;
                             break;
                         }
@@ -1210,15 +1257,16 @@ class FrmProFieldsHelper{
         else
             unset($frm_vars['prev_page'][$form_id]);
 
-        if(!isset($next_page))
+        if ( ! isset($next_page) ) {
             $next_page = false;
+        }
 
         if($next_page){
             if ( is_numeric($next_page) && isset($page_breaks[$next_page]) ) {
                 $next_page = $page_breaks[$next_page];
             }
 
-            if ( !is_numeric($next_page) ) {
+            if ( ! is_numeric($next_page) ) {
                 $frm_vars['next_page'][$form_id] = $next_page;
                 $next_page = $next_page->field_order;
             }
@@ -1261,11 +1309,11 @@ class FrmProFieldsHelper{
         }
 
         foreach($page_breaks as $o => $pb){
-            if(($go_back and $o < $next_page->field_order)){
+            if ( $go_back && $o < $next_page->field_order ) {
                 $next_page = $pb;
                 $set_back = true;
                 break;
-            }else if(!$go_back and $o > $next_page->field_order and ($pb->field_order != $first->field_order)){
+            } else if ( ! $go_back && $o > $next_page->field_order && ( $pb->field_order != $first->field_order ) ) {
                 $next_page = $pb;
                 break;
             }
@@ -1273,8 +1321,9 @@ class FrmProFieldsHelper{
             unset($pb);
         }
 
-        if($go_back and !$set_back)
+        if ( $go_back && ! $set_back ) {
             $next_page = 0;
+        }
 
         if ( $next_page && self::is_field_hidden($next_page, stripslashes_deep($_POST)) ) {
             if($first == $next_page){
@@ -1428,7 +1477,7 @@ DEFAULT_HTML;
                 $style = FrmStylesController::get_form_style($field['form_id']);
 
                 // insert the collapse icon with the heading
-                preg_match_all( "/\<h[2-6]\b(.*?)(?:(\/))?\>\b(.*?)(?:(\/))?\<\/h[2-6]>/s", $html, $headings, PREG_PATTERN_ORDER);
+                preg_match_all( "/\<h[2-6]\b(.*?)(?:(\/))?\>\b(.*?)(?:(\/))?\<\/h[2-6]>/su", $html, $headings, PREG_PATTERN_ORDER);
                 if ( isset($headings[3]) && ! empty($headings[3]) ) {
                     foreach ( $headings[3] as $heading ) {
                         if ( 'before' == $style->post_content['collapse_pos'] ) {
@@ -1547,16 +1596,19 @@ DEFAULT_HTML;
     }
 
     public static function get_file_icon($media_id){
-        if (!$media_id or !is_numeric($media_id) )
+        if ( ! $media_id || ! is_numeric( $media_id ) ) {
             return;
+        }
 
         $attachment = get_post($media_id);
-        if(!$attachment)
+        if ( ! $attachment ) {
             return;
+        }
 
         $image = $orig_image = wp_get_attachment_image($media_id, 'thumbnail', true);
 
-        if($image and !preg_match("/wp-content\/uploads/", $image)){ //if this is a mime type icon
+        //if this is a mime type icon
+        if ( $image && ! preg_match("/wp-content\/uploads/", $image) ) {
             $label = basename($attachment->guid);
             $image .= " <span id='frm_media_$media_id' class='frm_upload_label'><a href='". wp_get_attachment_url($media_id) ."'>$label</a></span>";
         } else if ( $image ) {
@@ -1571,12 +1623,12 @@ DEFAULT_HTML;
     public static function get_file_name($media_ids, $short=true){
         $value = '';
         foreach ( (array) $media_ids as $media_id ) {
-            if ( !is_numeric($media_id) ) {
+            if ( ! is_numeric($media_id) ) {
                 continue;
             }
 
             $attachment = get_post($media_id);
-            if ( !$attachment ) {
+            if ( ! $attachment ) {
                 continue;
             }
 
@@ -1614,18 +1666,20 @@ DEFAULT_HTML;
         $orig_val = $value;
         $linked_field_id = isset($atts['show']) ? $atts['show'] : false;
 
-        if (is_numeric($value) and (!isset($field->field_options['form_select']) or $field->field_options['form_select'] != 'taxonomy')){
-            if (!$linked_field_id and is_numeric($field->field_options['form_select']))
+        if ( is_numeric($value) && ( ! isset($field->field_options['form_select']) || $field->field_options['form_select'] != 'taxonomy' ) ) {
+            if ( ! $linked_field_id && is_numeric($field->field_options['form_select']) ) {
                 $linked_field_id = $field->field_options['form_select'];
+            }
 
             if ($linked_field_id){
                 $linked_field = FrmField::getOne($linked_field_id);
-                if($linked_field and isset($linked_field->field_options['post_field']) and $linked_field->field_options['post_field']){
+                if ( $linked_field && isset($linked_field->field_options['post_field']) && $linked_field->field_options['post_field'] ) {
                     $frmdb = new FrmDb();
                     $post_id = $frmdb->get_var($wpdb->prefix .'frm_items', array('id' => $value), 'post_id');
                     if($post_id){
-                        if(!isset($atts['truncate']))
+                        if ( ! isset($atts['truncate']) ) {
                             $atts['truncate'] = false;
+                        }
 
                         $new_value = FrmProEntryMetaHelper::get_post_value($post_id, $linked_field->field_options['post_field'], $linked_field->field_options['custom_field'], array('form_id' => $linked_field->form_id, 'field' => $linked_field, 'type' => $linked_field->type, 'truncate' => $atts['truncate']));
                     }else{
@@ -1650,8 +1704,9 @@ DEFAULT_HTML;
                     } else if ( isset($atts['show']) && ( (int) $atts['show'] == $linked_field->id || $atts['show'] == $linked_field->field_key ) ) {
                         unset($atts['show']);
                     }
-                    if(!isset($atts['show']) and isset($atts['show_info']))
+                    if ( ! isset($atts['show']) && isset($atts['show_info']) ) {
                         $atts['show'] = $atts['show_info'];
+                    }
                     $value = FrmFieldsHelper::get_display_value($value, $linked_field, $atts); //get display value
                 }
             }
@@ -1704,24 +1759,26 @@ DEFAULT_HTML;
             'blank' => false, 'link' => false, 'size' => 96
         );
 
-        extract(wp_parse_args($args, $defaults));
+        $args = wp_parse_args($args, $defaults);
 
         $user = get_userdata($user_id);
         $info = '';
 
-        if($user){
-            if($user_info == 'avatar'){
-                $info = get_avatar( $user_id, $size );
-            }else{
+        if ( $user ) {
+            if ( $user_info == 'avatar' ) {
+                $info = get_avatar( $user_id, $args['size'] );
+            } else {
                 $info = isset($user->$user_info) ? $user->$user_info : '';
             }
 
-            if(empty($info) and !$blank)
+            if ( empty($info) && ! $args['blank'] ) {
                 $info = $user->user_login;
+            }
         }
 
-        if($link)
+        if ( $args['link'] ) {
             $info = '<a href="'.  admin_url('user-edit.php') .'?user_id='. $user_id .'">'. $info .'</a>';
+        }
 
         return $info;
     }
@@ -1735,11 +1792,12 @@ DEFAULT_HTML;
     public static function get_field_options($form_id, $value='', $include='not', $types="'break','divider','end_divider','data','file','captcha'") {
         $fields = FrmField::getAll("fi.type $include in ($types) and fi.form_id=". (int) $form_id, 'field_order');
         foreach ($fields as $field){
-            if($field->type == 'data' and (!isset($field->field_options['data_type']) or $field->field_options['data_type'] == 'data' or $field->field_options['data_type'] == ''))
+            if ( $field->type == 'data' && ( ! isset($field->field_options['data_type']) || $field->field_options['data_type'] == 'data' || $field->field_options['data_type'] == '' ) ) {
                 continue;
+            }
 
             ?>
-            <option value="<?php echo $field->id ?>" <?php selected($value, $field->id) ?>><?php echo FrmAppHelper::truncate($field->name, 50) ?></option>
+            <option value="<?php echo (int) $field->id ?>" <?php selected($value, $field->id) ?>><?php echo esc_html( FrmAppHelper::truncate($field->name, 50) ) ?></option>
         <?php
         }
     }
@@ -1749,8 +1807,9 @@ DEFAULT_HTML;
 
         $field = FrmField::getOne($id);
 
-        if(!$field)
+        if ( ! $field ) {
             return 0;
+        }
 
         $id = $field->id;
 
@@ -1822,7 +1881,7 @@ DEFAULT_HTML;
                     $next_val = array('char' => substr($val, 0, 1), 'val' => $val);
                     continue;
                 // If we don't have a previous value that needs to be parsed back together
-                }else if(!isset($next_val)){
+                } else if ( ! isset($next_val) ) {
                     $temp = FrmAppHelper::replace_quotes($val);
                     foreach(array('"', "'") as $q){
                         // Check if <" or >" exists in string and string does not end with ".
@@ -1868,8 +1927,9 @@ DEFAULT_HTML;
             }
 
             foreach($post_ids as $entry_id => $post_id){
-                if(!in_array($entry_id, $entry_ids))
+                if ( ! in_array($entry_id, $entry_ids) ) {
                     unset($post_ids[$entry_id]);
+                }
             }
 
 
@@ -2074,12 +2134,12 @@ DEFAULT_HTML;
         }
 
         // If this function has looped through at least once, and there aren't any entry IDs
-        if ( $after_where && !$entry_ids ) {
+        if ( $after_where && ! $entry_ids ) {
             return array();
         }
 
         //If using field key
-        if ( !is_numeric( $f ) ) {
+        if ( ! is_numeric( $f ) ) {
             if ( in_array( $f, array( 'created_at', 'updated_at' ) ) ) {
                 global $wpdb;
 
@@ -2152,7 +2212,7 @@ DEFAULT_HTML;
 
         $linked_forms = array();
         ?>
-        <select class="frm_shortcode_select frm_insert_val" data-target="<?php echo $target_id ?>">
+        <select class="frm_shortcode_select frm_insert_val" data-target="<?php echo esc_attr( $target_id ) ?>">
             <option value="">&mdash; <?php _e('Select a value to insert into the box below', 'formidable') ?> &mdash;</option>
             <?php if($type != 'field_opt' and $type != 'calc'){ ?>
             <option value="id"><?php _e('Entry ID', 'formidable') ?></option>
@@ -2175,13 +2235,13 @@ DEFAULT_HTML;
                     continue;
                 }
             ?>
-                <option value="<?php echo $field->id ?>"><?php echo $field_name = FrmAppHelper::truncate($field->name, 60) ?> (<?php _e('ID', 'formidable') ?>)</option>
-                <option value="<?php echo $field->field_key ?>"><?php echo $field_name ?> (<?php _e('Key', 'formidable') ?>)</option>
-                <?php if ( $field->type == 'file' && $type != 'field_opt' and $type != 'calc' ) { ?>
-                    <option class="frm_subopt" value="<?php echo $field->field_key ?> size=thumbnail"><?php _e('Thumbnail', 'formidable') ?></option>
-                    <option class="frm_subopt" value="<?php echo $field->field_key ?> size=medium"><?php _e('Medium', 'formidable') ?></option>
-                    <option class="frm_subopt" value="<?php echo $field->field_key ?> size=large"><?php _e('Large', 'formidable') ?></option>
-                    <option class="frm_subopt" value="<?php echo $field->field_key ?> size=full"><?php _e('Full Size', 'formidable') ?></option>
+                <option value="<?php echo esc_attr( $field->id ) ?>"><?php echo $field_name = esc_html( FrmAppHelper::truncate($field->name, 60) ) ?> (<?php _e( 'ID', 'formidable' ) ?>)</option>
+                <option value="<?php echo esc_attr( $field->field_key ) ?>"><?php echo $field_name ?> (<?php _e( 'Key', 'formidable' ) ?>)</option>
+                <?php if ( $field->type == 'file' && $type != 'field_opt' && $type != 'calc' ) { ?>
+                    <option class="frm_subopt" value="<?php echo esc_attr( $field->field_key ) ?> size=thumbnail"><?php _e( 'Thumbnail', 'formidable' ) ?></option>
+                    <option class="frm_subopt" value="<?php echo esc_attr( $field->field_key ) ?> size=medium"><?php _e( 'Medium', 'formidable' ) ?></option>
+                    <option class="frm_subopt" value="<?php echo esc_attr( $field->field_key ) ?> size=large"><?php _e( 'Large', 'formidable' ) ?></option>
+                    <option class="frm_subopt" value="<?php echo esc_attr( $field->field_key ) ?> size=full"><?php _e( 'Full Size', 'formidable' ) ?></option>
                 <?php } else if ( $field->type == 'data' ) { //get all fields from linked form
                     if ( isset($field->field_options['form_select']) && is_numeric($field->field_options['form_select']) ) {
                         global $wpdb;
@@ -2191,8 +2251,8 @@ DEFAULT_HTML;
                             $linked_forms[] = $linked_form;
                             $linked_fields = FrmField::getAll("fi.type not in ('". implode("','", FrmFieldsHelper::no_save_fields() ) ."') and fi.form_id =". (int) $linked_form);
                             foreach ( $linked_fields as $linked_field ) { ?>
-                    <option class="frm_subopt" value="<?php echo $field->id ?> show=<?php echo $linked_field->id ?>"><?php echo FrmAppHelper::truncate($linked_field->name, 60) ?> (<?php _e('ID', 'formidable') ?>)</option>
-                    <option class="frm_subopt" value="<?php echo $field->field_key ?> show=<?php echo $linked_field->field_key ?>"><?php echo FrmAppHelper::truncate($linked_field->name, 60) ?> (<?php _e('Key', 'formidable') ?>)</option>
+                    <option class="frm_subopt" value="<?php echo esc_attr( $field->id .' show='. $linked_field->id ) ?>"><?php echo esc_html( FrmAppHelper::truncate($linked_field->name, 60) ) ?> (<?php _e( 'ID', 'formidable' ) ?>)</option>
+                    <option class="frm_subopt" value="<?php echo esc_attr( $field->field_key .' show='. $linked_field->field_key ) ?>"><?php echo esc_html( FrmAppHelper::truncate($linked_field->name, 60) ) ?> (<?php _e( 'Key', 'formidable' ) ?>)</option>
                     <?php
                             }
                         }
@@ -2439,7 +2499,7 @@ DEFAULT_HTML;
             $time_format = ' ';
         } else {
             $atts['format'] = get_option('date_format');
-            $time_format = false;
+            $time_format = '';
         }
 
         if ( $args['conditional'] ) {
@@ -2976,22 +3036,26 @@ DEFAULT_HTML;
          if($field->type == 'user_id' or $field->type == 'hidden')
              return false;
 
-         if(!isset($field->field_options['hide_field']) or empty($field->field_options['hide_field']))
+         if ( ! isset($field->field_options['hide_field']) || empty($field->field_options['hide_field']) ) {
              return false;
+         }
 
          //TODO: check if field is included in conditional heading
 
          $field->field_options['hide_field'] = (array) $field->field_options['hide_field'];
-         if(!isset($field->field_options['hide_field_cond']))
+         if ( ! isset($field->field_options['hide_field_cond']) ) {
              $field->field_options['hide_field_cond'] = array('==');
+         }
          $field->field_options['hide_field_cond'] = (array) $field->field_options['hide_field_cond'];
          $field->field_options['hide_opt'] = (array) $field->field_options['hide_opt'];
 
-         if(!isset($field->field_options['show_hide']))
+         if ( ! isset($field->field_options['show_hide']) ) {
              $field->field_options['show_hide'] = 'show';
+         }
 
-         if(!isset($field->field_options['any_all']))
+         if ( ! isset($field->field_options['any_all']) ) {
              $field->field_options['any_all'] = 'any';
+         }
 
          $hidden = false;
          $hide = array();
@@ -3028,7 +3092,7 @@ DEFAULT_HTML;
     public static function &is_field_visible_to_user($field) {
         $visible = true;
 
-        if ( !isset($field->field_options['admin_only']) || empty($field->field_options['admin_only']) ) {
+        if ( ! isset($field->field_options['admin_only']) || empty($field->field_options['admin_only']) ) {
             return $visible;
         }
 
@@ -3036,10 +3100,10 @@ DEFAULT_HTML;
             $field->field_options['admin_only'] = 'administrator';
         }
 
-        if ( ($field->field_options['admin_only'] == 'loggedout' && is_user_logged_in()) ||
-            ($field->field_options['admin_only'] == 'loggedin' && !is_user_logged_in()) ||
-            (!in_array($field->field_options['admin_only'], array('loggedout', 'loggedin', '')) &&
-            !FrmAppHelper::user_has_permission($field->field_options['admin_only'])) ) {
+        if ( ( $field->field_options['admin_only'] == 'loggedout' && is_user_logged_in() ) ||
+            ( $field->field_options['admin_only'] == 'loggedin' && ! is_user_logged_in() ) ||
+            ( ! in_array($field->field_options['admin_only'], array('loggedout', 'loggedin', '') ) &&
+            ! FrmAppHelper::user_has_permission( $field->field_options['admin_only'] ) ) ) {
                 $visible = false;
         }
 
@@ -3058,11 +3122,11 @@ DEFAULT_HTML;
         if ( is_array($checked) ) {
             foreach ($checked as $k => $checked2){
                 $checked2 = apply_filters('frm_hidden_value', $checked2, $field);
-                FrmProFieldsHelper::insert_hidden_fields($field, $field_name .'['. $k .']', $checked2, $k);
+                self::insert_hidden_fields($field, $field_name .'['. $k .']', $checked2, $k);
                 unset($k, $checked2);
             }
         } else { ?>
-            <input type="hidden" name="<?php echo $field_name ?>" value="<?php echo esc_attr($checked) ?>" <?php do_action('frm_field_input_html', $field) ?> />
+            <input type="hidden" name="<?php echo esc_attr( $field_name ) ?>" value="<?php echo esc_attr( $checked ) ?>" <?php do_action( 'frm_field_input_html', $field ) ?> />
             <?php
             self::extra_hidden_fields( $field, $opt_key );
         }
@@ -3080,24 +3144,41 @@ DEFAULT_HTML;
         //If confirmation field on previous page, store value in hidden field
         if ( isset($field['conf_field']) && $field['conf_field'] && isset( $_POST['item_meta']['conf_' . $field['id']] ) ) {
             ?>
-            <input type="hidden" name="item_meta[conf_<?php echo $field['id'] ?>]" value="<?php echo esc_attr($_POST['item_meta']['conf_' . $field['id']]); ?>" />
+            <input type="hidden" name="item_meta[conf_<?php echo esc_attr( $field['id'] ) ?>]" value="<?php echo esc_attr( $_POST['item_meta']['conf_' . $field['id']] ); ?>" />
             <?php
 
         //If Other field on previous page, store value in hidden field
         } else if ( isset( $field['other'] ) && $field['other'] && isset( $_POST['item_meta']['other'][$field['id']] ) && $_POST['item_meta']['other'][$field['id']] ) {
 
             // Checkbox and multi-select dropdown fields
-            if ( $opt_key && !is_numeric( $opt_key ) && isset( $_POST['item_meta']['other'][$field['id']][$opt_key] ) && $_POST['item_meta']['other'][$field['id']][$opt_key] ) {
+            if ( $opt_key && ! is_numeric( $opt_key ) && isset( $_POST['item_meta']['other'][ $field['id'] ][ $opt_key ] ) && $_POST['item_meta']['other'][ $field['id'] ][ $opt_key ] ) {
                 ?>
-                <input type="hidden" name="item_meta[other][<?php echo $field['id'] ?>][<?php echo $opt_key ?>]" value="<?php echo esc_attr($_POST['item_meta']['other'][$field['id']][$opt_key]); ?>" />
+                <input type="hidden" name="item_meta[other][<?php echo esc_attr( $field['id'] ) ?>][<?php echo esc_attr( $opt_key ) ?>]" value="<?php echo esc_attr( $_POST['item_meta']['other'][ $field['id'] ][ $opt_key ] ); ?>" />
                 <?php
 
             // Radio fields and regular dropdowns
-            } else if ( !is_array( $field['value'] ) && !is_array( $_POST['item_meta']['other'][$field['id']] ) ) { ?>
-                <input type="hidden" name="item_meta[other][<?php echo $field['id'] ?>]" value="<?php echo esc_attr( $_POST['item_meta']['other'][$field['id']] ); ?>" />
+            } else if ( ! is_array( $field['value'] ) && ! is_array( $_POST['item_meta']['other'][ $field['id'] ] ) ) { ?>
+                <input type="hidden" name="item_meta[other][<?php echo esc_attr( $field['id'] ) ?>]" value="<?php echo esc_attr( $_POST['item_meta']['other'][ $field['id'] ] ); ?>" />
                 <?php
             }
         }
+    }
+
+    /*
+    * Check if the field is in a child form and return the parent form id
+    * @since 2.0
+    * @return int The ID of the form or parent form
+    */
+    public static function get_parent_form_id($field) {
+        $form = FrmForm::getOne($field->form_id);
+
+        // include the parent form ids if this is a child field
+        $form_id = $field->form_id;
+        if ( ! empty($form->parent_form_id) ) {
+            $form_id = $form->parent_form_id;
+        }
+
+        return $form_id;
     }
 
     /*
@@ -3125,7 +3206,7 @@ DEFAULT_HTML;
 
         $prev = 0;
         $next = 9999;
-        if ( !is_object($field) ) {
+        if ( ! is_object($field) ) {
             $field = FrmField::getOne($field);
         }
 

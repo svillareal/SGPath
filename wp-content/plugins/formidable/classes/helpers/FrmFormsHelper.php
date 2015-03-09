@@ -24,6 +24,7 @@ class FrmFormsHelper{
             'field_id'  => false,
             'onchange'  => false,
             'exclude'   => false,
+            'class'     => '',
         );
         $args = wp_parse_args( $args, $defaults );
 
@@ -41,15 +42,18 @@ class FrmFormsHelper{
         $where = apply_filters('frm_forms_dropdown', $query, $field_name);
         $forms = FrmForm::getAll($where, 'name');
         ?>
-        <select name="<?php echo $field_name; ?>" id="<?php echo $args['field_id'] ?>" <?php
+        <select name="<?php echo esc_attr( $field_name ); ?>" id="<?php echo esc_attr( $args['field_id'] ) ?>" <?php
             if ( $args['onchange'] ) {
-                echo 'onchange="'. $args['onchange'] .'"';
+                echo ' onchange="'. esc_attr( $args['onchange'] ) .'"';
+            }
+            if ( ! empty($args['class']) ) {
+                echo ' class="'. esc_attr( $args['class'] ) .'"';
             } ?>>
             <?php if ( $args['blank'] ) { ?>
-            <option value=""><?php echo ( $args['blank'] == 1 ) ? ' ' : '- '. $args['blank'] .' -'; ?></option>
+            <option value=""><?php echo ( $args['blank'] == 1 ) ? ' ' : '- '. esc_attr( $args['blank'] ) .' -'; ?></option>
             <?php } ?>
             <?php foreach($forms as $form){ ?>
-                <option value="<?php echo $form->id; ?>" <?php selected($field_value, $form->id); ?>><?php echo '' == $form->name ? __('(no title)', 'formidable') : FrmAppHelper::truncate($form->name, 33); ?></option>
+                <option value="<?php echo esc_attr( $form->id ); ?>" <?php selected($field_value, $form->id); ?>><?php echo '' == $form->name ? __('(no title)', 'formidable') : esc_attr( FrmAppHelper::truncate($form->name, 33) ); ?></option>
             <?php } ?>
         </select>
         <?php
@@ -98,7 +102,7 @@ class FrmFormsHelper{
 
     public static function get_sortable_classes($col, $sort_col, $sort_dir){
         echo ($sort_col == $col) ? 'sorted' : 'sortable';
-        echo ($sort_col == $col and $sort_dir == 'desc') ? ' asc' : ' desc';
+        echo ($sort_col == $col && $sort_dir == 'desc') ? ' asc' : ' desc';
     }
 
     /*
@@ -115,19 +119,22 @@ class FrmFormsHelper{
         }
 
         foreach (array('name' => '', 'description' => '') as $var => $default){
-            if(!isset($values[$var]))
+            if ( ! isset($values[$var]) ) {
                 $values[$var] = FrmAppHelper::get_param($var, $default);
+            }
         }
 
         $values['description'] = FrmAppHelper::use_wpautop($values['description']);
 
         foreach (array('form_id' => '', 'logged_in' => '', 'editable' => '', 'default_template' => 0, 'is_template' => 0, 'status' => 'draft', 'parent_form_id' => 0) as $var => $default){
-            if(!isset($values[$var]))
+            if ( ! isset( $values[ $var ] ) ) {
                 $values[$var] = FrmAppHelper::get_param($var, $default);
+            }
         }
 
-        if(!isset($values['form_key']))
-            $values['form_key'] = ($post_values and isset($post_values['form_key'])) ? $post_values['form_key'] : FrmAppHelper::get_unique_key('', $wpdb->prefix .'frm_forms', 'form_key');
+        if ( ! isset( $values['form_key'] ) ) {
+            $values['form_key'] = ($post_values && isset($post_values['form_key'])) ? $post_values['form_key'] : FrmAppHelper::get_unique_key('', $wpdb->prefix .'frm_forms', 'form_key');
+        }
 
         $values = self::fill_default_opts($values, false, $post_values);
 
@@ -160,11 +167,12 @@ class FrmFormsHelper{
 
     public static function fill_default_opts($values, $record, $post_values) {
 
-        $defaults = FrmFormsHelper::get_default_opts();
+        $defaults = self::get_default_opts();
         foreach ($defaults as $var => $default){
             if ( is_array($default) ) {
-                if(!isset($values[$var]))
+                if ( ! isset( $values[ $var ] ) ) {
                     $values[$var] = ($record && isset($record->options[$var])) ? $record->options[$var] : array();
+                }
 
                 foreach($default as $k => $v){
                     $values[$var][$k] = ($post_values && isset($post_values[$var][$k])) ? $post_values[$var][$k] : (($record && isset($record->options[$var]) && isset($record->options[$var][$k])) ? $record->options[$var][$k] : $v);
@@ -202,6 +210,9 @@ class FrmFormsHelper{
         );
     }
 
+    /**
+     * @param string $loc
+     */
     public static function get_default_html($loc){
         if($loc == 'submit'){
             $sending = __('Sending', 'formidable');
@@ -233,7 +244,7 @@ BEFORE_HTML;
     }
 
     public static function get_custom_submit($html, $form, $submit, $form_action, $values){
-        $button = FrmFormsHelper::replace_shortcodes($html, $form, $submit, $form_action, $values);
+        $button = self::replace_shortcodes($html, $form, $submit, $form_action, $values);
         if ( ! strpos($button, '[button_action]') ) {
             return;
         }
@@ -255,6 +266,10 @@ BEFORE_HTML;
     * Automatically add end section fields if they don't exist (2.0 migration)
     * @since 2.0
     */
+
+    /**
+     * @param boolean $reset_fields
+     */
     public static function auto_add_end_section_fields( $form, $fields, &$reset_fields ) {
         $end_section_values = apply_filters('frm_before_field_created', FrmFieldsHelper::setup_new_vars('end_divider', $form->id));
         $open = false;
@@ -262,14 +277,20 @@ BEFORE_HTML;
             switch ( $field->type ) {
                 case 'divider':
                     // create an end section if open
-                    FrmFormsHelper::maybe_create_end_section($open, $reset_fields, $end_section_values, ( $field->field_order - 1 ) );
+                    self::maybe_create_end_section($open, $reset_fields, $end_section_values, ( $field->field_order - 1 ) );
                     // mark it open for the next end section
                     $open = true;
                 break;
                 case 'break';
-                    FrmFormsHelper::maybe_create_end_section($open, $reset_fields, $end_section_values, ( $field->field_order - 1 ) );
+                    self::maybe_create_end_section($open, $reset_fields, $end_section_values, ( $field->field_order - 1 ) );
                 break;
                 case 'end_divider':
+                    if ( ! $open ) {
+                        // the section isn't open, so this is an extra field that needs to be removed
+                        FrmField::destroy( $field->id );
+                        $reset_fields = true;
+                    }
+
                     // There is already an end section here, so there is no need to create one
                     $open = false;
             }
@@ -279,7 +300,7 @@ BEFORE_HTML;
 
         $last_order = end($fields);
         $last_order = $last_order->field_order;
-        FrmFormsHelper::maybe_create_end_section($open, $reset_fields, $end_section_values, ( $last_order + 1 ) );
+        self::maybe_create_end_section($open, $reset_fields, $end_section_values, ( $last_order + 1 ) );
     }
 
     /*
@@ -384,6 +405,11 @@ BEFORE_HTML;
         return $class;
     }
 
+    /**
+     * @param string|boolean $form
+     *
+     * @return boolean
+     */
     public static function get_form_style( $form ) {
         if ( empty($form) ) {
             $style = 1;
@@ -422,7 +448,7 @@ BEFORE_HTML;
     }
 
     public static function get_scroll_js($form_id) {
-        ?><script type="text/javascript">jQuery(document).ready(function($){frmFrontForm.scrollMsg(<?php echo $form_id ?>);})</script><?php
+        ?><script type="text/javascript">jQuery(document).ready(function($){frmFrontForm.scrollMsg(<?php echo (int) $form_id ?>);})</script><?php
     }
 
     public static function edit_form_link($form_id) {
@@ -504,6 +530,10 @@ BEFORE_HTML;
     *
     * @return int The number of forms changed
     */
+
+    /**
+     * @param string $status
+     */
     public static function change_form_status( $status ) {
         $available_status = array(
             'untrash'   => array(

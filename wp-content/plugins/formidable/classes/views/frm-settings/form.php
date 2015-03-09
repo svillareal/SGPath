@@ -17,7 +17,7 @@
             <?php $a = isset($_GET['t']) ? $_GET['t'] : 'general_settings'; ?>
         	<li <?php echo ($a == 'general_settings') ? 'class="tabs active"' : '' ?>><a href="#general_settings" style="cursor:pointer"><?php _e('General', 'formidable') ?></a></li>
             <?php foreach($sections as $sec_name => $section){ ?>
-                <li <?php echo ($a == $sec_name .'_settings') ? 'class="tabs active"' : '' ?>><a href="#<?php echo $sec_name ?>_settings"><?php echo isset($section['name']) ? $section['name'] : ucfirst($sec_name) ?></a></li>
+                <li <?php echo ($a == $sec_name .'_settings') ? 'class="tabs active"' : '' ?>><a href="#<?php echo esc_attr( $sec_name ) ?>_settings"><?php echo isset($section['name']) ? $section['name'] : ucfirst($sec_name) ?></a></li>
             <?php } ?>
         </ul>
         </div>
@@ -54,7 +54,7 @@
             <table class="form-table">
                 <?php foreach($frm_roles as $frm_role => $frm_role_description){ ?>
                 <tr>
-                    <td class="frm_left_label"><label><?php echo $frm_role_description ?></label></td>
+                    <td class="frm_left_label"><label><?php echo esc_html( $frm_role_description ) ?></label></td>
                     <td><?php FrmAppHelper::wp_roles_dropdown( $frm_role, $frm_settings->$frm_role, 'multiple' ) ?></td>
                 </tr>
                 <?php } ?>
@@ -73,7 +73,7 @@
 		    <p><label class="frm_left_label"><?php _e('reCAPTCHA Language', 'formidable') ?></label>
 			<select name="frm_re_lang" id="frm_re_lang">
 			    <?php foreach ( $captcha_lang as $lang => $lang_name ) { ?>
-				<option value="<?php echo esc_attr($lang) ?>" <?php selected($frm_settings->re_lang, $lang) ?>><?php echo $lang_name ?></option>
+				<option value="<?php echo esc_attr($lang) ?>" <?php selected($frm_settings->re_lang, $lang) ?>><?php echo esc_html( $lang_name ) ?></option>
                 <?php } ?>
             </select></p>
 
@@ -126,8 +126,8 @@
 
         <?php foreach($sections as $sec_name => $section){
             if($a == $sec_name .'_settings'){ ?>
-<style type="text/css">.<?php echo $sec_name ?>_settings{display:block;}</style><?php }?>
-            <div id="<?php echo $sec_name ?>_settings" class="<?php echo $sec_name ?>_settings tabs-panel" style="display:<?php echo ($a == $sec_name .'_settings') ? 'block' : 'none'; ?>;"><?php
+<style type="text/css">.<?php echo esc_attr( $sec_name ) ?>_settings{display:block;}</style><?php }?>
+            <div id="<?php echo esc_attr( $sec_name ) ?>_settings" class="<?php echo esc_attr( $sec_name ) ?>_settings tabs-panel" style="display:<?php echo ( $a == $sec_name .'_settings' ) ? 'block' : 'none'; ?>;"><?php
                 if(isset($section['class'])){
                     call_user_func(array($section['class'], $section['function']));
                 }else{

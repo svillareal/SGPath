@@ -21,4 +21,4 @@ if ( isset($errors) && is_array($errors) && count($errors) > 0 ) { ?>
         </ul>
     </div>
 <?php
-} ?>
+}

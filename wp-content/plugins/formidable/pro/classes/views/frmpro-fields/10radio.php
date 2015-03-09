@@ -1,6 +1,6 @@
 <?php
 if ( is_array($field['options']) ) {
-    if ( !isset($field['value']) ) {
+    if ( ! isset($field['value']) ) {
         $field['value'] = maybe_unserialize($field['default_value']);
     }
 
@@ -12,11 +12,14 @@ if ( is_array($field['options']) ) {
 
 ?>
 <?php
-if ( !$star ) {
-    ?><div class="frm_scale <?php echo $last ?>"><label for="<?php echo $html_id ?>-<?php echo $opt_key ?>"><?php
+if ( ! $star ) {
+    ?><div class="frm_scale <?php echo esc_attr( $last ) ?>"><label for="<?php echo esc_attr( $html_id ) ?>-<?php echo esc_attr( $opt_key ) ?>"><?php
 } ?>
-<input type="radio" name="<?php echo $field_name ?>" id="<?php echo $html_id ?>-<?php echo $opt_key ?>" value="<?php echo esc_attr($opt) ?>" <?php echo $checked ?> <?php do_action('frm_field_input_html', $field) ?> />
-<?php if ( !$star ) {
+<input type="radio" name="<?php echo esc_attr( $field_name ) ?>" id="<?php echo esc_attr( $html_id ) ?>-<?php echo esc_attr( $opt_key ) ?>" value="<?php echo esc_attr( $opt ) ?>" <?php
+    echo $checked .' ';
+    do_action( 'frm_field_input_html', $field );
+?> />
+<?php if ( ! $star ) {
     ?> <?php echo $opt ?></label>
 </div>
 <?php }

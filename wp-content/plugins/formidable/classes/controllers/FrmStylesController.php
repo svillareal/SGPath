@@ -42,20 +42,17 @@ class FrmStylesController{
 
         self::load_pro_hooks();
         wp_enqueue_script('jquery-ui-datepicker');
-        add_action('admin_head', 'FrmStylesController::head');
-    }
 
-    public static function head() {
-        wp_enqueue_script('jquery-frm-themepicker');
+        $version = FrmAppHelper::plugin_version();
+        wp_enqueue_script('jquery-frm-themepicker', FrmAppHelper::plugin_url() .'/js/jquery/jquery-ui-themepicker.js', array('jquery'), $version);
+
+        wp_enqueue_style('jquery-ui-base', FrmAppHelper::jquery_ui_base_url() .'/themes/base/ui.all.css');
+        wp_enqueue_style('frm-custom-theme', admin_url('admin-ajax.php') .'?action=frmpro_css');
 
         $style = apply_filters('frm_style_head', false);
-    ?>
-<link type="text/css" rel="stylesheet" href="<?php echo FrmAppHelper::jquery_ui_base_url() ?>/themes/base/ui.all.css" />
-<link href="<?php echo admin_url('admin-ajax.php') ?>?action=frmpro_css" type="text/css" rel="Stylesheet" class="frm-custom-theme"/>
-<?php if ($style) { ?>
-<link href="<?php echo admin_url('admin-ajax.php') ?>?action=frmpro_load_css&flat=1&<?php echo http_build_query($style->post_content); ?>" type="text/css" rel="Stylesheet" class="frm-single-custom-theme"/>
-<?php }
-        require(FrmAppHelper::plugin_path() .'/classes/views/shared/head.php');
+        if ( $style ) {
+            wp_enqueue_style('frm-single-custom-theme', admin_url('admin-ajax.php') .'?action=frmpro_load_css&flat=1&'. http_build_query($style->post_content));
+        }
     }
 
     public static function new_style($return = '') {
@@ -92,6 +89,8 @@ class FrmStylesController{
                 // set the post id to the new style so it will be loaded for editing
                 $post_id = reset($id);
             }
+            // include the CSS that includes this style
+            echo '<link href="'. admin_url('admin-ajax.php') .'?action=frmpro_css" type="text/css" rel="Stylesheet" class="frm-custom-theme" />';
             $message = __('Your styling settings have been saved.', 'formidable');
         }
 
@@ -151,7 +150,7 @@ class FrmStylesController{
         return self::manage($message, $forms);
     }
 
-    public static function custom_css($message = '', $style=null) {
+    public static function custom_css( $message = '', $style = null ) {
         wp_enqueue_style('codemirror', FrmAppHelper::plugin_url() . '/css/codemirror.css');
         wp_enqueue_script('codemirror', FrmAppHelper::plugin_url() . '/js/codemirror/codemirror.js', array(), '4.7');
         wp_enqueue_script('codemirror-css', FrmAppHelper::plugin_url() . '/js/codemirror/css.js', array('codemirror'), '4.7');
@@ -304,6 +303,10 @@ class FrmStylesController{
         return $frm_style->get_one();
     }
 
+    /**
+     * @param string $class
+     * @param string $style
+     */
     public static function get_form_style_class($class, $style) {
         if ( 1 == $style ) {
             $style = 'default';
@@ -319,6 +322,9 @@ class FrmStylesController{
         return $class;
     }
 
+    /**
+     * @param string $val
+     */
     public static function get_style_val($val, $form = 'default') {
         $style = self::get_form_style($form);
         if ( $style && isset($style->post_content[$val]) ) {

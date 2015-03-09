@@ -4,8 +4,9 @@
         <table class="form-table"><tbody>
         <?php foreach($comments as $comment){
             $meta = $comment->meta_value;
-            if(!isset($meta['comment']))
+            if ( ! isset($meta['comment']) ) {
                 continue;
+            }
         ?>
             <tr class="frm_comment_block">
                 <th scope="row"><p><strong><?php echo FrmProFieldsHelper::get_display_name($meta['user_id'], 'display_name', array('link' => true)) ?></strong><br/>
@@ -21,7 +22,7 @@
         <form name="frm_comment_form" id="frm_comment_form" method="post" style="display:none;">
             <input type="hidden" name="frm_action" value="show" />
             <input type="hidden" name="field_id" value="0" />
-            <input type="hidden" name="item_id" value="<?php echo $entry->id ?>" />
+            <input type="hidden" name="item_id" value="<?php echo (int) $entry->id ?>" />
             <?php wp_nonce_field('add-option'); ?>
 
             <table class="form-table"><tbody>
@@ -37,7 +38,7 @@
                     <td>
                         <input type="text" name="frm_send_to[]" value="" class="frm_long_input"/><br/>
                         <?php foreach($to_emails as $to_email){ ?>
-                        <input type="checkbox" name="frm_send_to[]" value="<?php echo esc_attr($to_email) ?>"/>  <?php echo $to_email ?><br/>
+                        <input type="checkbox" name="frm_send_to[]" value="<?php echo esc_attr($to_email) ?>"/>  <?php echo esc_html( $to_email ) ?><br/>
                         <?php } ?>
                         -->
                         <p class="submit">
@@ -57,4 +58,4 @@ window.onload = function(){var frm_pos=jQuery('#frm_comment_list').offset();
 window.scrollTo(frm_pos.left,frm_pos.top);
 }
 </script>
-<?php } ?>
+<?php }

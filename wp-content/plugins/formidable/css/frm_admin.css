@@ -850,11 +850,26 @@ label.frm_action_events{
 #frm_notification_settings .frm_bcc_button{
     margin-left: 10px;
 }
+.frm_action_id{
+    font-size:11px;
+    opacity:0.8;
+    padding-top:10px;
+}
+.frm_form_action_settings .frm_logic_row,
+.frm_form_action_settings .frm_posttax_row{
+    margin:14px 0;
+}
+.frm_form_action_settings .frm_logic_row select,
+.frm_form_action_settings .frm_logic_row input{
+    max-width:30%;
+}
 .frm_form_settings input[type="text"]{
     line-height: normal;
     height: auto;
 }
-
+#poststuff .widgets-holder-wrap .frm_form_action_settings .widget-inside{
+    padding-bottom:0;
+}
 
 #poststuff .frm_form_settings .widgets-holder-wrap .widget-inside{
 	padding-left:15px;
@@ -984,6 +999,11 @@ a.frm_action_icon:hover {text-decoration:none;}
 }
 
 span.howto{display:inline;}
+
+.frm_import_message{
+    margin:15px 0;
+    line-height:2.5em;
+}
 
 .frm_sorting .form-field .widget input[type="text"],
 .frm_sorting .form-field .widget select,
@@ -1436,7 +1456,7 @@ select.texture{display: none;}
 #postbox-container-1 .frm_field_list{
 	margin-right:10px;
 	position:fixed;
-	z-index:5;
+	z-index:9999;
 	width:279px;
 }
 
@@ -1472,7 +1492,10 @@ iframe#dyncontent_ifr{min-height:150px;}
 
 .frm_uninstall a.button{margin-top:1px;}
 
-#message.fade:not(.out){opacity:1;}
+#message.fade:not(.out),
+.frm_message.fade:not(.out){
+    opacity:1;
+}
 
 /*!
  * Bootstrap v3.0.2
@@ -1540,7 +1563,9 @@ iframe#dyncontent_ifr{min-height:150px;}
 	width:100% !important;
     z-index:9999;
 }
-.tooltip.frm_tooltip.bottom{padding:0;}
+.tooltip.frm_tooltip.bottom{
+    padding:0;
+}
 .frm_tooltip .tooltip-inner{
 	max-width:none;
 	min-height:40px !important;
@@ -1551,6 +1576,8 @@ iframe#dyncontent_ifr{min-height:150px;}
 	padding:10px 40px;
 	border-top-color:#ccc;
 	background:#777;
+    border-radius:0;
+    opacity:.9;
 }
 
 #frm_styling_form #post-body{

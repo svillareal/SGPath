@@ -91,8 +91,9 @@ class FrmUpdatesController{
 
         $client = new IXR_Client( $this->pro_mothership_xmlrpc_url, false, 80, $this->timeout );
 
-        if( !$client->query( 'proplug.get_license', $this->pro_username, $this->pro_password ) )
+        if ( ! $client->query( 'proplug.get_license', $this->pro_username, $this->pro_password ) ) {
             return false;
+        }
 
         $license = $client->getResponse();
 
@@ -105,7 +106,7 @@ class FrmUpdatesController{
     public function pro_cred_form(){
         global $frm_vars;
         if(isset($_POST) && isset($_POST['process_cred_form']) && $_POST['process_cred_form'] == 'Y'){
-            if(!isset($_POST['frm_cred']) || !wp_verify_nonce($_POST['frm_cred'], 'frm_cred_nonce')){
+            if ( ! isset($_POST['frm_cred']) || ! wp_verify_nonce( $_POST['frm_cred'], 'frm_cred_nonce' ) ) {
                 $frm_settings = FrmAppHelper::get_settings();
                 $response = array('response' => $frm_settings->admin_permission, 'auth' => false);
             }else{
@@ -127,7 +128,7 @@ class FrmUpdatesController{
 <div style="float:left;width:55%">
     <?php $this->display_form();
 
-    if(!$frm_vars['pro_is_authorized']){ ?>
+    if ( ! $frm_vars['pro_is_authorized'] ) { ?>
     <p>Already signed up? <a href="https://formidablepro.com/account/?action=licenses" target="_blank"><?php _e('Click here', 'formidable') ?></a> to get your license number.</p>
     <?php } ?>
 </div>
@@ -152,18 +153,18 @@ class FrmUpdatesController{
     function display_form(){
         global $frm_vars;
 
-        // Yah, this is the view for the credentials form -- this class isn't a true model
-        extract($this->get_pro_cred_form_vals());
+        // this is the view for the license form
         ?>
 <div id="pro_cred_form" <?php echo $frm_vars['pro_is_authorized'] ? 'class="frm_hidden"' : ''; ?>>
     <form name="cred_form" method="post" autocomplete="off">
     <input type="hidden" name="process_cred_form" value="Y" />
     <?php wp_nonce_field('frm_cred_nonce', 'frm_cred'); ?>
 
-    <p><input type="text" name="<?php echo $this->pro_license_str; ?>" value="" style="width:97%;" placeholder="<?php esc_attr_e('Enter your license number here', 'formidable') ?>"/>
+    <p><input type="text" name="<?php echo esc_attr( $this->pro_license_str ); ?>" value="" style="width:97%;" placeholder="<?php esc_attr_e( 'Enter your license number here', 'formidable' ) ?>"/>
 
-    <?php if (is_multisite()){ ?>
-        <br/><label for="proplug-wpmu"><input type="checkbox" value="1" name="proplug-wpmu" id="proplug-wpmu" <?php checked($wpmu, 1) ?> />
+    <?php if ( is_multisite() ) {
+        $creds = $this->get_pro_cred_form_vals(); ?>
+        <br/><label for="proplug-wpmu"><input type="checkbox" value="1" name="proplug-wpmu" id="proplug-wpmu" <?php checked($creds['wpmu'], 1) ?> />
         <?php _e('Use this license to enable Formidable Pro site-wide', 'formidable'); ?></label>
     <?php } ?>
     </p>
@@ -320,15 +321,16 @@ class FrmUpdatesController{
     */
 
     function queue_update($transient) {
-        if(!is_object($transient) || !$this->pro_is_authorized())
+        if ( ! is_object($transient) || ! $this->pro_is_authorized() ) {
             return $transient;
+        }
 
         //make sure it doesn't show there is an update if plugin is up-to-date
-        if(!empty( $transient->checked ) &&
+        if ( ! empty( $transient->checked ) &&
             isset($transient->checked[ $this->plugin_name ]) &&
             ((isset($transient->response) && isset($transient->response[$this->plugin_name]) &&
             $transient->checked[ $this->plugin_name ] == $transient->response[$this->plugin_name]->new_version) or
-            (!isset($transient->response)) || empty($transient->response))){
+            ( ! isset($transient->response)) || empty($transient->response)) ) {
 
             if(isset($transient->response[$this->plugin_name]))
                 unset($transient->response[$this->plugin_name]);
@@ -448,18 +450,18 @@ class FrmUpdatesController{
             }
         }
 
-        if ( isset($version_info) && $version_info && $version_info != 'latest' && !is_array($version_info) ) {
+        if ( isset($version_info) && $version_info && $version_info != 'latest' && ! is_array($version_info) ) {
             $version_info = false;
         }
 
         if ( ! isset($version_info) || ! $version_info ) {
             $errors = false;
-            if(empty($this->license) && !empty($this->pro_username) && !empty($this->pro_password) ){
+            if ( empty($this->license) && ! empty($this->pro_username) && ! empty($this->pro_password) ) {
                 //get license from credentials
                 $this->get_user_license();
             }
 
-            if(!empty($this->license)){
+            if ( ! empty($this->license) ) {
                 $domain = home_url();
                 $args = compact('domain');
 
@@ -469,10 +471,10 @@ class FrmUpdatesController{
                 }
             }
 
-            if(!isset($version_info) || $errors){
+            if ( ! isset($version_info) || $errors ) {
                 // query for the current version
                 $version_info = $this->send_mothership_request($plugin->plugin_nicename .'/latest');
-                $errors = !is_array($version_info) ? true : false;
+                $errors = ! is_array($version_info) ? true : false;
             }
 
             //don't force again on same page
@@ -538,7 +540,7 @@ class FrmUpdatesController{
     }
 
     function no_permission_msg(){
-        return __('A Formidable Pro update is available, but your license is invalid.', 'formidable');
+        return __('A Formidable Forms update is available, but your license is invalid.', 'formidable');
     }
 
 }

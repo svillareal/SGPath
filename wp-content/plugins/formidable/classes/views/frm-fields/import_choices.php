@@ -51,7 +51,7 @@
 <p class="howto"><?php _e('Edit or add field options (one per line)', 'formidable') ?></p>
 <ul class="prepop">
     <?php foreach($prepop as $label => $pop){ ?>
-    <li><a href="javascript:void(0)" onclick='frmPrePop(<?php echo str_replace("'", '&#145;', json_encode($pop)) ?>); return false;'><?php echo $label ?></a></li>
+    <li><a href="javascript:void(0)" onclick='frmPrePop(<?php echo str_replace("'", '&#145;', json_encode($pop)) ?>); return false;'><?php echo esc_html( $label ) ?></a></li>
     <?php } ?>
 </ul>
 <textarea name="frm_bulk_options" id="frm_bulk_options" style="height:240px;width:335px;float:right;">
@@ -77,7 +77,7 @@ foreach($field->options as $fkey => $fopt){
 </textarea>
 
 <p class="submit clear">
-<input type="button" onclick="window.top.frmAdminBuild.updateOpts(<?php echo $field->id ?>,document.getElementById('frm_bulk_options').value); window.top.tb_remove();" class="button-primary" value="<?php _e('Update Field Choices', 'formidable') ?>" />
+<input type="button" onclick="window.top.frmAdminBuild.updateOpts(<?php echo (int) $field->id ?>,document.getElementById('frm_bulk_options').value); window.top.tb_remove();" class="button-primary" value="<?php esc_attr_e( 'Update Field Choices', 'formidable' ) ?>" />
 </p>
 </div>
 

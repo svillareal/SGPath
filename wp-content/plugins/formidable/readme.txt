@@ -95,7 +95,7 @@ A. The field and form names and descriptions are all changed with in-place edit.
 
 A. Try clearing your browser cache. As plugin modifications are made, frequent javascript and stylesheet changes are also made. However, the previous versions may be cached so you aren't using the modified files. After clearing your cache and you're still having issues, please let us know.
 
-[See more FAQs](http://formidablepro.com/formidable-faqs/ "Formidable Pro FAQs")
+[See more FAQs](http://formidablepro.com/formidable-faqs/ "Formidable Form FAQs")
 
 == Changelog ==
 = 2.0 =

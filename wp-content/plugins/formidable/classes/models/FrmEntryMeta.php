@@ -6,7 +6,7 @@ class FrmEntryMeta{
     public static function add_entry_meta($entry_id, $field_id, $meta_key = null, $meta_value) {
         global $wpdb;
 
-        if ( (is_array($meta_value) && empty($meta_value) ) || ( !is_array($meta_value) && trim($meta_value) == '' ) ) {
+        if ( ( is_array( $meta_value ) && empty( $meta_value ) ) || ( ! is_array( $meta_value ) && trim( $meta_value ) == '' ) ) {
             // don't save blank fields
             return;
         }
@@ -53,9 +53,11 @@ class FrmEntryMeta{
         $prev_values = $wpdb->get_col($wpdb->prepare("SELECT field_id FROM {$wpdb->prefix}frm_item_metas WHERE item_id=%d AND field_id != %d", $entry_id, 0));
 
         foreach ( $values as $field_id => $meta_value ) {
+            // set the value for the file upload field and add new tags (in Pro version)
+            $values = apply_filters( 'frm_prepare_data_before_db', $values, $field_id, $entry_id );
 
             if ( $prev_values && in_array($field_id, $prev_values) ) {
-                if ( (is_array($meta_value) && empty($meta_value) ) || ( !is_array($meta_value) && trim($meta_value) == '' ) ) {
+                if ( ( is_array( $meta_value ) && empty( $meta_value ) ) || ( ! is_array( $meta_value ) && trim( $meta_value ) == '' ) ) {
                     // remove blank fields
                     unset($values[$field_id]);
                 } else {
@@ -119,7 +121,7 @@ class FrmEntryMeta{
         $result = maybe_unserialize($result);
 
         if ( $cached ) {
-            if ( !isset($cached->metas) ) {
+            if ( ! isset( $cached->metas ) ) {
                 $cached->metas = array();
             }
             $cached->metas[$field_id] = $result;
@@ -289,14 +291,23 @@ class FrmEntryMeta{
         if (is_array($search)){
             $where = '';
             foreach ($search as $field => $value){
-                if ($field == 'year' and $value > 0)
-                    $where .= " meta_value {$operator} '%{$value}' and";
-                if ($field == 'month' and $value > 0)
-                    $where .= " meta_value {$operator} '{$value}%' and";
-                if ($field == 'day' and $value > 0)
-                    $where .= " meta_value {$operator} '%/{$value}/%' and";
+                if ( $value <= 0 || ! in_array($field, array('year', 'month', 'day')) ) {
+                    continue;
+                }
+
+                switch ( $field ) {
+                    case 'year':
+                        $value = '%'. $value;
+                    break;
+                    case 'month':
+                        $value .= '%';
+                    break;
+                    case 'day':
+                        $value = '%'. $value .'%';
+                }
+                $where .= $wpdb->prepare(' meta_value '. $operator .' %s and', $value);
             }
-            $where .= " field_id='{$field_id}'";
+            $where .= $wpdb->prepare(' field_id=%d', $field_id);
             $query = "SELECT DISTINCT item_id FROM {$wpdb->prefix}frm_item_metas". FrmAppHelper::prepend_and_or_where(' WHERE ', $where);
         }else{
             if ($operator == 'LIKE')

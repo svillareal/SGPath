@@ -4,8 +4,9 @@
 <div class="<?php echo apply_filters('frm_pagination_class', 'frm_pagination_cont') ?>">
 <ul class="<?php echo apply_filters('frm_ul_pagination_class', 'frm_pagination') ?>">
 <?php
-    if(!is_numeric($current_page))
+    if ( ! is_numeric($current_page) ) {
         $current_page = FrmAppHelper::get_param($page_param, '1');
+    }
 
     $page_params = (isset($page_params)) ? $page_params : '';
     $s = FrmAppHelper::get_param('frm_search', false);

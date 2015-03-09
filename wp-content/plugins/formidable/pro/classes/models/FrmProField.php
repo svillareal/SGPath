@@ -106,8 +106,8 @@ class FrmProField {
         // switch out fields from calculation or default values
         $switch_string = array('default_value', 'calc');
         foreach ( $switch_string as $opt ) {
-            if ( (!isset($values['field_options'][$opt]) || empty($values['field_options'][$opt])) &&
-                (!isset($values[$opt]) || empty($values[$opt])) ) {
+            if ( ( ! isset($values['field_options'][$opt]) || empty($values['field_options'][$opt]) ) &&
+                ( ! isset($values[$opt]) || empty($values[$opt]) ) ) {
                 continue;
             }
 
@@ -121,7 +121,7 @@ class FrmProField {
             preg_match_all( "/\[(". $ids .")\]/s", $this_val, $matches, PREG_PATTERN_ORDER);
             unset($ids);
 
-            if ( !isset($matches[1]) ) {
+            if ( ! isset($matches[1]) ) {
                 unset($matches);
                 continue;
             }

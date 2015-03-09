@@ -8,12 +8,12 @@
         }
 
         if ( in_array($ff->type, $exclude_fields) ||
-            ( $ff->type == 'data' && ( !isset($ff->field_options['data_type']) || in_array( $ff->field_options['data_type'], array( 'data', '' )))) ) {
+            ( $ff->type == 'data' && ( ! isset($ff->field_options['data_type']) || in_array( $ff->field_options['data_type'], array( 'data', '' )))) ) {
             continue;
         }
 
         $selected = ( isset($condition['hide_field']) && $ff->id == $condition['hide_field'] ) ? ' selected="selected"' : ''; ?>
-    <option value="<?php echo $ff->id ?>"<?php echo $selected ?>><?php echo FrmAppHelper::truncate($ff->name, 30); ?></option>
+    <option value="<?php echo $ff->id ?>"<?php echo $selected ?>><?php echo FrmAppHelper::truncate($ff->name, 25); ?></option>
     <?php
         unset($ff);
         } ?>
@@ -36,8 +36,9 @@
     }
 
     $val = isset($condition['hide_opt']) ? $condition['hide_opt'] : '';
-    if(!isset($field))
+    if ( ! isset($field) ) {
         $field = array('hide_opt' => array($meta_name => $val));
+    }
     $field_name = $names['hide_opt'];
 
     require(FrmAppHelper::plugin_path() .'/pro/classes/views/frmpro-fields/field-values.php');

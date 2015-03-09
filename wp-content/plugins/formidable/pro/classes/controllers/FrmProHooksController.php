@@ -22,7 +22,7 @@ class FrmProHooksController{
         // Entries Controller
         if ( ! FrmAppHelper::is_admin() ) {
             add_action('wp_enqueue_scripts', 'FrmProEntriesController::add_js');
-            add_action('wp_footer', 'FrmProEntriesController::enqueue_footer_js', 1);
+            add_action('wp_footer', 'FrmProEntriesController::enqueue_footer_js', 19);
             add_action('wp_footer', 'FrmProEntriesController::footer_js', 20);
         }
 
@@ -32,6 +32,7 @@ class FrmProHooksController{
         add_filter('frm_update_entry', 'FrmProEntriesController::check_draft_status', 10, 2);
         add_action('frm_after_create_entry', 'FrmProEntriesController::remove_draft_hooks', 1);
         add_action('frm_process_entry', 'FrmProEntriesController::process_update_entry', 10, 4);
+        add_filter('frm_prepare_data_before_db', 'FrmProEntryMeta::prepare_data_before_db', 10, 3);
         add_action('frm_display_form_action', 'FrmProEntriesController::edit_update_form', 10, 5);
         add_action('frm_submit_button_action', 'FrmProEntriesController::ajax_submit_button');
         add_filter('frm_success_filter', 'FrmProEntriesController::get_confirmation_method', 10, 3);
@@ -76,7 +77,6 @@ class FrmProHooksController{
         // Trigger entry meta model
         add_filter('frm_add_entry_meta', 'FrmProEntryMeta::before_save');
         add_filter('frm_update_entry_meta', 'FrmProEntryMeta::before_save');
-        add_action('frm_after_update_entry', 'FrmProEntryMeta::create', 10, 2 );
         add_filter('frm_validate_field_entry', 'FrmProEntryMeta::validate', 10, 4);
 
         // Fields Controller
@@ -130,9 +130,8 @@ class FrmProHooksController{
         add_filter('post_row_actions', 'FrmProDisplaysController::post_row_actions', 10, 2 );
         //add_filter('bulk_actions-edit-frm_display', 'FrmProDisplaysController::add_bulk_actions' );
 
+        // for Views
         add_filter('default_content', 'FrmProDisplaysController::default_content', 10, 2 );
-    	add_filter('default_title',   'FrmProDisplaysController::default_title', 10, 2 );
-    	add_filter('default_excerpt', 'FrmProDisplaysController::default_excerpt', 10, 2 );
 
         add_action('post_submitbox_misc_actions', 'FrmProDisplaysController::submitbox_actions');
         add_action('add_meta_boxes', 'FrmProDisplaysController::add_meta_boxes');
@@ -140,7 +139,9 @@ class FrmProHooksController{
 
         // Entries Controller
         add_action('admin_init', 'FrmProEntriesController::admin_js', 1);
-        add_action('admin_footer', 'FrmProEntriesController::enqueue_footer_js', 1);
+        // enqueue right before scripts are printed
+        add_action('admin_footer', 'FrmProEntriesController::enqueue_footer_js', 19);
+        // print our scripts after js files have been loaded
         add_action('admin_footer', 'FrmProEntriesController::footer_js', 20);
 
         add_action('frm_after_show_entry', 'FrmProEntriesController::show_comments');
@@ -150,7 +151,6 @@ class FrmProHooksController{
         add_action('frm_entry_inside_h2', 'FrmProEntriesController::add_new_entry_link');
 
         add_action('add_meta_boxes', 'FrmProEntriesController::create_entry_from_post_box', 10, 2);
-        add_action('wp_ajax_frm_create_post_entry', 'FrmProEntriesController::create_post_entry');
 
         // admin listing page
         add_action('frm_entry_action_route', 'FrmProEntriesController::route');
@@ -246,6 +246,7 @@ class FrmProHooksController{
         // Entries Controller
         add_action('wp_ajax_frm_entries_csv', 'FrmProEntriesController::csv');
         add_action('wp_ajax_nopriv_frm_entries_csv', 'FrmProEntriesController::csv');
+        add_action('wp_ajax_frm_create_post_entry', 'FrmProEntriesController::create_post_entry');
 
         add_action('wp_ajax_nopriv_frm_entries_ajax_set_cookie', 'FrmProEntriesController::ajax_set_cookie');
         add_action('wp_ajax_frm_entries_ajax_set_cookie', 'FrmProEntriesController::ajax_set_cookie');

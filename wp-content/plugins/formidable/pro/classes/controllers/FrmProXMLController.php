@@ -16,7 +16,7 @@ class FrmProXMLController{
     }
 
     public static function importing_xml($imported, $xml) {
-        if ( !isset($xml->view) && !isset($xml->item) ) {
+        if ( ! isset($xml->view) && ! isset($xml->item) ) {
             return $imported;
         }
 
@@ -85,7 +85,7 @@ class FrmProXMLController{
         $file = $_FILES[$name]['tmp_name'];
 
         // check if file was uploaded
-        if ( !is_uploaded_file($file) ) {
+        if ( ! is_uploaded_file($file) ) {
             return;
         }
 
@@ -96,8 +96,8 @@ class FrmProXMLController{
         }
 
         //upload
-        $media_id = (isset($_POST[$name]) && !empty($_POST[$name]) && is_numeric($_POST[$name])) ? $_POST[$name] : FrmProAppHelper::upload_file($name);
-        if ($media_id && !is_wp_error($media_id)) {
+        $media_id = ( isset( $_POST[ $name ] ) && ! empty( $_POST[ $name ] ) && is_numeric( $_POST[ $name ] ) ) ? $_POST[ $name ] : FrmProAppHelper::upload_file( $name );
+        if ( $media_id && ! is_wp_error( $media_id ) ) {
             $filename = get_attached_file($media_id);
         }
 
@@ -148,7 +148,7 @@ class FrmProXMLController{
         $opts = get_option('frm_import_options');
 
         $left = ( $opts && isset($opts[$media_id]) ) ? ( (int) $row - (int) $opts[$media_id]['imported'] - 1 ) : ( $row - 1 );
-        if ( $row < 300 && (!isset($opts[$media_id]) || $opts[$media_id]['imported'] < 300) ) {
+        if ( $row < 300 && ( ! isset($opts[$media_id]) || $opts[$media_id]['imported'] < 300 ) ) {
             // if the total number of rows is less than 250
             $import_count = ceil($left/2);
         }

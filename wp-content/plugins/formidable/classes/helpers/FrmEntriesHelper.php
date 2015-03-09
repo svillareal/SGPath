@@ -34,10 +34,10 @@ class FrmEntriesHelper{
 
             $field->default_value = apply_filters('frm_get_default_value', $field->default_value, $field, true, $return_array);
 
-            if ( !is_array($new_value) ) {
+            if ( ! is_array( $new_value ) ) {
                 if ( $is_default ) {
                     $new_value = $field->default_value;
-                } else if ( !$posted_val ) {
+                } else if ( ! $posted_val ) {
                     $new_value = apply_filters('frm_filter_default_value', $new_value, $field);
                 }
 
@@ -200,7 +200,7 @@ class FrmEntriesHelper{
             return;
         }
 
-        if ( $atts['entry'] && !isset($atts['entry']->metas[$f->id]) ) {
+        if ( $atts['entry'] && ! isset( $atts['entry']->metas[ $f->id ] ) ) {
             // In case include_blank is set
             $atts['entry']->metas[$f->id] = '';
 
@@ -240,7 +240,11 @@ class FrmEntriesHelper{
             $meta = array('item_id' => $atts['id'], 'field_id' => $f->id, 'meta_value' => $prev_val, 'field_type' => $f->type);
 
             //This filter applies to the default-message shortcode and frm-show-entry shortcode only
-            $val = apply_filters('frm_email_value', $prev_val, (object) $meta, $atts['entry']);
+            if ( isset($atts['filter']) && $atts['filter'] == false ) {
+                $val = $prev_val;
+            } else {
+                $val = apply_filters('frm_email_value', $prev_val, (object) $meta, $atts['entry']);
+            }
         }
 
         self::textarea_display_value( $val, $f->type, $atts['plain_text'] );
@@ -288,14 +292,14 @@ class FrmEntriesHelper{
 
         if ( $atts['format'] != 'text' ) {
             $values['ip'] = $atts['entry']->ip;
-            $values['browser'] = FrmEntriesHelper::get_browser($data['browser']);
+            $values['browser'] = self::get_browser($data['browser']);
             $values['referrer'] = $data['referrer'];
         } else {
             //$content .= "\r\n\r\n" . __('User Information', 'formidable') ."\r\n";
             $values['ip'] = array('label' => __('IP Address', 'formidable'), 'val' => $atts['entry']->ip);
             $values['browser'] = array(
                 'label' => __('User-Agent (Browser/OS)', 'formidable'),
-                'val' => FrmEntriesHelper::get_browser($data['browser']),
+                'val' => self::get_browser($data['browser']),
             );
             $values['referrer'] = array('label' => __('Referrer', 'formidable'), 'val' => $data['referrer']);
         }
@@ -551,12 +555,12 @@ class FrmEntriesHelper{
     */
     public static function maybe_set_other_validation( $field, &$value, &$args ) {
         $args['other'] = false;
-        if ( !$value || empty( $value ) || !FrmAppHelper::pro_is_installed() ) {
+        if ( ! $value || empty( $value ) || ! FrmAppHelper::pro_is_installed() ) {
             return;
         }
 
         // Get other value for fields in repeating section
-        FrmEntriesHelper::set_other_repeating_vals( $field, $value, $args );
+        self::set_other_repeating_vals( $field, $value, $args );
 
         // Check if there are any posted "Other" values
         if ( isset( $field->field_options['other'] ) && $field->field_options['other'] && isset( $_POST['item_meta']['other'][$field->id] ) ) {
@@ -567,7 +571,7 @@ class FrmEntriesHelper{
             $other_vals = $_POST['item_meta']['other'][$field->id];
 
             // Set the validation value now
-            FrmEntriesHelper::set_other_validation_val( $value, $other_vals, $field, $args );
+            self::set_other_validation_val( $value, $other_vals, $field, $args );
         }
     }
 
@@ -581,7 +585,7 @@ class FrmEntriesHelper{
     * @param $args array
     */
     public static function set_other_repeating_vals( $field, &$value, &$args ){
-        if ( !$args['parent_field_id'] ) {
+        if ( ! $args['parent_field_id'] ) {
             return;
         }
 
@@ -594,7 +598,7 @@ class FrmEntriesHelper{
             $other_vals = $_POST['item_meta'][$args['parent_field_id']][$args['key_pointer']]['other'][$field->id];
 
             // Set the validation value now
-            FrmEntriesHelper::set_other_validation_val( $value, $other_vals, $field, $args );
+            self::set_other_validation_val( $value, $other_vals, $field, $args );
         }
     }
 

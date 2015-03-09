@@ -2,7 +2,7 @@
 
 class FrmEmailAction extends FrmFormAction {
 
-	function __construct() {
+	public function __construct() {
 		$action_ops = array(
 		    'classes'   => 'frm_email_icon frm_icon_font',
             'active'    => true,
@@ -16,13 +16,13 @@ class FrmEmailAction extends FrmFormAction {
 		$this->FrmFormAction('email', __('Email Notification', 'formidable'), $action_ops);
 	}
 
-	function form( $form_action, $args = array() ) {
+	public function form( $form_action, $args = array() ) {
 	    extract($args);
 
 	    include(FrmAppHelper::plugin_path() .'/classes/views/frm-form-actions/_email_settings.php');
 	}
 
-	function get_defaults() {
+	public function get_defaults() {
 	    return array(
             'email_to'      => '[admin_email]',
             'cc'            => '',

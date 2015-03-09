@@ -59,13 +59,18 @@ unset($day_class);
 }
 
 $pos++;
-if($pos == 7) $pos = 0;
-if($pos != ($week_begins)){
-    if($pos>$week_begins)
+if ( $pos == 7 ) {
+    $pos = 0;
+}
+if ( $pos != $week_begins ) {
+    if ( $pos > $week_begins ) {
         $week_begins = $week_begins+7;
-    for ($e=$pos; $e<$week_begins; $e++)
+    }
+    for ( $e=$pos; $e<$week_begins; $e++ ) {
         echo "<td></td>\n";
+    }
 }
 
-if(!$end_tr)
+if ( ! $end_tr ) {
     echo '</tr>';
+}

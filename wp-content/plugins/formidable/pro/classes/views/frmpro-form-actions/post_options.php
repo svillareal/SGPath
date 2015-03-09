@@ -22,17 +22,18 @@
         </td>
     </tr>
         <?php
-        if ( empty($form_action->post_content['post_category']) && !empty($values['fields']) ) {
-            foreach($values['fields'] as $fo_key => $fo){
+        if ( empty($form_action->post_content['post_category']) && ! empty($values['fields']) ) {
+            foreach ( $values['fields'] as $fo_key => $fo ) {
                 if($fo['post_field'] == 'post_category'){
-                    if(!isset($fo['taxonomy']) or $fo['taxonomy'] == '')
+                    if ( ! isset($fo['taxonomy']) || $fo['taxonomy'] == '' ) {
                         $fo['taxonomy'] = 'post_category';
+                    }
 
                     $tax_count = FrmProFormsHelper::get_taxonomy_count($fo['taxonomy'], $form_action->post_content['post_category']);
 
                     $form_action->post_content['post_category'][$fo['taxonomy'] .$tax_count] = array('field_id' => $fo['id'], 'exclude_cat' => $fo['exclude_cat'], 'meta_name' => $fo['taxonomy']);
                     unset($tax_count);
-                } else if ( $fo['post_field'] == 'post_custom' && !in_array( $fo['custom_field'], $custom_fields ) ) {
+                } else if ( $fo['post_field'] == 'post_custom' && ! in_array( $fo['custom_field'], $custom_fields ) ) {
                     $form_action->post_content['post_custom_fields'][$fo['custom_field']] = array('field_id' => $fo['id'], 'meta_name' => $fo['custom_field']);
                 }
                 unset($fo_key, $fo);
@@ -140,6 +141,7 @@
             <td><label><?php _e('Post Status', 'formidable') ?></label></td>
             <td><select name="<?php echo $this->get_field_name('post_status') ?>" class="frm_single_post_field">
                 <option value=""><?php echo _e('Create Draft', 'formidable') ?></option>
+                <option value="pending"><?php echo _e('Pending', 'formidable') ?></option>
                 <option value="publish" <?php selected($form_action->post_content['post_status'], 'publish') ?>><?php echo _e('Automatically Publish', 'formidable') ?></option>
                 <option value="dropdown"><?php echo _e('Create New Dropdown Field', 'formidable') ?></option>
                 <?php $post_key = 'post_status';

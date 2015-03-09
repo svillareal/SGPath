@@ -165,7 +165,7 @@ class FrmFormsListHelper extends FrmListHelper {
 
 	    foreach ( $statuses as $status => $name ) {
 
-	        if ( (isset($_REQUEST['form_type']) && $status == $_REQUEST['form_type']) || ( !isset($_REQUEST['form_type']) && 'published' == $status ) ) {
+	        if ( ( isset( $_REQUEST['form_type'] ) && $status == $_REQUEST['form_type']) || ( ! isset( $_REQUEST['form_type'] ) && 'published' == $status ) ) {
     			$class = ' class="current"';
     		} else {
     		    $class = '';
@@ -191,7 +191,7 @@ class FrmFormsListHelper extends FrmListHelper {
 		}
 	}
 
-	function single_row( $item, $style='') {
+	function single_row( $item, $style = '' ) {
 	    global $frm_vars, $mode;
 
 		// Set up the hover actions for this user
@@ -274,6 +274,10 @@ class FrmFormsListHelper extends FrmListHelper {
 		return $r;
 	}
 
+    /**
+     * @param string $edit_link
+     * @param string $duplicate_link
+     */
     private function get_actions( &$actions, $item, $edit_link, $duplicate_link ) {
 		if ( 'trash' == $this->status ) {
 		    $actions['restore'] = FrmFormsHelper::delete_trash_link($item->id, $item->status, 'short');
@@ -303,6 +307,9 @@ class FrmFormsListHelper extends FrmListHelper {
 		$actions['view'] = '<a href="'. FrmFormsHelper::get_direct_link($item->form_key, $item) .'" target="_blank">'. __('Preview') .'</a>';
     }
 
+    /**
+     * @param string $edit_link
+     */
     private function get_form_name( $item, $actions, $edit_link ) {
         $form_name = $item->name;
         if ( trim($form_name) == '' ) {
@@ -325,12 +332,18 @@ class FrmFormsListHelper extends FrmListHelper {
         return $val;
     }
 
+    /**
+     * @param string $val
+     */
     private function add_draft_label( $item, &$val ) {
         if ( 'draft' == $item->status && 'draft' != $this->status ) {
             $val .= ' - <span class="post-state">'. __('Draft', 'formidable') .'</span>';
         }
     }
 
+    /**
+     * @param string $val
+     */
     private function add_form_description( $item, &$val ) {
         global $mode;
         if ( 'excerpt' == $mode ) {

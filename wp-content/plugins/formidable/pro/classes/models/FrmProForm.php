@@ -31,7 +31,7 @@ class FrmProForm{
 
         if ( isset($settings['post_custom_fields']) ) {
             foreach ( $settings['post_custom_fields'] as $cf_key => $n ) {
-                if ( !isset($n['custom_meta_name']) ) {
+                if ( ! isset($n['custom_meta_name']) ) {
                     continue;
                 }
 
@@ -214,7 +214,7 @@ class FrmProForm{
             $form_id = $values['id'];
 
             $user_field = FrmField::get_all_types_in_form($form_id, 'user_id', 1);
-            if ( !$user_field ) {
+            if ( ! $user_field ) {
                 $new_values = FrmFieldsHelper::setup_new_vars('user_id', $form_id);
                 $new_values['name'] = __('User ID', 'formidable');
                 FrmField::create($new_values);
@@ -222,10 +222,12 @@ class FrmProForm{
         }
 
         if (isset($values['options']['auto_responder'])){
-            if (!isset($values['options']['ar_email_message']) or $values['options']['ar_email_message'] == '')
-                $errors[] = __("Please insert a message for your auto responder.", 'formidable');
-            if (isset($values['options']['ar_reply_to']) and !is_email(trim($values['options']['ar_reply_to'])))
-                $errors[] = __("That is not a valid reply-to email address for your auto responder.", 'formidable');
+            if ( ! isset($values['options']['ar_email_message']) || $values['options']['ar_email_message'] == '' ) {
+                $errors[] = __( 'Please insert a message for your auto responder.', 'formidable' );
+            }
+            if ( isset($values['options']['ar_reply_to']) && ! is_email( trim( $values['options']['ar_reply_to'] ) ) ) {
+                $errors[] = __( 'That is not a valid reply-to email address for your auto responder.', 'formidable' );
+            }
         }
 
         return $errors;

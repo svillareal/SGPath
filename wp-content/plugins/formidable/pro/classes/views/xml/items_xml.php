@@ -1,7 +1,8 @@
 <?php
 
-if ( !$item_ids )
+if ( ! $item_ids ) {
     return;
+}
 $item_form_id = 0;
 
 // fetch 20 posts at a time rather than loading the entire table into memory
@@ -62,6 +63,6 @@ foreach ( $entries as $entry ) {
 }
 }
 
-if(isset($fields))
+if ( isset($fields) ) {
     unset($fields);
-?>
+}

@@ -3,7 +3,7 @@
 class FrmXMLController{
 
     public static function menu() {
-        add_submenu_page('formidable', 'Formidable | Import/Export', 'Import/Export', 'frm_edit_forms', 'formidable-import', 'FrmXMLController::route');
+        add_submenu_page('formidable', 'Formidable | '. __('Import/Export', 'formidable'), __('Import/Export', 'formidable'), 'frm_edit_forms', 'formidable-import', 'FrmXMLController::route');
     }
 
     public static function add_default_templates() {
@@ -74,7 +74,7 @@ class FrmXMLController{
         $message = '';
 
         $permission_error = FrmAppHelper::permission_nonce_error('frm_edit_forms', 'import-xml', 'import-xml-nonce');
-        if ( $permission_error ) {
+        if ( $permission_error !== false ) {
             $errors[] = $permission_error;
             self::form($errors);
             return;
@@ -88,7 +88,7 @@ class FrmXMLController{
 
         $file = $_FILES['frm_import_file']['tmp_name'];
 
-        if ( !is_uploaded_file($file) ) {
+        if ( ! is_uploaded_file( $file ) ) {
             unset($file);
             $errors[] = __( 'The file does not exist, please try again.', 'formidable' );
             self::form($errors);
@@ -275,13 +275,13 @@ class FrmXMLController{
         include(FrmAppHelper::plugin_path() .'/classes/views/xml/xml.php');
     }
 
-    function allow_mime($mimes) {
-        if ( !isset($mimes['csv']) ) {
+    public static function allow_mime($mimes) {
+        if ( ! isset( $mimes['csv'] ) ) {
             // allow csv files
             $mimes['csv'] = 'text/csv';
         }
 
-        if ( !isset($mimes['xml']) ) {
+        if ( ! isset( $mimes['xml'] ) ) {
             // allow xml
             $mimes['xml'] = 'text/xml';
         }

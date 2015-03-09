@@ -199,11 +199,11 @@ class FrmProAppHelper{
 
     public static function get_custom_taxonomy($post_type, $field){
         $taxonomies = get_object_taxonomies($post_type);
-        if(!$taxonomies){
+        if ( ! $taxonomies ) {
             return false;
         }else{
             $field = (array) $field;
-            if(!isset($field['taxonomy'])){
+            if ( ! isset($field['taxonomy']) ) {
                 $field['field_options'] = maybe_unserialize($field['field_options']);
                 $field['taxonomy'] = $field['field_options']['taxonomy'];
             }
@@ -316,7 +316,7 @@ class FrmProAppHelper{
              //add extra slashes to match values that are escaped in the database
             $args['where_val_esc'] = "'%". esc_sql(FrmAppHelper::esc_like(addslashes($args['where_val']))) ."%'";
             $args['where_val'] = "'%". esc_sql(FrmAppHelper::esc_like($args['where_val'])) ."%'";
-        } else if ( ! strpos($args['where_is'], 'in') && !is_numeric( $args['where_val'] ) ) {
+        } else if ( ! strpos( $args['where_is'], 'in' ) && ! is_numeric( $args['where_val'] ) ) {
             $args['where_val_esc'] = "'". str_replace('\\', '\\\\\\', esc_sql($args['where_val'])) ."'";
             $args['where_val'] = "'". esc_sql($args['where_val']) ."'";
         }
@@ -438,7 +438,7 @@ class FrmProAppHelper{
             if ( in_array($args['where_is'], array('!=', 'not LIKE') ) ) {
                 $remove_posts = $add_posts;
                 $add_posts = false;
-            } else if ( ! $add_posts ) {
+            } else if ( empty($add_posts) ) {
                 $new_ids = array();
                 return;
             }
@@ -561,9 +561,7 @@ class FrmProAppHelper{
     public static function get_rand($length){
         $all_g = "ABCDEFGHIJKLMNOPQRSTWXZ";
         $pass = "";
-        srand((double)microtime()*1000000);
         for($i=0;$i<$length;$i++) {
-            srand((double)microtime()*1000000);
             $pass .= $all_g[ rand(0, strlen($all_g) - 1) ];
         }
         return $pass;

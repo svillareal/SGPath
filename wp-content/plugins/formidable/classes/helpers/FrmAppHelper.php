@@ -8,7 +8,7 @@ class FrmAppHelper{
     /*
     * @since 2.0
     */
-    public static $plug_version = '2.0b9';
+    public static $plug_version = '2.0rc2';
 
     /*
     * @since 1.07.02
@@ -83,7 +83,7 @@ class FrmAppHelper{
     */
     public static function update_message($features, $class = ''){
         if ( ! self::pro_is_installed() ) {
-            include(FrmAppHelper::plugin_path() .'/classes/views/shared/update_message.php');
+            include(self::plugin_path() .'/classes/views/shared/update_message.php');
         }
     }
 
@@ -226,6 +226,10 @@ class FrmAppHelper{
     /*
     * @since 2.0
     */
+
+    /**
+     * @param string $action
+     */
     public static function simple_get($action) {
         if ( $_GET && isset($_GET[$action]) ) {
             return $_GET[$action];
@@ -271,6 +275,9 @@ class FrmAppHelper{
         return $value;
     }
 
+    /**
+     * @param string $type
+     */
     public static function trigger_hook_load( $type, $object = null ) {
         // only load the form hooks once
         $hooks_loaded = apply_filters('frm_'. $type .'_hooks_loaded', false, $object);
@@ -333,6 +340,10 @@ class FrmAppHelper{
     /*
     * @since 2.0
     */
+
+    /**
+     * @param string $cache_key
+     */
     public static function delete_cache_and_transient($cache_key) {
         delete_transient($cache_key);
         wp_cache_delete($cache_key);
@@ -400,12 +411,12 @@ class FrmAppHelper{
     public static function wp_pages_dropdown($field_name, $page_id, $truncate=false){
         $pages = self::get_pages();
     ?>
-        <select name="<?php echo $field_name; ?>" id="<?php echo $field_name; ?>" class="frm-pages-dropdown">
+        <select name="<?php echo esc_attr($field_name); ?>" id="<?php echo esc_attr($field_name); ?>" class="frm-pages-dropdown">
             <option value=""> </option>
             <?php foreach($pages as $page){ ?>
-                <option value="<?php echo $page->ID; ?>" <?php
+                <option value="<?php echo esc_attr($page->ID); ?>" <?php
                 echo ( ( ( isset($_POST[$field_name]) && $_POST[$field_name] == $page->ID ) || ( ! isset($_POST[$field_name]) && $page_id == $page->ID ) ) ? ' selected="selected"' : '' );
-                ?>><?php echo $truncate ? self::truncate($page->post_title, $truncate) : $page->post_title; ?> </option>
+                ?>><?php echo esc_html( $truncate ? self::truncate( $page->post_title, $truncate ) : $page->post_title ); ?> </option>
             <?php } ?>
         </select>
     <?php
@@ -423,7 +434,7 @@ class FrmAppHelper{
         $capability = (array) self::get_param($field_name, $capability, 'post');
 
     ?>
-        <select name="<?php echo $field_name; ?>" id="<?php echo $field_name; ?>" <?php
+        <select name="<?php echo esc_attr($field_name); ?>" id="<?php echo esc_attr($field_name); ?>" <?php
             echo ( 'multiple' == $multiple ) ? 'multiple="multiple"' : '';
             ?> class="frm_multiselect">
             <?php self::roles_options($capability); ?>
@@ -442,7 +453,7 @@ class FrmAppHelper{
 
         foreach ( $editable_roles as $role => $details ) {
             $name = translate_user_role($details['name'] ); ?>
-        <option value="<?php echo esc_attr($role) ?>" <?php echo in_array($role, (array) $capability) ? ' selected="selected"' : ''; ?>><?php echo $name ?> </option>
+        <option value="<?php echo esc_attr($role) ?>" <?php echo in_array($role, (array) $capability) ? ' selected="selected"' : ''; ?>><?php echo esc_attr($name) ?> </option>
 <?php
             unset($role, $details);
         }
@@ -513,9 +524,13 @@ class FrmAppHelper{
     * Return permission message and stop the action if no permission
     * @since 2.0
     */
+
+    /**
+     * @param string $permission
+     */
     public static function permission_check($permission, $show_message = 'show') {
         $permission_error = self::permission_nonce_error($permission);
-        if ( $permission_error ) {
+        if ( $permission_error !== false ) {
             if ( 'hide' == $show_message ) {
                 $permission_error = '';
             }
@@ -567,11 +582,7 @@ class FrmAppHelper{
         $current = preg_replace("/&#?[a-z0-9]{2,8};/i", "", $current);
         */
 
-        if ( ( is_array($values) && in_array($current, $values) ) || ( ! is_array($values) && $values == $current ) ) {
-            return true;
-        } else {
-            return false;
-        }
+        return ( is_array($values) && in_array($current, $values) ) || ( ! is_array($values) && $values == $current );
     }
 
     /**
@@ -599,7 +610,7 @@ class FrmAppHelper{
         $other_val = '';
 
         //If option is an "other" option and there is a value set for this field, check if the value belongs in the current "Other" option text field
-        if ( !self::is_other_opt( $opt_key ) || !isset( $field['value'] ) || !$field['value'] ) {
+        if ( ! self::is_other_opt( $opt_key ) || ! isset( $field['value'] ) || ! $field['value'] ) {
             return $other_val;
         }
 
@@ -755,6 +766,9 @@ class FrmAppHelper{
         return $url;
     }
 
+    /**
+     * @param string $handle
+     */
     public static function script_version($handle) {
         global $wp_scripts;
     	if ( ! $wp_scripts ) {
@@ -780,7 +794,7 @@ class FrmAppHelper{
     }
 
     public static function get_user_id_param($user_id){
-        if ( !$user_id || empty($user_id) || is_numeric($user_id) ) {
+        if ( ! $user_id || empty($user_id) || is_numeric($user_id) ) {
             return $user_id;
         }
 
@@ -816,6 +830,10 @@ class FrmAppHelper{
         return $contents;
     }
 
+    /**
+     * @param string $table_name
+     * @param string $column
+     */
     public static function get_unique_key($name='', $table_name, $column, $id = 0, $num_chars = 6){
         global $wpdb;
 
@@ -831,13 +849,14 @@ class FrmAppHelper{
             $key = base_convert( rand($min_slug_value, $max_slug_value), 10, 36 );
         }
 
-        if (is_numeric($key) or in_array($key, array('id', 'key', 'created-at', 'detaillink', 'editlink', 'siteurl', 'evenodd')))
+        if ( is_numeric($key) || in_array($key, array('id', 'key', 'created-at', 'detaillink', 'editlink', 'siteurl', 'evenodd')) ) {
             $key = $key .'a';
+        }
 
         $query = "SELECT $column FROM $table_name WHERE $column = %s AND ID != %d LIMIT 1";
         $key_check = $wpdb->get_var($wpdb->prepare($query, $key, $id));
 
-        if ($key_check or is_numeric($key_check)){
+        if ( $key_check || is_numeric($key_check) ) {
             $suffix = 2;
 			do {
 				$alt_post_name = substr($key, 0, 200-(strlen($suffix)+1)). "$suffix";
@@ -853,6 +872,10 @@ class FrmAppHelper{
     * Editing a Form or Entry
     * @return bool|array
     */
+
+    /**
+     * @param string $table
+     */
     public static function setup_edit_vars($record, $table, $fields='', $default=false, $post_values=array()){
         if ( ! $record ) {
             return false;
@@ -1044,6 +1067,9 @@ class FrmAppHelper{
         }
     }
 
+    /**
+     * @return string
+     */
     public static function get_meta_value($field_id, $entry) {
         if ( isset($entry->metas) ) {
             return isset($entry->metas[$field_id]) ? $entry->metas[$field_id] : false;
@@ -1071,9 +1097,9 @@ class FrmAppHelper{
         }
     ?>
 <li>
-    <a href="javascript:void(0)" class="frmids frm_insert_code alignright <?php echo $class ?>" data-code="<?php echo esc_attr($args['id']) ?>" >[<?php echo $args['id'] ?>]</a>
-    <a href="javascript:void(0)" class="frmkeys frm_insert_code alignright <?php echo $class ?>" data-code="<?php echo esc_attr($args['key']) ?>" >[<?php echo self::truncate($args['key'], 10) ?>]</a>
-    <a href="javascript:void(0)" class="frm_insert_code <?php echo $class ?>" data-code="<?php echo esc_attr($args['id']) ?>" ><?php echo self::truncate($args['name'], 60) ?></a>
+    <a href="javascript:void(0)" class="frmids frm_insert_code alignright <?php echo esc_attr($class) ?>" data-code="<?php echo esc_attr($args['id']) ?>" >[<?php echo esc_attr( $args['id'] ) ?>]</a>
+    <a href="javascript:void(0)" class="frmkeys frm_insert_code alignright <?php echo esc_attr($class) ?>" data-code="<?php echo esc_attr($args['key']) ?>" >[<?php echo esc_attr( self::truncate($args['key'], 10) ) ?>]</a>
+    <a href="javascript:void(0)" class="frm_insert_code <?php echo esc_attr( $class ) ?>" data-code="<?php echo esc_attr($args['id']) ?>" ><?php echo esc_attr( self::truncate($args['name'], 60) ) ?></a>
 </li>
     <?php
     }
@@ -1322,6 +1348,9 @@ class FrmAppHelper{
         return $term;
     }
 
+    /**
+     * @param string $order_query
+     */
     public static function esc_order($order_query) {
         if ( empty($order_query) ) {
             return '';
@@ -1358,6 +1387,9 @@ class FrmAppHelper{
         return ' ORDER BY '. $order . ' '. $order_by;
     }
 
+    /**
+     * @param string $limit
+     */
     public static function esc_limit($limit) {
         if ( empty($limit) ) {
             return '';
@@ -1419,6 +1451,9 @@ class FrmAppHelper{
       return (($r_count < ($current_p * $p_size))?$r_count:($current_p * $p_size));
     }
 
+    /**
+     * @param integer $current_p
+     */
     public static function getFirstRecordNum($r_count,$current_p,$p_size){
       if($current_p == 1)
         return 1;
@@ -1426,6 +1461,9 @@ class FrmAppHelper{
         return (self::getLastRecordNum($r_count,($current_p - 1),$p_size) + 1);
     }
 
+    /**
+     * @param string $table_name
+     */
     public static function &getRecordCount($where = '', $table_name) {
         $cache_key = 'count_'. $table_name .'_'. maybe_serialize($where);
         $query = 'SELECT COUNT(*) FROM ' . $table_name . self::prepend_and_or_where(' WHERE ', $where);
@@ -1457,12 +1495,13 @@ class FrmAppHelper{
         $referrerinfo = '';
     	$keywords = array();
     	$i = 1;
-    	if(isset($_SESSION) and isset($_SESSION['frm_http_referer']) and $_SESSION['frm_http_referer']){
+    	if ( isset($_SESSION) && isset($_SESSION['frm_http_referer']) && $_SESSION['frm_http_referer'] ) {
         	foreach ($_SESSION['frm_http_referer'] as $referer) {
         		$referrerinfo .= str_pad("Referer $i: ",20) . $referer. "\r\n";
         		$keywords_used = self::get_referer_query($referer);
-        		if ($keywords_used)
+        		if ( $keywords_used !== false ) {
         			$keywords[] = $keywords_used;
+                }
 
         		$i++;
         	}
@@ -1473,8 +1512,8 @@ class FrmAppHelper{
 	    }
 
     	$i = 1;
-    	if(isset($_SESSION) and isset($_SESSION['frm_http_pages']) and $_SESSION['frm_http_pages']){
-        	foreach ($_SESSION['frm_http_pages'] as $page) {
+    	if ( isset($_SESSION) && isset($_SESSION['frm_http_pages']) && $_SESSION['frm_http_pages'] ) {
+        	foreach ( $_SESSION['frm_http_pages'] as $page ) {
         		$referrerinfo .= str_pad("Page visited $i: ",20) . $page. "\r\n";
         		$i++;
         	}
@@ -1571,7 +1610,7 @@ class FrmAppHelper{
             'email_subject' => esc_attr( sprintf( __('If you leave the subject blank, the default will be used: %1$s Form submitted on %2$s', 'formidable'), $form_name, self::site_name() ) ),
         );
 
-        if ( !isset($tooltips[$name]) ) {
+        if ( ! isset( $tooltips[ $name ] ) ) {
             return;
         }
 
@@ -1599,7 +1638,7 @@ class FrmAppHelper{
 
         //Loop through array to strip slashes and add only the needed ones
         foreach( $post_content as $key => $val ) {
-            if ( isset( $post_content[$key] ) && !is_array( $val ) ) {
+            if ( isset( $post_content[ $key ] ) && ! is_array( $val ) ) {
                 // Strip all slashes so everything is the same, no matter where the value is coming from
                 $val = stripslashes( $val );
 

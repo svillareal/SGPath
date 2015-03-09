@@ -3,11 +3,11 @@ class FrmStyle{
     public $number = false;	// Unique ID number of the current instance.
     public $id = false; // the id of the post
 
-    function __construct($id = false) {
+    public function __construct($id = false) {
         $this->id = $id;
     }
 
-    function get_new() {
+    public function get_new() {
         $this->id = false;
 
         $max_slug_value = pow(36, 6);
@@ -27,7 +27,7 @@ class FrmStyle{
         return (object) $style;
     }
 
-    function save($settings) {
+    public function save($settings) {
         $settings['post_content'] = FrmAppHelper::prepare_and_encode( $settings['post_content'] );
 
 	    if ( empty($settings['ID']) ) {
@@ -40,7 +40,7 @@ class FrmStyle{
 		return wp_insert_post($settings);
     }
 
-    function duplicate($id) {
+    public function duplicate($id) {
         // duplicating is a pro feature
     }
 
@@ -150,7 +150,7 @@ class FrmStyle{
             $stat = @stat( dirname( $css_file ) );
             $perms = $stat['mode'] & 0007777;
             //$perms = $perms & 0000666;
-            @chmod( $css_file, $perms );
+            chmod( $css_file, $perms );
         }
 
         update_option('frmpro_css', $css);
@@ -159,11 +159,11 @@ class FrmStyle{
         set_transient('frmpro_css', $css);
 	}
 
-	function destroy($id) {
+	public function destroy($id) {
         return wp_delete_post($id);
     }
 
-    function get_one() {
+    public function get_one() {
         if ( 'default' == $this->id ) {
             $style = $this->get_default_style();
             if ( $style ) {
@@ -191,7 +191,7 @@ class FrmStyle{
         return $style;
     }
 
-    function get_all() {
+    public function get_all() {
         $post_atts = array(
             'post_type'     => FrmStylesController::$post_type,
             'post_status'   => 'publish',
@@ -203,16 +203,23 @@ class FrmStyle{
         $temp_styles = FrmAppHelper::check_cache(serialize($post_atts), 'frm_styles', $post_atts, 'get_posts');
 
         if ( empty($temp_styles) ) {
-            // create a new style if there are none
-     		$new = $this->get_new();
-     		$new->post_title = $new->post_name = __('Formidable Style', 'formidable');
-     		$new->menu_order = 1;
-     		$new = $this->save( (array) $new);
-     		$this->update('default');
+            global $wpdb;
+            // make sure there wasn't a conflict with the query
+            $query = $wpdb->prepare('SELECT * FROM '. $wpdb->posts .' WHERE post_type=%s AND post_status=%s ORDER BY post_title ASC LIMIT 99', FrmStylesController::$post_type, 'publish');
+            $temp_styles = FrmAppHelper::check_cache('frm_backup_style_check', 'frm_styles', $query, 'get_results');
 
-            $post_atts['include'] = $new;
+            if ( empty($temp_styles) ) {
+                // create a new style if there are none
+         		$new = $this->get_new();
+         		$new->post_title = $new->post_name = __('Formidable Style', 'formidable');
+         		$new->menu_order = 1;
+         		$new = $this->save( (array) $new);
+         		$this->update('default');
 
-            $temp_styles = get_posts( $post_atts );
+                $post_atts['include'] = $new;
+
+                $temp_styles = get_posts( $post_atts );
+            }
         }
 
         $default_values = $this->get_defaults();
@@ -248,7 +255,7 @@ class FrmStyle{
         return $styles;
     }
 
-    function get_default_style($styles = null) {
+    public function get_default_style($styles = null) {
         if ( ! isset($styles) ) {
             $styles = $this->get_all();
         }
@@ -260,7 +267,7 @@ class FrmStyle{
         }
     }
 
-	function override_defaults($settings) {
+	public function override_defaults($settings) {
 	    if ( ! is_array($settings) ) {
 	        return $settings;
 	    }
@@ -291,7 +298,7 @@ class FrmStyle{
 	    return $settings;
 	}
 
-    function get_defaults(){
+    public function get_defaults(){
         return array(
             'theme_css'         => 'ui-lightness',
             'theme_name'        => 'UI Lightness',

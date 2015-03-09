@@ -34,7 +34,7 @@
 </div>
 <?php }else if ($field['type'] == 'data'){ ?>
     <div class="clear"></div>
-    <?php if (!isset($field['data_type']) || $field['data_type'] == 'data'){ ?>
+    <?php if ( ! isset($field['data_type']) || $field['data_type'] == 'data' ) { ?>
         <?php _e('This data is dynamic on change', 'formidable') ?>
     <?php }else if ($field['data_type'] == 'select'){ ?>
         <select name="<?php echo $field_name ?>" id="<?php echo $field_name ?>">
@@ -114,4 +114,4 @@
     <a href="javascript:void(0)" class="frm_add_form_row <?php echo ( $field['format'] == '' ) ? '' : 'frm_button'; ?>"><i class="frm_icon_font frm_plus1_icon"> </i> <span class="frm_repeat_label"><?php echo $field['add_label'] ?></span></a>
 </span>
 <?php
-} ?>
+}

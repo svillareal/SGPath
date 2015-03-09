@@ -14,16 +14,16 @@ class FrmListEntries extends WP_Widget {
 
 		$title = apply_filters('widget_title', (empty($instance['title']) and $display) ? $display->post_title : $instance['title']);
         $limit = empty($instance['limit']) ? ' LIMIT 100' : " LIMIT {$instance['limit']}";
-        $post_id = (!$display or empty($display->frm_post_id)) ? $instance['post_id'] : $display->frm_post_id;
+        $post_id = ( ! $display || empty($display->frm_post_id)) ? $instance['post_id'] : $display->frm_post_id;
         $page_url = get_permalink($post_id);
 
         $order_by = '';
         $cat_field = false;
 
-        if ($display && is_numeric($display->frm_form_id) && !empty($display->frm_form_id) ) {
+        if ( $display && is_numeric($display->frm_form_id) && ! empty($display->frm_form_id) ) {
 
 				//Set up order for Entries List Widget
-                if ( isset($display->frm_order_by) && !empty($display->frm_order_by) ) {
+                if ( isset($display->frm_order_by) && ! empty($display->frm_order_by) ) {
 					//Get only the first order field and order
 					$order_field = reset($display->frm_order_by);
 					$order = reset($display->frm_order);
@@ -279,5 +279,3 @@ function frm_get_display_fields(display_id){
 <?php
 	}
 }
-
-?>

@@ -18,4 +18,3 @@
 
 <?php
 unset($field_val, $opt, $opt_key, $other_val);
-?>

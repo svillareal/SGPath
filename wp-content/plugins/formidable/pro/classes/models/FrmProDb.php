@@ -165,7 +165,7 @@ class FrmProDb{
 
             update_post_meta($post_ID, 'frm_old_id', $d->id);
 
-            if ( !isset($d->show_count) || empty($d->show_count) ) {
+            if ( ! isset($d->show_count) || empty($d->show_count) ) {
                 $d->show_count = 'none';
             }
 
@@ -180,7 +180,7 @@ class FrmProDb{
             $d->options = maybe_unserialize($d->options);
             update_post_meta($post_ID, 'frm_options', $d->options);
 
-            if ( isset($d->options['insert_loc']) && $d->options['insert_loc'] != 'none' && is_numeric($d->options['post_id']) && !isset($display_posts[$d->options['post_id']]) ) {
+            if ( isset($d->options['insert_loc']) && $d->options['insert_loc'] != 'none' && is_numeric($d->options['post_id']) && ! isset($display_posts[$d->options['post_id']]) ) {
                 $display_posts[$d->options['post_id']] = $post_ID;
             }
 

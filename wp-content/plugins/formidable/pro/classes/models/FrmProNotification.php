@@ -9,7 +9,15 @@ class FrmProNotification{
         $args = wp_parse_args($args, $defaults);
         $entry = $args['entry'];
 
-        $file_fields = FrmField::get_all_types_in_form($form->id, 'file');
+        // Used for getting the file ids for sub entries
+        $atts = array(
+            'entry'         => $entry,  'default_email' => false,
+            'include_blank' => false,   'id'            => $entry->id,
+            'plain_text'    => true,    'format'        => 'array',
+            'filter'        => false,
+        );
+
+        $file_fields = FrmField::get_all_types_in_form($form->id, 'file', '', 'include');
 
         foreach ( $file_fields as $file_field ) {
             $file_options = $file_field->field_options;
@@ -19,14 +27,21 @@ class FrmProNotification{
                 continue;
             }
 
+            $file_ids = array();
             //Get attachment ID for uploaded files
-            if ( ! isset($entry->metas[$file_field->id]) ) {
-                if ( isset($file_field->field_options['post_field']) && !empty($file_field->field_options['post_field']) ) {
-                    //get value from linked post
-                    $file_ids = FrmProEntryMetaHelper::get_post_or_meta_value( $entry, $file_field );
-                }
-            } else {
+            if ( isset($entry->metas[$file_field->id]) ) {
                 $file_ids = $entry->metas[$file_field->id];
+            } else if ( $file_field->form_id != $form->id ) {
+                // this is in a repeating or embedded field
+                $values = array();
+
+                FrmEntriesHelper::fill_entry_values($atts, $file_field, $values);
+                if ( isset($values[$file_field->field_key]) ) {
+                    $file_ids = $values[$file_field->field_key];
+                }
+            } else if ( isset($file_field->field_options['post_field']) && !empty($file_field->field_options['post_field']) ) {
+                //get value from linked post
+                $file_ids = FrmProEntryMetaHelper::get_post_or_meta_value( $entry, $file_field );
             }
 
             //Only proceed if there is actually an uploaded file

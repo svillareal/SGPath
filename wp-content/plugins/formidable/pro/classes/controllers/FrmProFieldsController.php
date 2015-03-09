@@ -30,7 +30,7 @@ class FrmProFieldsController{
 
         remove_filter('frm_field_type', 'FrmFieldsController::change_type');
 
-        if ( $type != 'user_id' && (isset($frm_vars['show_fields']) && !empty($frm_vars['show_fields'])) && !in_array($field->id, $frm_vars['show_fields']) && !in_array($field->field_key, $frm_vars['show_fields']) ) {
+        if ( $type != 'user_id' && ( isset( $frm_vars['show_fields'] ) && ! empty($frm_vars['show_fields'])) && ! in_array( $field->id, $frm_vars['show_fields'] ) && ! in_array( $field->field_key, $frm_vars['show_fields'] ) ) {
             $type = 'hidden';
         }
 
@@ -65,8 +65,9 @@ class FrmProFieldsController{
         if (!empty($field['hide_field'])){
             $first = reset($field['hide_field']);
             if(is_numeric($first)){
-                if(!isset($frm_vars['hidden_fields']))
+                if ( ! isset($frm_vars['hidden_fields']) ) {
                     $frm_vars['hidden_fields'] = array();
+                }
                 $frm_vars['hidden_fields'][] = $field;
             }
         }
@@ -335,13 +336,16 @@ class FrmProFieldsController{
                 $add_html .= ' data-placeholder=" "';
             }
 
-            if($field['type'] == 'number' or $field['type'] == 'range'){
-                if(!is_numeric($field['minnum']))
+            if ( $field['type'] == 'number' || $field['type'] == 'range' ) {
+                if ( ! is_numeric($field['minnum']) ) {
                     $field['minnum'] = 0;
-                if(!is_numeric($field['maxnum']))
+                }
+                if ( ! is_numeric($field['maxnum']) ) {
                     $field['maxnum'] = 9999999;
-                if(!is_numeric($field['step']))
+                }
+                if ( ! is_numeric($field['step']) ) {
                     $field['step'] = 1;
+                }
                 $add_html .= ' min="'.$field['minnum'].'" max="'.$field['maxnum'].'" step="'.$field['step'].'"';
             }else if(in_array($field['type'], array('url', 'email', 'image'))){
                 if ( ( ! isset($frm_vars['novalidate']) || ! $frm_vars['novalidate'] ) && ( $field['type'] != 'email' || ( isset($field['value']) && $field['default_value'] == $field['value'] ) ) ) {
@@ -393,12 +397,13 @@ class FrmProFieldsController{
         if ( 'data' == $field['type'] ) {
             $form_list = FrmForm::getAll(array('status' => 'published', 'is_template' => 0), 'name');
 
-            $selected_field = '';
+            $selected_field = $selected_form_id = '';
             $current_field_id = $field['id'];
             if ( isset($field['form_select']) && is_numeric($field['form_select']) ) {
                 $selected_field = FrmField::getOne($field['form_select']);
                 if ( $selected_field ) {
-                    $fields = FrmField::get_all_for_form($selected_field->form_id);
+                    $selected_form_id = FrmProFieldsHelper::get_parent_form_id($selected_field);
+                    $fields = FrmField::get_all_for_form($selected_form_id);
                 } else {
                     $selected_field = '';
                 }
@@ -489,7 +494,7 @@ class FrmProFieldsController{
     public static function get_title_opts(){
         $display = FrmProDisplay::getOne($_POST['display_id']);
 
-        if ( !$display ) {
+        if ( ! $display ) {
             die();
         }
 
@@ -506,8 +511,9 @@ class FrmProFieldsController{
 
 
     public static function date_field_js($field_id, $options){
-        if(!isset($options['unique']) or !$options['unique'])
+        if ( ! isset($options['unique']) || ! $options['unique'] ) {
             return;
+        }
 
         $defaults = array(
             'entry_id' => 0, 'start_year' => 2000, 'end_year' => 2020,
@@ -548,8 +554,9 @@ class FrmProFieldsController{
 
         $disabled = apply_filters('frm_used_dates', $disabled, $field, $options);
 
-        if(!$disabled)
+        if ( ! $disabled ) {
             return;
+        }
 
         if ( ! is_numeric($options['entry_id']) ) {
             wp_cache_set($options['field_id'], $disabled, 'frm_used_dates');
@@ -576,6 +583,7 @@ class FrmProFieldsController{
         $entry_id = trim($entry_id, ',');
         $field_id = FrmAppHelper::get_param('field_id');
         $current_field = (int) FrmAppHelper::get_param('current_field');
+        $hidden_field_id = FrmAppHelper::get_param('hide_id');
 
         $data_field = FrmField::getOne($field_id);
         $current = FrmField::getOne($current_field);
@@ -615,7 +623,13 @@ class FrmProFieldsController{
             }
             unset($o, $v);
         }
-        echo '<input type="hidden" id="field_'. $current->field_key .'" name="item_meta['. $current->id .']" value="'. esc_attr($meta_value) .'" '. do_action('frm_field_input_html', $current_field, false) .'/>';
+
+        // Set up HTML ID and HTML name
+        $html_id = '';
+        $field_name = 'item_meta';
+        FrmProFieldsHelper::get_html_id_from_container($field_name, $html_id, (array) $current, $hidden_field_id);
+
+        echo '<input type="hidden" id="'. $html_id .'" name="'. $field_name .'" value="'. esc_attr($meta_value) .'" '. do_action('frm_field_input_html', $current_field, false) .'/>';
         die();
     }
 
@@ -624,6 +638,7 @@ class FrmProFieldsController{
         $entry_id = FrmAppHelper::get_param('entry_id');
         $selected_field_id = FrmAppHelper::get_param('selected_field_id');
         $field_id = FrmAppHelper::get_param('field_id');
+        $hidden_field_id = FrmAppHelper::get_param('hide_id');
 
         $data_field = FrmField::getOne($selected_field_id);
 
@@ -632,18 +647,11 @@ class FrmProFieldsController{
         }
 
         // Makes sure this works with multi-select and non multi-select fields
-        if ( !is_array( $entry_id ) ) {
+        if ( ! is_array( $entry_id ) ) {
             $entry_id = explode(',', $entry_id);
         }
 
         $field_data = FrmField::getOne($field_id);
-
-        // Set up HTML ID and HTML name
-        $html_id = 'field_' . $field_data->field_key;
-        $field_name = "item_meta[$field_id]";
-        if ( FrmFieldsHelper::is_multiple_select($field_data) ) {
-            $field_name .= '[]';
-        }
 
         $field = array(
             'id' => $field_id, 'value' => '', 'default_value' => '', 'form_id' => $field_data->form_id,
@@ -659,7 +667,8 @@ class FrmProFieldsController{
         if(is_numeric($selected_field_id)){
             $field['options'] = array();
 
-            $metas = FrmProEntryMetaHelper::meta_through_join($hide_field, $data_field, $entry_id, $field_data);
+            $metas = array();
+            FrmProEntryMetaHelper::meta_through_join($hide_field, $data_field, $entry_id, $field_data, $metas);
 			$metas = stripslashes_deep($metas);
 
             if ( FrmProFieldsHelper::include_blank_option($metas, $field_data) ) {
@@ -696,7 +705,7 @@ class FrmProFieldsController{
 
             $post_type = FrmProFormsHelper::post_type($field_data->form_id);
             $args['taxonomy'] = FrmProAppHelper::get_custom_taxonomy($post_type, $field_data);
-            if ( !$args['taxonomy'] ) {
+            if ( ! $args['taxonomy'] ) {
                 die();
             }
 
@@ -712,6 +721,15 @@ class FrmProFieldsController{
             }
         } else {
             $field = apply_filters('frm_setup_new_fields_vars', $field, $field_data);
+        }
+
+        // Set up HTML ID and HTML name
+        $html_id = '';
+        $field_name = 'item_meta';
+        FrmProFieldsHelper::get_html_id_from_container($field_name, $html_id, $field, $hidden_field_id);
+
+        if ( FrmFieldsHelper::is_multiple_select($field_data) ) {
+            $field_name .= '[]';
         }
 
         $auto_width = (isset($field['size']) && $field['size'] > 0) ? 'class="auto_width"' : '';
@@ -733,6 +751,8 @@ class FrmProFieldsController{
 	    $values['date'] = FrmProAppHelper::maybe_convert_to_db_date($values['date'], 'Y-m-d');
 
 	    $date_entries = FrmEntryMeta::getEntryIds(array('fi.field_key' => $date_key, 'meta_value' => $values['date']));
+
+        $remove = apply_filters('frm_allowed_times', $remove, $values);
 
         if ( ! $date_entries || empty($date_entries) ) {
             return;
@@ -781,8 +801,9 @@ class FrmProFieldsController{
         $field = FrmField::getOne($field_id);
         $field = FrmFieldsHelper::setup_edit_vars($field);
 
-        if(!isset($field['hide_field_cond'][$meta_name]))
+        if ( ! isset( $field['hide_field_cond'][ $meta_name ] ) ) {
             $field['hide_field_cond'][$meta_name] = '==';
+        }
 
         include(FrmAppHelper::plugin_path() .'/pro/classes/views/frmpro-fields/_logic_row.php');
         die();

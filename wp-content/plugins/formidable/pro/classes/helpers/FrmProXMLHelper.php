@@ -32,7 +32,7 @@ class FrmProXMLHelper{
     		    }
     		    $field = FrmField::getOne($field_id);
 
-    		    if ( !$field ) {
+    		    if ( ! $field ) {
     		        continue;
     		    }
 
@@ -208,6 +208,10 @@ class FrmProXMLHelper{
             break;
             case 'file':
                 $metas[$field_id] = self::get_file_id($metas[$field_id]);
+                // If single file upload field, reset array
+                if ( ! isset($field->field_options['multiple']) || ! $field->field_options['multiple'] ) {
+                    $metas[$field_id] = reset( $metas[$field_id] );
+                }
             break;
             case 'date':
                 $metas[$field_id] = self::get_date($metas[$field_id]);
@@ -299,7 +303,7 @@ class FrmProXMLHelper{
     public static function get_file_id($value) {
         global $wpdb;
 
-        if ( !is_array($value ) ) {
+        if ( ! is_array($value ) ) {
             $value = explode(',', $value);
         }
 
@@ -309,12 +313,12 @@ class FrmProXMLHelper{
                 continue;
             }
 
-            if ( !is_numeric($m) ) {
+            if ( ! is_numeric($m) ) {
                 //get the ID from the URL if on this site
                 $m = $wpdb->get_col($wpdb->prepare("SELECT ID FROM {$wpdb->posts} WHERE guid='%s';", $m ));
             }
 
-            if ( !is_numeric($m) ) {
+            if ( ! is_numeric($m) ) {
                 unset($value[$pos]);
             } else {
                 $value[$pos] = $m;
@@ -328,7 +332,7 @@ class FrmProXMLHelper{
     }
 
     public static function get_date($value) {
-        if ( !empty($value) ){
+        if ( ! empty($value) ){
             $value = date('Y-m-d', strtotime($value));
         }
 
@@ -337,7 +341,7 @@ class FrmProXMLHelper{
 
     public static function get_multi_opts($value, $field) {
 
-        if ( !$field || empty($value) || in_array($value, (array) $field->options ) ) {
+        if ( ! $field || empty($value) || in_array($value, (array) $field->options ) ) {
             return $value;
         }
 
@@ -345,17 +349,17 @@ class FrmProXMLHelper{
             return $value;
         }
 
-        if ( $field->type == 'select' && ( !isset($field->field_options['multiple']) || !$field->field_options['multiple'] ) ) {
+        if ( $field->type == 'select' && ( ! isset($field->field_options['multiple']) || ! $field->field_options['multiple'] ) ) {
             return $value;
         }
 
         $checked = is_array($value) ? $value : maybe_unserialize($value);
 
-        if ( !is_array($checked) ) {
+        if ( ! is_array($checked) ) {
             $checked = explode(',', $checked);
         }
 
-        if ( $checked && count($checked) > 1 ) {
+        if ( ! empty($checked) && count($checked) > 1 ) {
             $value = array_map('trim', $checked);
         }
 
@@ -367,16 +371,16 @@ class FrmProXMLHelper{
     public static function get_dfe_id($value, $field, $ids = array() ) {
         global $wpdb;
 
-        if ( !$field || !isset($field->field_options['data_type']) || $field->field_options['data_type'] == 'data' ) {
+        if ( ! $field || ! isset($field->field_options['data_type']) || $field->field_options['data_type'] == 'data' ) {
             return $value;
         }
 
-        if ( !empty($ids) && is_numeric($value) && isset($ids[$value]) ) {
+        if ( ! empty($ids) && is_numeric($value) && isset($ids[$value]) ) {
             // the entry was just imported, so we have the id
             return $ids[$value];
         }
 
-        if ( !is_array($value) ){
+        if ( ! is_array($value) ) {
             $new_id = $wpdb->get_var($wpdb->prepare(
                 "SELECT item_id FROM {$wpdb->prefix}frm_item_metas WHERE field_id=%d and meta_value=%s",
                 $field->field_options['form_select'], $value
@@ -389,17 +393,17 @@ class FrmProXMLHelper{
             unset($new_id);
         }
 
-        if ( !is_array($value) && strpos($value, ',') ) {
+        if ( ! is_array($value) && strpos($value, ',') ) {
             $checked = maybe_unserialize($value);
 
-            if ( !is_array($checked) ) {
+            if ( ! is_array($checked) ) {
                 $checked = explode(',', $checked);
             }
         } else {
             $checked = $value;
         }
 
-        if ( !$checked || !is_array($checked) ) {
+        if ( ! $checked || ! is_array($checked) ) {
             return $value;
         }
 

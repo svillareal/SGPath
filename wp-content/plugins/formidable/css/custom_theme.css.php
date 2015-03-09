@@ -17,6 +17,10 @@ $default_style = $frm_style->get_default_style($styles);
 $defaults = $default_style->post_content;
 ?>
 
+.frm_hidden{
+    display:none;
+}
+
 .with_frm_style .form-field.frm_col_field{
     clear:none;
     float:left;
@@ -594,6 +598,7 @@ table.frmcal-calendar .frmcal-today .frmcal_date{
     clear:both;
 }
 
+.frm_form_field.frm_half,
 .frm_form_field.frm_third,
 .frm_form_field.frm_fourth,
 .frm_form_field.frm_fifth,
@@ -619,7 +624,8 @@ table.frmcal-calendar .frmcal-today .frmcal_date{
 .frm_form_field.frm_first_sixth,
 .frm_form_field.frm_first_seventh,
 .frm_form_field.frm_first_eighth,
-.frm_form_field.frm_first_inline{
+.frm_form_field.frm_first_inline,
+.frm_form_field.frm_first{
     clear:left;
     float:left;
 }
@@ -638,7 +644,8 @@ table.frmcal-calendar .frmcal-today .frmcal_date{
 .frm_form_field.frm_last_sixth,
 .frm_form_field.frm_last_seventh,
 .frm_form_field.frm_last_eighth,
-.frm_form_field.frm_last_inline{
+.frm_form_field.frm_last_inline,
+.frm_form_field.frm_last{
     clear:none;
     float:right;
 }
@@ -646,12 +653,14 @@ table.frmcal-calendar .frmcal-today .frmcal_date{
 .frm_form_field.frm_left_half,
 .frm_form_field.frm_right_half,
 .frm_form_field.frm_first_half,
-.frm_form_field.frm_last_half{
+.frm_form_field.frm_last_half,
+.frm_form_field.frm_half{
     width:48%;
 }
 
 .frm_form_field.frm_left_half,
-.frm_form_field.frm_first_half{
+.frm_form_field.frm_first_half,
+.frm_form_field.frm_half.frm_first{
     margin-right:4%;
 }
 
@@ -662,7 +671,8 @@ table.frmcal-calendar .frmcal-today .frmcal_date{
 .frm_form_field.frm_first_half.frm_left_container .frm_primary_label,
 .frm_form_field.frm_last_half.frm_left_container .frm_primary_label,
 .frm_form_field.frm_first_half.frm_right_container .frm_primary_label,
-.frm_form_field.frm_last_half.frm_right_container .frm_primary_label{
+.frm_form_field.frm_last_half.frm_right_container .frm_primary_label,
+.frm_form_field.frm_half.frm_right_container .frm_primary_label{
     -webkit-box-sizing:border-box;
     -moz-box-sizing:border-box;
     box-sizing:border-box;
@@ -674,14 +684,16 @@ table.frmcal-calendar .frmcal-today .frmcal_date{
 .frm_form_field.frm_left_half.frm_left_container .frm_primary_label,
 .frm_form_field.frm_right_half.frm_left_container .frm_primary_label,
 .frm_form_field.frm_first_half.frm_left_container .frm_primary_label,
-.frm_form_field.frm_last_half.frm_left_container .frm_primary_label{
+.frm_form_field.frm_last_half.frm_left_container .frm_primary_label,
+.frm_form_field.frm_half.frm_left_container .frm_primary_label{
     padding-right:10px;
 }
 
 .frm_form_field.frm_left_half.frm_right_container .frm_primary_label,
 .frm_form_field.frm_right_half.frm_right_container .frm_primary_label,
 .frm_form_field.frm_first_half.frm_right_container .frm_primary_label,
-.frm_form_field.frm_last_half.frm_right_container .frm_primary_label{
+.frm_form_field.frm_last_half.frm_right_container .frm_primary_label,
+.frm_form_field.frm_half.frm_right_container .frm_primary_label{
     padding-left:10px;
 }
 
@@ -705,7 +717,8 @@ table.frmcal-calendar .frmcal-today .frmcal_date{
 .frm_form_field.frm_left_two_thirds,
 .frm_form_field.frm_right_two_thirds,
 .frm_form_field.frm_first_two_thirds,
-.frm_form_field.frm_last_two_thirds{
+.frm_form_field.frm_last_two_thirds,
+.frm_form_field.frm_two_thirds{
     width:65%;
 }
 
@@ -713,7 +726,8 @@ table.frmcal-calendar .frmcal-today .frmcal_date{
 .frm_form_field.frm_first_third,
 .frm_form_field.frm_third,
 .frm_form_field.frm_left_two_thirds,
-.frm_form_field.frm_first_two_thirds{
+.frm_form_field.frm_first_two_thirds,
+.frm_form_field.frm_two_thirds{
     margin-right:5%;
 }
 
@@ -792,9 +806,13 @@ table.frmcal-calendar .frmcal-today .frmcal_date{
     margin-right:4%;
 }
 
+.frm_form_field.frm_last{
+    margin-right:0;
+}
+
 .frm_full,
 .frm_full .wp-editor-wrap,
-.frm_full input:not([type='checkbox']):not([type='radio']),
+.frm_full input:not([type='checkbox']):not([type='radio']):not([type='button']),
 .frm_full select,
 .frm_full textarea{
     width:100% !important;
@@ -1674,4 +1692,5 @@ html[xmlns] .frm_clearfix{
         display:block;
     }
 }
-<?php echo $defaults['custom_css']; ?>
+<?php
+echo $defaults['custom_css'];

@@ -6,8 +6,9 @@ class FrmProDisplay{
 
         $values = self::getOne( $id, $blog_id, true );
 
-        if(!$values or !is_numeric($values->frm_form_id))
+        if ( ! $values || ! is_numeric($values->frm_form_id) ) {
             return false;
+        }
 
         $new_values = array();
         foreach(array('post_name', 'post_title', 'post_excerpt', 'post_content', 'post_status', 'post_type') as $k){
@@ -70,8 +71,9 @@ class FrmProDisplay{
             unset($key, $val);
         }
 
-        if(!isset($new_values['frm_form_id']) or empty($new_values['frm_form_id']))
+        if ( ! isset($new_values['frm_form_id']) || empty($new_values['frm_form_id']) ) {
             return;
+        }
 
         global $wpdb;
 
@@ -80,7 +82,7 @@ class FrmProDisplay{
         $first_post = $posts ? reset($posts) : false;
         $qualified = self::get_auto_custom_display(array('form_id' => $new_values['frm_form_id'], 'post_id' => $first_post));
 
-        if(!$qualified){
+        if ( ! $qualified ) {
             //delete any post meta for this display if no qualified displays
             $wpdb->delete($wpdb->postmeta, array('meta_key' => 'frm_display_id', 'meta_value' => $id));
         }else if($qualified->ID == $id){
@@ -111,15 +113,16 @@ class FrmProDisplay{
         if ($blog_id and is_multisite())
             switch_to_blog($blog_id);
 
-        if (!is_numeric($id)){
+        if ( ! is_numeric($id) ) {
             $id = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_name = %s AND post_type = %s AND post_status != %s", $id, 'frm_display', 'trash' ) );
 
-            if (is_multisite() and empty($id))
+            if ( is_multisite() && empty($id) ) {
                 return false;
+            }
         }
 
         $post = get_post($id);
-        if(!$post or $post->post_type != 'frm_display' or $post->post_status == 'trash'){
+        if ( ! $post || $post->post_type != 'frm_display' || $post->post_status == 'trash' ) {
             $args = array(
                 'post_type' => 'frm_display',
                 'meta_key' => 'frm_old_id',
@@ -129,20 +132,23 @@ class FrmProDisplay{
             );
             $posts = get_posts($args);
 
-            if($posts)
+            if ( $posts ) {
                 $post = reset($posts);
+            }
         }
 
-        if($post and $post->post_status == 'trash')
+        if ( $post && $post->post_status == 'trash' ) {
             return false;
+        }
 
-        if($post and $get_meta){
-            $check_post = (isset($atts['check_post'])) ? $atts['check_post'] : false;
+        if ( $post && $get_meta ) {
+            $check_post = isset($atts['check_post']) ? $atts['check_post'] : false;
             $post = FrmProDisplaysHelper::setup_edit_vars($post, $check_post);
         }
 
-        if ($blog_id and is_multisite())
+        if ( $blog_id && is_multisite() ) {
             restore_current_blog();
+        }
 
         return $post;
     }
@@ -171,48 +177,53 @@ class FrmProDisplay{
      */
     public static function get_auto_custom_display($args){
         $defaults = array('post_id' => false, 'form_id' => false, 'entry_id' => false);
-        extract(wp_parse_args( $args, $defaults ));
+        $args = wp_parse_args( $args, $defaults );
 
         global $wpdb;
 
-        if($form_id){
-            $display_ids = $wpdb->get_col($wpdb->prepare('SELECT post_ID FROM '. $wpdb->postmeta .' WHERE meta_key=%s AND meta_value=%d', 'frm_form_id', $form_id));
+        if ( $args['form_id'] ) {
+            $display_ids = $wpdb->get_col($wpdb->prepare('SELECT post_ID FROM '. $wpdb->postmeta .' WHERE meta_key=%s AND meta_value=%d', 'frm_form_id', $args['form_id']));
 
-            if(!$display_ids)
+            if ( ! $display_ids ) {
                 return false;
+            }
 
-            if(!$post_id and !$entry_id){
+            if ( ! $args['post_id'] && ! $args['entry_id'] ) {
                 //does form have posts?
-                $entry_id = $wpdb->get_var($wpdb->prepare('SELECT post_id FROM '. $wpdb->prefix .'frm_items WHERE form_id=%d', $form_id));
+                $args['entry_id'] = $wpdb->get_var($wpdb->prepare('SELECT post_id FROM '. $wpdb->prefix .'frm_items WHERE form_id=%d', $args['form_id']));
             }
         }
 
-        if($post_id and !$entry_id){
+        if ( $args['post_id'] && ! $args['entry_id'] ) {
             //is post linked to an entry?
-            $entry_id = $wpdb->get_var($wpdb->prepare('SELECT id FROM '. $wpdb->prefix .'frm_items WHERE post_id=%d', $post_id));
+            $args['entry_id'] = $wpdb->get_var($wpdb->prepare('SELECT id FROM '. $wpdb->prefix .'frm_items WHERE post_id=%d', $args['post_id']));
 
             //is post selected for auto-insertion?
-            if(!$entry_id){
-                $query = $wpdb->prepare('SELECT post_ID FROM '. $wpdb->postmeta .' WHERE meta_key=%s AND meta_value=%s', 'frm_post_id', $post_id);
-                if(isset($display_ids))
+            if ( ! $args['entry_id'] ) {
+                $query = $wpdb->prepare('SELECT post_ID FROM '. $wpdb->postmeta .' WHERE meta_key=%s AND meta_value=%s', 'frm_post_id', $args['post_id']);
+                if ( isset($display_ids) ) {
                     $query .= " AND post_ID in (". implode(',', $display_ids) .")";
+                }
                 $display_ids = $wpdb->get_col($query);
 
-                if(!$display_ids)
+                if ( ! $display_ids ) {
                     return false;
+                }
             }
         }
 
         //this post does not have an auto display
-        if(!$entry_id)
+        if ( ! $args['entry_id'] ) {
             return false;
+        }
 
         $query = "SELECT p.* FROM $wpdb->posts p LEFT JOIN $wpdb->postmeta pm ON (p.ID = pm.post_ID) WHERE pm.meta_key='frm_show_count' AND post_type='frm_display' AND pm.meta_value in ('dynamic','calendar','one') AND p.post_status='publish' ";
 
-        if(isset($display_ids))
-            $query .= "AND p.ID in (". implode(',', $display_ids) .") ";
+        if ( isset($display_ids) ) {
+            $query .= 'AND p.ID in ('. implode(',', $display_ids) .') ';
+        }
 
-        $query .= "ORDER BY p.ID ASC LIMIT 1";
+        $query .= 'ORDER BY p.ID ASC LIMIT 1';
 
         $display = $wpdb->get_row($query);
 
@@ -224,8 +235,9 @@ class FrmProDisplay{
 
         $display_ids = $wpdb->get_col($wpdb->prepare('SELECT post_ID FROM '. $wpdb->postmeta .' WHERE meta_key=%s AND meta_value=%d', 'frm_form_id', $form_id));
 
-        if(!$display_ids)
+        if ( ! $display_ids ) {
             return false;
+        }
 
         $query = "SELECT p.* FROM $wpdb->posts p LEFT JOIN $wpdb->postmeta pm ON (p.ID = pm.post_ID) WHERE pm.meta_key='frm_show_count' AND post_type='frm_display' AND pm.meta_value in ('dynamic','calendar','one') AND p.post_status='publish' AND p.ID in (". implode(',', $display_ids) .") ORDER BY p.ID ASC LIMIT 1";
 
@@ -249,8 +261,9 @@ class FrmProDisplay{
         if ($values['insert_loc'] != 'none' && $values['post_id'] == '')
             $errors[] = __('Page cannot be blank if you want the content inserted automatically', 'formidable');
 
-        if (!empty($values['options']['limit']) && !is_numeric($values['options']['limit']))
+        if ( ! empty($values['options']['limit']) && ! is_numeric($values['options']['limit']) ) {
             $errors[] = __('Limit must be a number', 'formidable');
+        }
 
         if ($values['show_count'] == 'dynamic'){
             if ($values['dyncontent'] == '')

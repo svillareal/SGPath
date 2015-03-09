@@ -3,7 +3,7 @@
     <h2 style="height:34px;"><?php _e('Add New Entry', 'formidable'); ?></h2>
 
     <?php if(empty($values)){ ?>
-    <div class="frm_forms <?php echo FrmFormsHelper::get_form_style_class($form); ?>" id="frm_form_<?php echo $form->id ?>_container">
+    <div class="frm_forms <?php echo FrmFormsHelper::get_form_style_class($form); ?>" id="frm_form_<?php echo (int) $form->id ?>_container">
         <div id="poststuff">
             <div id="post-body" class="metabox-holder columns-2">
             <div id="post-body-content">
@@ -17,9 +17,9 @@
     <?php
             return;
         } ?>
-    <div class="frm_forms<?php echo FrmFormsHelper::get_form_style_class($values); ?>" id="frm_form_<?php echo $form->id ?>_container">
+    <div class="frm_forms<?php echo FrmFormsHelper::get_form_style_class($values); ?>" id="frm_form_<?php echo (int) $form->id ?>_container">
 
-        <form enctype="multipart/form-data" method="post" id="form_<?php echo $form->form_key ?>" class="frm-show-form">
+        <form enctype="multipart/form-data" method="post" id="form_<?php echo esc_attr( $form->form_key ) ?>" class="frm-show-form">
 
         <div id="poststuff">
 

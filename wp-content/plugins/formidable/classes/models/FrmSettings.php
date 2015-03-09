@@ -25,10 +25,11 @@ class FrmSettings{
     public $custom_style;
 
     public $pubkey;
+    public $privkey;
     public $re_lang;
     public $re_msg;
 
-    function __construct() {
+    public function __construct() {
         if ( ! defined('ABSPATH') ) {
             die('You are not allowed to call this page directly.');
         }
@@ -47,7 +48,7 @@ class FrmSettings{
         $this->set_default_options();
     }
 
-    function translate_settings($settings) {
+    private function translate_settings($settings) {
         if ( $settings ) { //workaround for W3 total cache conflict
             return unserialize(serialize($settings));
         }
@@ -74,7 +75,7 @@ class FrmSettings{
     /*
     * @return array
     */
-    function default_options(){
+    public function default_options(){
         return array(
             'menu'      => 'Formidable',
             'mu_menu'   => 0,
@@ -98,7 +99,7 @@ class FrmSettings{
         );
     }
 
-    function set_default_options(){
+    private function set_default_options(){
         $this->fill_recaptcha_settings();
 
         if ( ! isset($this->load_style) ) {
@@ -127,7 +128,7 @@ class FrmSettings{
         }
     }
 
-    function fill_with_defaults($params = array()) {
+    public function fill_with_defaults($params = array()) {
         $settings = $this->default_options();
 
         foreach ( $settings as $setting => $default ) {
@@ -165,12 +166,12 @@ class FrmSettings{
         }
     }
 
-    function validate($params,$errors){
+    public function validate($params,$errors){
         $errors = apply_filters( 'frm_validate_settings', $errors, $params );
         return $errors;
     }
 
-    function update($params){
+    public function update($params){
         $this->fill_with_defaults($params);
         $this->update_settings($params);
 
@@ -238,7 +239,7 @@ class FrmSettings{
 		}
     }
 
-    function store(){
+    public function store(){
         // Save the posted value in the database
 
         update_option('frm_options', $this);

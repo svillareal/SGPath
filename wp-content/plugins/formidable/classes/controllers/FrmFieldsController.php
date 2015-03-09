@@ -26,7 +26,7 @@ class FrmFieldsController{
 
             $field_id = $field['id'];
 
-            if ( !isset($field['value']) ) {
+            if ( ! isset( $field['value'] ) ) {
                 $field['value'] = '';
             }
 
@@ -81,7 +81,7 @@ class FrmFieldsController{
 
         $field_id = (int) $_POST['field'];
         $form_id = (int) $_POST['form_id'];
-        if ( !$field_id || !$form_id ) {
+        if ( ! $field_id || ! $form_id ) {
             return;
         }
 
@@ -267,7 +267,7 @@ class FrmFieldsController{
         $label = isset($this_opt['label']) ? $this_opt['label'] : reset($this_opt);
         $value =  isset($this_opt['value']) ? $this_opt['value'] : '';
 
-        if ( !isset($new_label) ) {
+        if ( ! isset( $new_label ) ) {
             $new_label = $label;
         }
 
@@ -427,8 +427,7 @@ class FrmFieldsController{
                     }
                     unset($vals);
                 }
-                unset($opt_key);
-                unset($opt);
+                unset($opt_key, $opt);
             }
         }
 
@@ -439,9 +438,9 @@ class FrmFieldsController{
                 if ( $opt_key && strpos( $opt_key, 'other' ) !== false ) {
                     $other_array[$opt_key] = $opt;
                 }
-                unset($opt_key,$opt);
+                unset($opt_key, $opt);
             }
-            if ( $other_array ) {
+            if ( ! empty($other_array) ) {
                 $opts = array_merge( $opts, $other_array);
             }
         }

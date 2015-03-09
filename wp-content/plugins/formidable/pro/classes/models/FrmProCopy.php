@@ -12,8 +12,9 @@ class FrmProCopy{
         global $wpdb, $blog_id;
 
         $exists = $wpdb->query('DESCRIBE '. self::table_name());
-        if(!$exists)
+        if ( ! $exists ) {
             self::install(true);
+        }
         unset($exists);
 
         $new_values = array();

@@ -95,8 +95,8 @@ if(isset($values['open_editable']) && empty($values['open_editable']))
 <?php if (is_multisite()){ ?>
     <?php if (is_super_admin()){ ?>
         <tr><td colspan="2">
-        <label for="copy"><input type="checkbox" name="options[copy]" id="copy" value="1" <?php echo ($values['copy'])? ' checked="checked"' : ''; ?> /> <?php _e('Copy this form to other blogs when Formidable Pro is activated', 'formidable') ?></label></td></tr>
+        <label for="copy"><input type="checkbox" name="options[copy]" id="copy" value="1" <?php echo ($values['copy'])? ' checked="checked"' : ''; ?> /> <?php _e('Copy this form to other blogs when Formidable Forms is activated', 'formidable') ?></label></td></tr>
     <?php }else if ($values['copy']){ ?>
         <input type="hidden" name="options[copy]" id="copy" value="1" />
-    <?php } ?>
-<?php } ?>
+    <?php }
+    }

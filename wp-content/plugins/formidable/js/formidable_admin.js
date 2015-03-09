@@ -294,7 +294,8 @@ function frmAdminBuildJS(){
 						
 						var $thisSection = $thisField.find('ul.frm_sorting');
 						if($thisSection.length){
-							$section.sortable(opts);
+                            $thisSection.sortable(opts);
+                            $thisSection.parent('.frm_field_box').children('.frm_no_section_fields').show();
 						}else{
 							var $parentSection = $thisField.closest('ul.frm_sorting');
 							toggleOneSectionHolder($parentSection);
@@ -917,17 +918,17 @@ function frmAdminBuildJS(){
 		var form_id = this.value; 
 		if(form_id){
 			var field_id = jQuery(this).closest('li.form-field').data('fid');
-	    	getTaxOrFieldSelection(form_id, field_id);
+            getTaxOrFieldSelection(form_id, field_id);
 		}
 	}
 
     function getTaxOrFieldSelection(form_id, field_id){
 		if(form_id){
-	    	jQuery.ajax({
+            jQuery.ajax({
 				type:'POST',url:ajaxurl,
-	        	data:{action:'frm_get_field_selection',field_id:field_id,form_id:form_id},
-	        	success:function(msg){ jQuery("#frm_show_selected_fields_"+field_id).html(msg).show();} 
-	    	});
+                data:{action:'frm_get_field_selection',field_id:field_id,form_id:form_id},
+                success:function(msg){ jQuery("#frm_show_selected_fields_"+field_id).html(msg).show();} 
+            });
 		}
     }
 
@@ -1009,7 +1010,7 @@ function frmAdminBuildJS(){
 				$postStuff.insertBefore($html, $postStuff.firstChild);
 				
 				setTimeout(function(){
-					jQuery('#message.frm_message').fadeOut('slow');
+					jQuery('.frm_message').fadeOut('slow');
 					$thisEle.fadeOut('slow', function(){
 						$thisEle.val(p);
 						$thisEle.show();
@@ -1072,7 +1073,7 @@ function frmAdminBuildJS(){
 		var type = jQuery(this).data('actiontype');
 		var formId = jQuery(document.getElementById('form_id')).val();
 
-	    jQuery.ajax({
+        jQuery.ajax({
 			type:'POST',url:ajaxurl,
 			data:{action:'frm_add_form_action', type:type, list_id:(parseInt(len)+1), form_id:formId},
 			success:function(html){
@@ -1326,16 +1327,16 @@ function frmAdminBuildJS(){
 
 		var $cont = document.getElementById('date_select_container');
 		if(value == 'calendar'){
-			jQuery('.hide_dyncontent').show();
+			jQuery('.hide_dyncontent, .hide_single_content').show();
 			jQuery('.limit_container').hide();
 			$cont.style.display = 'block';
 		}else if(value == 'dynamic'){
-			jQuery('.hide_dyncontent, .limit_container').show();
+			jQuery('.hide_dyncontent, .limit_container, .hide_single_content').show();
 		}else if(value == 'one'){
-			jQuery('.hide_dyncontent, .limit_container').hide();
+			jQuery('.hide_dyncontent, .limit_container, .hide_single_content').hide();
 		}else{
 			jQuery('.hide_dyncontent').hide();
-			jQuery('.limit_container').show();
+			jQuery('.limit_container, .hide_single_content').show();
 		}
 
 		if(value !== 'calendar'){
@@ -1576,7 +1577,7 @@ function frmAdminBuildJS(){
 			jQuery('.frm_uninstall .spinner').show();
 			jQuery.ajax({
 				type:'POST',url:ajaxurl,data:"action=frm_uninstall&nonce="+frm_admin_js.nonce,
-		    	success:function(msg){
+                success:function(msg){
 					jQuery('.frm_uninstall').fadeOut('slow');
 				}
 			});
@@ -2050,8 +2051,8 @@ function frmAdminBuildJS(){
             // update styling on change
             jQuery('#frm_styling_form .styling_settings').change(function(){
                 var locStr = jQuery('input[name^="frm_style_setting[post_content]"], select[name^="frm_style_setting[post_content]"], textarea[name^="frm_style_setting[post_content]"], input[name="style_name"]').serialize();
-        		jQuery.ajax({
-        			type:'GET',url:ajaxurl,
+                jQuery.ajax({
+                    type:'GET',url:ajaxurl,
                     data:'action=frm_change_styling&'+locStr,
                     success:function(css){
                         document.getElementById('this_css').innerHTML = css;

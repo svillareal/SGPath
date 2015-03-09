@@ -12,17 +12,17 @@
         <div class="clear"></div>
 
         <?php
-        if ( isset($data['time'])){
-                echo $data['time'];
-            }
+        if ( isset($data['time']) ) {
+            echo $data['time'];
+        }
 
         foreach ( $fields as $field ) {
-            if ( !isset($data[$field->id]) ) {
+            if ( ! isset($data[$field->id]) ) {
                 continue;
             }
 
             $total = FrmProFieldsHelper::get_field_stats($field->id, 'count');
-            if ( !$total ) {
+            if ( ! $total ) {
                 continue;
             }
             ?>

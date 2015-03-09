@@ -74,13 +74,16 @@
     <tr class="hide_dyncontent <?php echo in_array($post->frm_show_count, array('dynamic', 'calendar')) ? '' : 'frm_hidden'; ?>">
         <td><?php _e('Detail Page Slug', 'formidable'); ?> <span class="frm_help frm_icon_font frm_tooltip_icon" title="<?php printf(__('Example: If parameter name is \'contact\', the url would be like %1$s/selected-page?contact=2. If this entry is linked to a post, the post permalink will be used instead.', 'formidable'), FrmAppHelper::site_url()) ?>" ></span></td>
         <td>
-            <?php if (false){ //( FrmProAppHelper::rewriting_on() && $frmpro_settings->permalinks){ ?>
+            <?php
+            /*
+            if ( FrmProAppHelper::rewriting_on() && $frmpro_settings->permalinks){ ?>
                 <select id="type" name="type">
                     <option value="id" <?php selected($post->frm_type, 'id') ?>><?php _e('ID', 'formidable'); ?></option>
                     <option value="display_key" <?php selected($post->frm_type, 'display_key') ?>><?php _e('Key', 'formidable'); ?></option>
                 </select>
                 <p class="description"><?php printf(__('Select the value that will be added onto the page URL. This will create a pretty URL like %1$s/selected-page/entry-key', 'formidable'), FrmAppHelper::site_url()); ?></p>
             <?php }else{ ?>
+            */ ?>
                 <input type="text" id="param" name="param" value="<?php echo esc_attr($post->frm_param) ?>">
 
                 <?php _e('Parameter Value', 'formidable'); ?>:
@@ -88,7 +91,7 @@
                     <option value="id" <?php selected($post->frm_type, 'id') ?>><?php _e('ID', 'formidable'); ?></option>
                     <option value="display_key" <?php selected($post->frm_type, 'display_key') ?>><?php _e('Key', 'formidable'); ?></option>
                 </select>
-            <?php } ?>
+            <?php //} ?>
         </td>
     </tr>
 

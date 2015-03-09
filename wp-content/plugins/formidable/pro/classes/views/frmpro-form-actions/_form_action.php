@@ -5,16 +5,17 @@
 <div class="frm_logic_rows" <?php echo ($show_logic) ? '' : ' style="display:none"'; ?>>
     <h3><?php _e('Conditional Logic', 'formidable') ?></h3>
     <div id="frm_logic_row_<?php echo $action_key ?>">
-        <select name="<?php echo $action_control->get_field_name('conditions') ?>[send_stop]">
+        <p><select name="<?php echo $action_control->get_field_name('conditions') ?>[send_stop]">
             <option value="send" <?php selected($form_action->post_content['conditions']['send_stop'], 'send') ?>><?php echo $send ?></option>
             <option value="stop" <?php selected($form_action->post_content['conditions']['send_stop'], 'stop') ?>><?php echo $stop ?></option>
         </select>
         <?php echo $this_action_if ?>
-        <select name="notification[<?php echo $action_key ?>][conditions][any_all]">
+        <select name="<?php echo $action_control->get_field_name('conditions') ?>[any_all]">
             <option value="any" <?php selected($form_action->post_content['conditions']['any_all'], 'any') ?>><?php _e('any', 'formidable') ?></option>
             <option value="all" <?php selected($form_action->post_content['conditions']['any_all'], 'all') ?>><?php _e('all', 'formidable') ?></option>
         </select>
         <?php _e('of the following match', 'formidable') ?>:
+        </p>
 
 <?php
 

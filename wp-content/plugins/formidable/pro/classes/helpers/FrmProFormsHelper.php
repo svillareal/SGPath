@@ -15,9 +15,10 @@ class FrmProFormsHelper{
         foreach (array('logged_in' => $record->logged_in, 'editable' => $record->editable) as $var => $default)
             $values[$var] = FrmAppHelper::get_param($var, $default);
 
-        foreach (FrmProFormsHelper::get_default_opts() as $opt => $default){
-            if (!isset($values[$opt]))
-                $values[$opt] = ($_POST and isset($_POST['options'][$opt])) ? $_POST['options'][$opt] : $default;
+        foreach (self::get_default_opts() as $opt => $default){
+            if ( ! isset($values[$opt]) ) {
+                $values[$opt] = ( $_POST && isset($_POST['options'][$opt]) ) ? $_POST['options'][$opt] : $default;
+            }
 
             unset($opt, $default);
         }
@@ -37,7 +38,7 @@ class FrmProFormsHelper{
         $subfields = FrmField::get_all_for_form($field['form_select']);
 
 ?>
-<input type="hidden" name="<?php echo $field_name ?>[form]" value="<?php echo esc_attr($field['form_select']) ?>" />
+<input type="hidden" name="<?php echo esc_attr( $field_name ) ?>[form]" value="<?php echo esc_attr( $field['form_select'] ) ?>" />
 <?php
 
         if ( empty($subfields) ) {
@@ -64,18 +65,18 @@ class FrmProFormsHelper{
             if ( ! isset($field['value']['form']) ) {
                 // this is not a posted value from moving between pages
                 $checked = apply_filters('frm_hidden_value', $checked, $field);
-                if ( empty($checked) || !is_numeric($checked) ) {
+                if ( empty($checked) || ! is_numeric($checked) ) {
                     continue;
                 }
 ?>
-<input type="hidden" name="<?php echo $field_name ?>[id][]" value="<?php echo esc_attr($checked) ?>" />
+<input type="hidden" name="<?php echo esc_attr( $field_name ) ?>[id][]" value="<?php echo esc_attr( $checked ) ?>" />
 <?php
                 $repeat_atts['i'] = 'i'. $checked;
                 $repeat_atts['entry_id'] = $checked;
             } else if ( $k === 'id' ) {
                 foreach ( $checked as $entry_id ) {
 ?>
-<input type="hidden" name="<?php echo $field_name ?>[id][]" value="<?php echo esc_attr($entry_id) ?>" />
+<input type="hidden" name="<?php echo esc_attr( $field_name ) ?>[id][]" value="<?php echo esc_attr( $entry_id ) ?>" />
 <?php
                     unset($entry_id);
                 }
@@ -524,27 +525,25 @@ $(document.getElementById('<?php echo $datepicker ?>')).change(function(){frmFro
     public static function get_taxonomy_count($taxonomy, $post_categories, $tax_count=0){
         if(isset($post_categories[$taxonomy . $tax_count])){
             $tax_count++;
-            $tax_count = FrmProFormsHelper::get_taxonomy_count($taxonomy, $post_categories, $tax_count);
+            $tax_count = self::get_taxonomy_count($taxonomy, $post_categories, $tax_count);
         }
         return $tax_count;
     }
 
     public static function going_to_prev($form_id){
         $back = false;
-        if($_POST and isset($_POST['frm_next_page']) and $_POST['frm_next_page'] != ''){
+        if ( $_POST && isset($_POST['frm_next_page']) && $_POST['frm_next_page'] != '' ) {
             $prev_page = FrmAppHelper::get_param('frm_page_order_'. $form_id, false);
-            if(!$prev_page or ($_POST['frm_next_page'] < $prev_page))
+            if ( ! $prev_page || ( $_POST['frm_next_page'] < $prev_page ) ) {
                 $back = true; //no errors if going back a page
+            }
         }
         return $back;
     }
 
     public static function get_prev_button($form, $class=''){
         $html = '[if back_button]<input type="submit" value="[back_label]" name="frm_prev_page" formnovalidate="formnovalidate" class="frm_prev_page '. $class .'" [back_hook] />[/if back_button]';
-        $html = FrmProFormsController::replace_shortcodes($html, $form);
-        if(strpos($html, '[if back_button]') !== false)
-            $html = preg_replace('/(\[if\s+back_button\])(.*?)(\[\/if\s+back_button\])/mis', '', $html);
-        return $html;
+        return self::get_draft_button( $form, $class, $html, 'back_button' );
     }
 
     // check if this entry is currently being saved as a draft
@@ -558,19 +557,20 @@ $(document.getElementById('<?php echo $datepicker ?>')).change(function(){frmFro
             return;
         }
 
-        $frmpro_settings = new FrmProSettings();
-        $message = isset($form->options['draft_msg']) ? $form->options['draft_msg'] : $frmpro_settings->draft_msg;
+        $message = isset($form->options['draft_msg']) ? $form->options['draft_msg'] : __('Your draft has been saved.', 'formidable');
         $message = apply_filters('frm_content', $message, $form, $record);
         $message = wpautop( do_shortcode($message) );
     }
 
-    public static function get_draft_button($form, $class='', $html=false){
-        if(!$html)
+    public static function get_draft_button( $form, $class = '', $html = '', $button_type = 'save_draft' ) {
+        if ( empty( $html ) ) {
             $html = '[if save_draft]<input type="submit" value="[draft_label]" name="frm_save_draft" formnovalidate="formnovalidate" class="frm_save_draft '. $class .'" [draft_hook] />[/if save_draft]';
+        }
 
         $html = FrmProFormsController::replace_shortcodes($html, $form);
-        if(strpos($html, '[if save_draft]') !== false)
-            $html = preg_replace('/(\[if\s+save_draft\])(.*?)(\[\/if\s+save_draft\])/mis', '', $html);
+        if ( strpos( $html, '[if '. $button_type .']') !== false ) {
+            $html = preg_replace('/(\[if\s+'. $button_type .'\])(.*?)(\[\/if\s+'. $button_type .'\])/mis', '', $html);
+        }
         return $html;
     }
 

@@ -16,7 +16,7 @@ class FrmFormActionsHelper{
 
         $args = array(
             'menu_order'    => $form_id,
-            'post_type'     => FrmFormsController::$action_post_type,
+            'post_type'     => FrmFormActionsController::$action_post_type,
             'post_status'   => 'publish',
             'numberposts'   => 99,
             'orderby'       => 'title',
@@ -56,12 +56,12 @@ class FrmFormActionsHelper{
         $stop = false;
         $met = array();
 
-        if ( !isset($notification['conditions']) || empty($notification['conditions']) ) {
+        if ( ! isset( $notification['conditions'] ) || empty( $notification['conditions'] ) ) {
             return $stop;
         }
 
         foreach ( $notification['conditions'] as $k => $condition ) {
-            if ( !is_numeric($k) ) {
+            if ( ! is_numeric( $k ) ) {
                 continue;
             }
 

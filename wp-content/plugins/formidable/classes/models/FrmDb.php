@@ -6,7 +6,7 @@ class FrmDb{
     var $entries;
     var $entry_metas;
 
-    function __construct(){
+    public function __construct(){
         if ( ! defined('ABSPATH') ) {
             die('You are not allowed to call this page directly.');
         }
@@ -18,7 +18,7 @@ class FrmDb{
         $this->entry_metas    = $wpdb->prefix . 'frm_item_metas';
     }
 
-    function upgrade($old_db_version=false){
+    public function upgrade($old_db_version=false){
         global $wpdb;
         //$frm_db_version is the version of the database we're moving to
         $frm_db_version = FrmAppHelper::$db_version;
@@ -47,7 +47,7 @@ class FrmDb{
         $frm_style->update( 'default' );
     }
 
-    function collation() {
+    public function collation() {
         global $wpdb;
         if ( ! $wpdb->has_cap( 'collation' ) ) {
             return '';
@@ -147,29 +147,20 @@ class FrmDb{
         }
     }
 
+    /**
+     * @param integer $frm_db_version
+     */
     private function migrate_data($frm_db_version, $old_db_version) {
-        if ( $frm_db_version >= 4 && $old_db_version < 4 ) {
-            $this->migrate_to_4();
-        }
-
-        if ( $frm_db_version >= 6 && $old_db_version < 6 ) {
-            $this->migrate_to_6();
-        }
-
-        if ( $frm_db_version >= 11 && $old_db_version < 11 ) {
-            $this->migrate_to_11();
-        }
-
-        if ( $frm_db_version >= 16 && $old_db_version < 16 ) {
-            $this->migrate_to_16();
-        }
-
-        if ( $frm_db_version >= 17 && $old_db_version < 17 ) {
-            $this->migrate_to_17();
+        $migrations = array(4, 6, 11, 16, 17);
+        foreach ( $migrations as $migration ) {
+            if ( $frm_db_version >= $migration && $old_db_version < $migration ) {
+                $function_name = 'migrate_to_'. $migration;
+                $this->$function_name();
+            }
         }
     }
 
-    function get_count($table, $args=array()){
+    public function get_count($table, $args=array()){
         global $wpdb;
         $args = FrmAppHelper::get_where_clause_and_values( $args );
 
@@ -178,23 +169,12 @@ class FrmDb{
         return $wpdb->get_var($query);
     }
 
-    function get_where_clause_and_values( $args ){
+    public function get_where_clause_and_values( $args ){
         _deprecated_function( __FUNCTION__, '2.0', 'FrmAppHelper::get_where_clause_and_values');
         return FrmAppHelper::get_where_clause_and_values( $args );
     }
 
-    function get_var($table, $args=array(), $field='id', $order_by=''){
-        global $wpdb;
-
-        $args = FrmAppHelper::get_where_clause_and_values( $args );
-        if(!empty($order_by))
-            $order_by = " ORDER BY {$order_by}";
-
-        $query = $wpdb->prepare("SELECT {$field} FROM ". $table . $args['where'] . $order_by ." LIMIT 1", $args['values']);
-        return $wpdb->get_var($query);
-    }
-
-    function get_col($table, $args=array(), $field='id', $order_by=''){
+    public function get_var( $table, $args = array(), $field = 'id', $order_by = '', $type = 'var' ) {
         global $wpdb;
 
         $args = FrmAppHelper::get_where_clause_and_values( $args );
@@ -202,10 +182,24 @@ class FrmDb{
             $order_by = " ORDER BY {$order_by}";
 
         $query = $wpdb->prepare("SELECT {$field} FROM ". $table . $args['where'] . $order_by, $args['values']);
-        return $wpdb->get_col($query);
+        if ( $type == 'col' ) {
+            return $wpdb->get_col($query);
+        } else {
+            return $wpdb->get_var($query);
+        }
     }
 
-    function get_one_record($table, $args=array(), $fields='*', $order_by=''){
+    /**
+     * @param string $table
+     */
+    public function get_col($table, $args=array(), $field='id', $order_by=''){
+        return self::get_var( $table, $args, $field, $order_by, 'col' );
+    }
+
+    /**
+     * @param string $table
+     */
+    public function get_one_record($table, $args=array(), $fields='*', $order_by=''){
         global $wpdb;
 
         $args = FrmAppHelper::get_where_clause_and_values( $args );
@@ -219,7 +213,10 @@ class FrmDb{
         return $wpdb->get_row($query);
     }
 
-    function get_records($table, $args=array(), $order_by='', $limit='', $fields='*'){
+    /**
+     * @param string $table
+     */
+    public function get_records($table, $args=array(), $order_by='', $limit='', $fields='*'){
         global $wpdb;
 
         $args = FrmAppHelper::get_where_clause_and_values( $args );
@@ -237,7 +234,7 @@ class FrmDb{
         return $wpdb->get_results($query);
     }
 
-    function uninstall(){
+    public function uninstall(){
         if ( !current_user_can('administrator') ) {
             $frm_settings = FrmAppHelper::get_settings();
             wp_die($frm_settings->admin_permission);
@@ -292,6 +289,23 @@ class FrmDb{
             }
             unset($f);
         }
+
+        // Change the characters in widgets to pixels
+        $widgets = get_option('widget_frm_show_form');
+        if ( empty($widgets) ) {
+            return;
+        }
+
+        $widgets = maybe_unserialize($widgets);
+        foreach ( $widgets as $k => $widget ) {
+            if ( ! is_array($widget) || ! isset($widget['size']) ) {
+                continue;
+            }
+            $size = round(7.08 * (int) $widget['size']);
+            $size .= 'px';
+            $widgets[$k]['size'] = $size;
+        }
+        update_option('widget_frm_show_form', $widgets);
     }
 
     /*
@@ -332,7 +346,7 @@ class FrmDb{
         *
         */
 
-        $post_type = FrmFormsController::$action_post_type;
+        $post_type = FrmFormActionsController::$action_post_type;
         foreach ( $forms as $form ) {
             $form->options = maybe_unserialize($form->options);
 
@@ -394,7 +408,7 @@ class FrmDb{
                         $reply_to_name = $notification['reply_to_name'];
                         if ( 'custom' == $notification['reply_to_name'] ) {
                             $reply_to_name = $notification['cust_reply_to_name'];
-                        } else if ( !is_numeric($reply_to_name) && ! empty($reply_to_name) ) {
+                        } else if ( ! is_numeric( $reply_to_name ) && ! empty( $reply_to_name ) ) {
                             $reply_to_name = '['. $reply_to_name .']';
                         }
                     }
@@ -510,6 +524,10 @@ class FrmDb{
     /*
     * Migrate post settings to form action
     */
+
+    /**
+     * @param string $post_type
+     */
     private function migrate_to_16_post_to_action( $form, $post_type ) {
         if ( ! isset($form->options['create_post']) || ! $form->options['create_post'] ) {
             return;
@@ -572,8 +590,9 @@ DEFAULT_HTML;
         $draft_link = FrmFormsHelper::get_draft_link();
         foreach($forms as $form){
             $form->options = maybe_unserialize($form->options);
-            if(!isset($form->options['submit_html']) or empty($form->options['submit_html']))
+            if ( ! isset($form->options['submit_html']) || empty($form->options['submit_html']) ) {
                 continue;
+            }
 
             if ( $form->options['submit_html'] != $new_default_html && $form->options['submit_html'] == $old_default_html ) {
                 $form->options['submit_html'] = $new_default_html;
@@ -615,7 +634,7 @@ DEFAULT_HTML;
         $new_default_html = FrmFieldsHelper::get_default_html('text');
         foreach ( $fields as $field ) {
             $field->field_options = maybe_unserialize($field->field_options);
-            if ( !isset($field->field_options['custom_html']) || empty($field->field_options['custom_html']) || $field->field_options['custom_html'] == $default_html || $field->field_options['custom_html'] == $old_default_html ) {
+            if ( ! isset( $field->field_options['custom_html'] ) || empty( $field->field_options['custom_html'] ) || $field->field_options['custom_html'] == $default_html || $field->field_options['custom_html'] == $old_default_html ) {
                 $field->field_options['custom_html'] = $new_default_html;
                 $wpdb->update($this->fields, array('field_options' => maybe_serialize($field->field_options)), array( 'id' => $field->id ));
             }
