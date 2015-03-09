@@ -9,6 +9,46 @@ Template:       responsive
 
 @import url("../responsive/style.css");
 
+/*Temp*/
+
+
+#home {
+  background: url(http://localhost/lg/wp-content/uploads/2015/03/only_background_1.jpg) 50% 0 repeat fixed; min-height: 1000px;
+  height: 1000px;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 1920px;
+  position: relative;
+}
+ 
+#home article {
+  height: 458px;
+  position: absolute;
+  text-align: center;
+  top: 150px;
+  width: 100%;
+}
+ 
+#about {
+  background: url(http://localhost/lg/wp-content/uploads/2015/03/only_background_2.jpg) 50% 0 repeat fixed; min-height: 1000px;
+  height: 1000px;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 1920px;
+  position: relative;
+  -webkit-box-shadow: 0 0 50px rgba(0,0,0,0.8);
+  box-shadow: 0 0 50px rgba(0,0,0,0.8);
+}
+ 
+#about article {
+  height: 458px;
+  position: absolute;
+  text-align: center;
+  top: 150px;
+  width: 100%;
+}
+
+
 /* These are only temp styles to make dev environment more readable.*/
 .site-content, .site-main .widecolumn {
     margin-left: 0px;

@@ -113,6 +113,7 @@ get_header();
 				$coreCheckedTot = $coreCheckedTot + 1;
 			}
 		}
+//watch for division by zero error below
 		$coreCheckedPerc = ($coreCheckedTally/$coreCheckedTot)*100;
 		$coreCheckedPercR[$postID] = round($coreCheckedPerc, 3);
 		//Get Heart Check Content
