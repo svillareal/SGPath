@@ -19,144 +19,86 @@ Template Name:  Spiritual Outcome Overview page
 
 get_header(); 
 
+//Get required functions
+include_once('spg-functions.php');
+
 //Get user info
-	$UserID = get_current_user_id();
-	$userData = get_userdata( $UserID );
-	if (in_array("administrator", $userData->roles)) {
-		$userView = "admin";
-	} else if (in_array("grow_pastor", $userData->roles)) {
-		$userView = "pastor";
-	} else if (in_array("group_leader", $userData->roles)) {
-		$userView = "leader";
-	} else if (in_array("subscriber", $userData->roles)) {
-		$userView = "member";
-	} else {
-		$userView = "non_member";
-	}
-
-//Get outcome info
-	$coreCatName = array("Bible Study", "Reading", "Scripture Memory", "Activity", "Group Discussion", "Other");
-	$coreCatNameNoSpc = array("BibleStudy", "Reading", "ScriptureMemory", "Activity", "GroupDiscussion", "Other");	
-	$trainingProgressIcon = $wpdb->get_var("SELECT meta_value FROM {$wpdb->prefix}frm_item_metas WHERE field_id='843'");
-	$heartProgressIcon = $wpdb->get_var("SELECT meta_value FROM {$wpdb->prefix}frm_item_metas WHERE field_id='844'");
-	$coreHideFieldID = array("823", "824", "825", "826", "827", "828");
-	$coreFieldOrder = array("0", "2", "4", "6", "8", "10");
-	$heartCheckFieldID = array(
-		'484' => '461',
-		'485' => '176',
-		'486' => '195',
-		'649' => '304',
-		'651' => '311',
-		'667' => '318',
-		'669' => '332',
-		'671' => '339',
-		'673' => '346',
-		'675' => '353',
-		'677' => '360',
-		'679' => '367',
-		'681' => '374',
-		'683' => '383',
-		'685' => '390',
-		'687' => '397',
-		'689' => '404',
-		'691' => '411',
-		'693' => '418',
-		'695' => '425',
-		'697' => '432',
-		'699' => '468',
-		'701' => '475',
-		'704' => '482',
-		'706' => '489',
-		'708' => '497',
-		'710' => '504',
-		'712' => '511',
-		'714' => '518',
-			);
-	wp_reset_postdata();
-	$args = array(
-		'posts_per_page' => -1,
-		'post_type'  => 'spiritual_outcomes',
+	$currentSgpUser = new SgpUser(get_current_user_id());
+	$outcomeContent = new OutcomePage();
+	$generalInfo = array(
+		'trainingProgressIcon' => $outcomeContent->trainingProgressIcon,
+		'heartProgressIcon' => $outcomeContent->heartProgressIcon,
+		'userID' => $currentSgpUser->userID,
+		'userView' => $currentSgpUser->userView
 	);
-	$query = new WP_Query($args);
-	while($query->have_posts()) : $query->the_post();
-		$postID = get_the_id();
-		$entryID[$postID] = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}frm_items WHERE post_id='$postID'");
-		$outcomeName[$postID] = get_the_title();
-		$outcomeDefinition[$postID] = get_field('outcome_definition');
-		$outcomeURL[$postID] = get_the_permalink();
-		$imageID[$postID] = get_field('outcome_icon');
-		$imageURL[$postID] = wp_get_attachment_url( $imageID[$postID] );
-		//Check visibility status of Core Training sections
-		$visibilityEntryID = $wpdb->get_var("SELECT item_id FROM {$wpdb->prefix}frm_item_metas WHERE meta_value='$entryID[$postID]' AND field_id='822'");
-		for ($i = 0; $i <= 5; $i++) {
-			$coreHide[$i] = $wpdb->get_var("SELECT meta_value FROM {$wpdb->prefix}frm_item_metas WHERE item_id='$visibilityEntryID' AND field_id='$coreHideFieldID[$i]'");
-		}
-		$coreHideArray[$postID] = $coreHide;
-		//Get Core Training Form, Entry, Field ifno
-		$formName = "Resource Checkboxes - ".$outcomeName[$postID];
-		$formID = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}frm_forms WHERE name='$formName'");
-		$coreEntryID = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}frm_items WHERE user_id='$UserID' AND form_id='$formID' ORDER BY created_at DESC");
-		for ($i = 0; $i <= 5; $i++) {
-			$coreFieldID[$i] = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}frm_fields WHERE form_id='$formID' AND field_order='$coreFieldOrder[$i]'");
-		}
 
-		//Get Core Training completion status for user
-		for ($i = 0; $i <= 5; $i++) {
-			$coreID[$i] = $wpdb->get_var("SELECT resourceEntryID FROM {$wpdb->prefix}coremeta WHERE outcomeID='$entryID[$postID]' AND coreCategory='$coreCatName[$i]' ORDER BY created_at DESC");
-		}
-		$coreCheckedTot = 0;
-		$coreCheckedTally = 0;
-		for ($i = 0; $i <= 5; $i++) {
-			$coreCheckValue[$i] = $wpdb->get_var("SELECT meta_value FROM {$wpdb->prefix}frm_item_metas WHERE field_id='$coreFieldID[$i]' AND item_id='$coreEntryID'");	
-			if (($coreHideArray[$postID][$i] == "1") && !(($coreID[$i] == NULL) || ($coreID[$i] == -1))) {
-				$coreCheckedTally = $coreCheckedTally + (int)$coreCheckValue[$i];
-				$coreCheckedTot = $coreCheckedTot + 1;
-			}
-		}
-//watch for division by zero error below
-		$coreCheckedPerc = ($coreCheckedTally/$coreCheckedTot)*100;
-		$coreCheckedPercR[$postID] = round($coreCheckedPerc, 3);
-		//Get Heart Check Content
-//		$heartCheckFieldName = $outcomeName[$postID]." heart score";
-//		$heartCheckFieldID = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}frm_fields WHERE name='$heartCheckFieldName'");
-		$heartCheckFieldIDtemp = $heartCheckFieldID[$postID];
-		$heartCheckFormID = $wpdb->get_var("SELECT form_id FROM {$wpdb->prefix}frm_fields WHERE id='$heartCheckFieldIDtemp'");
-		$heartCheckEntryID = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}frm_items WHERE form_id='$heartCheckFormID' AND user_id='$UserID' ORDER BY created_at DESC");
-		$heartCheckScore[$postID] = $wpdb->get_var("SELECT meta_value FROM {$wpdb->prefix}frm_item_metas WHERE field_id='$heartCheckFieldIDtemp' AND item_id='$heartCheckEntryID'");
-		if ($heartCheckScore[$postID] == "") {
-			$heartCheckScore[$postID] = 0;
-			}
-	endwhile;
-
-
-function getIcon($outcomeLink, $imageLink) {
-        echo "<a href='".$outcomeLink."'><img src='".$imageLink."'></a>";
-}
-
-function getProgBars($trainingProgressIcon, $coreCheckedPerc, $heartProgressIcon, $heartCheckScore) {
+//Content-generating functions
+function getOutcomeDiv($generalInfo, $postID, $divWidth) {
+	$outcome = new Outcome($postID);
+	$userID = $generalInfo['userID'];
+	$userView = $generalInfo['userView'];
+	$coreTraining = new CoreTrainingStatus($postID, $userID);
+	$heartCheck = new HeartCheckStatus($postID, $userID);
+	$trainingProgressIcon = $generalInfo['trainingProgressIcon'];
+	$heartProgressIcon = $generalInfo['heartProgressIcon'];
+	echo "<div class='outcome-icon-div float-to-left' style='width:".$divWidth."%'>
+		<a href='".$outcome->postPermalink."'><img src='".$outcome->iconSrc."'></a>";
+		if ($userView !== "non_member") { 
 	echo "<div class='prog-div'><!--Progress bars-->
-	<div class='row' align='left'>
-		<div class='column2 prog-bar-icon'><i class='fa ".$trainingProgressIcon."'></i></div>
-		<div class='resources-progress-bar column7'>
-			<span id='coreCheckedPerc' style='width: ".$coreCheckedPerc."%'></span>
-		</div>
-	</div> <!--resources progress bar row-->
-	<div class='row' align='left'>
-		<div class='column2 prog-bar-icon'><i class='fa ".$heartProgressIcon."'></i></div>
-		<div class='resources-progress-bar red-prog-bar column7'>
-			<span style='width: ".$heartCheckScore."%'></span>
-		</div>
-	</div> <!--heartcheck row-->        
-	</div><!--end Progress bars-->";
+		<div class='row' align='left'>
+			<div class='column2 prog-bar-icon'><i class='fa ".$trainingProgressIcon."'></i></div>
+			<div class='resources-progress-bar column7'>
+				<span id='coreCheckedPerc' style='width: ".$coreTraining->coreCheckedScore."%'></span>
+			</div>
+		</div> <!--resources progress bar row-->
+		<div class='row' align='left'>
+			<div class='column2 prog-bar-icon'><i class='fa ".$heartProgressIcon."'></i></div>
+			<div class='resources-progress-bar red-prog-bar column7'>
+				<span style='width: ".$heartCheck->score."%'></span>
+			</div>
+		</div> <!--heartcheck row-->        
+		</div><!--end Progress bars-->";
+		}
+     echo "<a href='".$outcome->postPermalink."'><h5 class='outcome-label-heading'>".$outcome->title."</h5></a>
+        <p class='outcome-def'>".$outcome->definition."</p>
+	</div>";
 }
 
-function getOutcomeInfo($outcomeLink, $outcomeName, $outcomeDefinition) {
-     echo "<a href='".$outcomeLink."'><h5 class='outcome-label-heading'>".$outcomeName."</h5></a>
-        <p class='outcome-def'>".$outcomeDefinition."</p>";
+function getWOCsection($generalInfo, $season, $category="") {
+	if ($season == 'Discover') {
+		$categoryArray = OutcomePage::groupBySeason('Discover');
+	} else {
+		$categoryArray = OutcomePage::sortBySeasonAndCategory($season, $category);
+	}
+	$outcomeRow = array_chunk($categoryArray, 5);
+	$numberOfRows = count($outcomeRow);
+	$sizeOfLastChunk = count($outcomeRow[($numberOfRows - 1)]);
+	for ($i = 0; $i < $numberOfRows; $i++) {
+		if ($i == ($numberOfRows - 1)) {
+			$divWidth = 100/$sizeOfLastChunk;
+			$rowWidth = ($sizeOfLastChunk/5)*100;
+			if ($season == 'Deepen') {
+				$rowWidth = $rowWidth*2; //since deepen sections are doubled up because only 2 outcomes each
+			}
+		} else {
+			$divWidth = 25;
+			$rowWidth = 100;	
+		}
+		if ($season == 'Deepen') {
+			echo "<div class='row outcome-row' style='width:".$rowWidth."%;' align='center'>";
+		} else {
+			echo "<div class='row outcome-row centered' style='width:".$rowWidth."%;' align='center'>";
+		}
+		$singleOutcome = $outcomeRow[$i];
+		foreach ($singleOutcome as $data) {
+			getOutcomeDiv($generalInfo, $data['postID'], $divWidth);
+		}
+		echo "</div><!--end outcome row-->";
+	}
 }
 
-?>
 
+//Page Layout ?>
 <div id="content-full" class="grid col-940">
 <div class="outcome-entry-title">Spiritual Growth Path</div>
 <div id="overview-menu">
@@ -184,7 +126,7 @@ function getOutcomeInfo($outcomeLink, $outcomeName, $outcomeDefinition) {
             <p>This would be some kind of blurb about how it is strongly recommended that you engage this Spiritual Growth Path with a Life Group.  It would also have some kind of click-through to the Life Groups page.</p>
             <button class="btn btn-primary">Find a Group</button>
         </div>
-		<?php if ($userView == "non_member") { ?>
+		<?php if ($currentSgpUser->userView == "non_member") { ?>
         <div class="column4 start-here-column">
 			<a href="http://localhost/lg/sign-up/"><img src="http://localhost/lg/wp-content/uploads/2015/02/signup.jpg" style="width:100%"></a>
             <a href="http://localhost/lg/sign-up/"><h5>Sign Up for an Account</h5></a>
@@ -203,7 +145,7 @@ function getOutcomeInfo($outcomeLink, $outcomeName, $outcomeDefinition) {
 </div><!--start here-->
 
 <?php // getOutcomeDiv("outcome-icon-div column20perc centered", "484"); ?>
-<?php if (($userView == "leader") || ($userView == "admin") || ($userView == "pastor")) { ?>
+<?php if (($currentSgpUser->isGroupLeader()) || ($currentSgpUser->userView == "admin")) { ?>
 <div id="leader-reports">
 <h2 class="outcome-heading">Your Life Group Info</h2>
     <div class="row">
@@ -224,377 +166,51 @@ function getOutcomeInfo($outcomeLink, $outcomeName, $outcomeDefinition) {
 
 <?php } ?>
 
+<a name='discover-section'></a>
+<div id='discover-section'>
+    <h2 class='outcome-heading'>Discover</h2>
+    <?php getWOCsection($generalInfo, 'Discover'); ?>
+</div><!--end of Discover-->
 
-<a name="discover-section"></a>
-<div id="discover-section">
-<h2 class="outcome-heading">Discover</h2>
-    <div class="row"><!--Trust Christ section-->
-		<div class="centered" align="center">
-            <div class="row outcome-row">
-				<div class="outcome-icon-div column20perc centered">
-					<?php
-					$thisPostID = 484;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-                </div>
-            </div>
-        </div>
-	</div>
-</div><!--discover section-->
+<a name='develop-section'></a>
+<div id='develop-section'>
+    <div class='woc-section'>
+        <h4>Love God</h4>
+        <?php getWOCsection($generalInfo, 'Develop', 'Love God'); ?>
+    </div>
+    <div class='woc-section'>
+        <h4>Build Character</h4>
+        <?php getWOCsection($generalInfo, 'Develop', 'Build Character'); ?>
+    </div>
+    <div class='woc-section'>
+        <h4>Love People</h4>
+        <?php getWOCsection($generalInfo, 'Develop', 'Love People'); ?>
+    </div>
+    <div class='woc-section'>
+        <h4>Be the Body</h4>
+        <?php getWOCsection($generalInfo, 'Develop', 'Be the Body'); ?>
+    </div>		
+</div><!--end of Develop-->
 
-<a name="develop-section"></a>
-<div id="develop-section">
-<h2 class="outcome-heading">Develop</h2>
-    <div class="row"><!--Love God-->
-		<div class="woc-section">
-			<h4 class="woc-heading">Love God</h4>
-            <div class="row outcome-row" align="center"><!--New outcome row-->
-				<div class="outcome-icon-div column20perc float-to-left">
-					<?php
-					$thisPostID = 485;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-				<div class="outcome-icon-div column20perc float-to-left">
-					<?php
-					$thisPostID = 486;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-				<div class="outcome-icon-div column20perc float-to-left">
-					<?php
-					$thisPostID = 649;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-				<div class="outcome-icon-div column20perc float-to-left">
-					<?php
-					$thisPostID = 651;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-				<div class="outcome-icon-div column20perc float-to-left">
-					<?php
-					$thisPostID = 667;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-            </div><!--End outcome row-->
-        </div>
-	</div>
-    <div class="row"><!--Build Character-->
-		<div class="woc-section">
-			<h4 class="woc-heading">Build Character</h4>
-            <div class="row outcome-row" align="center"><!--New outcome row-->
-				<div class="outcome-icon-div column20perc float-to-left">
-					<?php
-					$thisPostID = 669;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-				<div class="outcome-icon-div column20perc float-to-left">
-					<?php
-					$thisPostID = 671;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-				<div class="outcome-icon-div column20perc float-to-left">
-					<?php
-					$thisPostID = 673;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-				<div class="outcome-icon-div column20perc float-to-left">
-					<?php
-					$thisPostID = 675;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-				<div class="outcome-icon-div column20perc float-to-left">
-					<?php
-					$thisPostID = 677;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-            </div><!--End outcome row-->
-
-        </div>
-	</div>
-    <div class="row"><!--Love People-->
-		<div class="woc-section">
-			<h4 class="woc-heading">Love People</h4>
-            <div class="row outcome-row" align="center"><!--New outcome row-->
-				<div class="outcome-icon-div column20perc float-to-left">
-					<?php
-					$thisPostID = 679;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-				<div class="outcome-icon-div column20perc float-to-left">
-					<?php
-					$thisPostID = 681;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-				<div class="outcome-icon-div column20perc float-to-left">
-					<?php
-					$thisPostID = 683;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-				<div class="outcome-icon-div column20perc float-to-left">
-					<?php
-					$thisPostID = 685;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-				<div class="outcome-icon-div column20perc float-to-left">
-					<?php
-					$thisPostID = 687;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-            </div><!--End outcome row-->
-
-        </div>
-	</div>
-    <div class="row"><!--Be the Body-->
-		<div class="woc-section">
-			<h4 class="woc-heading">Be the Body</h4>
-            <div class="row outcome-row" align="center"><!--New outcome row-->
-				<div class="outcome-icon-div column20perc float-to-left">
-					<?php
-					$thisPostID = 689;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-				<div class="outcome-icon-div column20perc float-to-left">
-					<?php
-					$thisPostID = 691;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-				<div class="outcome-icon-div column20perc float-to-left">
-					<?php
-					$thisPostID = 693;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-				<div class="outcome-icon-div column20perc float-to-left">
-					<?php
-					$thisPostID = 695;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-				<div class="outcome-icon-div column20perc float-to-left">
-					<?php
-					$thisPostID = 697;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-            </div><!--End outcome row-->
-
-        </div>
-	</div>
-
-</div><!--develop section-->
-
-<a name="deepen-section"></a>
-<div id="deepen-section">
-<h2 class="outcome-heading">Deepen</h2>
-    <div class="row"><!--Love God-->
-		<div class="column6 woc-section">
-			<h4 class="woc-heading">Love God</h4>
-            <div class="row outcome-row" align="center"><!--New outcome row-->
-				<div class="outcome-icon-div column5 float-to-left">
-					<?php
-					$thisPostID = 699;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-				<div class="outcome-icon-div column5 float-to-left">
-					<?php
-					$thisPostID = 701;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-            </div><!--End outcome row-->
-
-        </div>
-		<div class="column6 woc-section"><!--Build Character-->
-			<h4 class="woc-heading">Build Character</h4>
-            <div class="row outcome-row" align="center"><!--New outcome row-->
-				<div class="outcome-icon-div column5 float-to-left">
-					<?php
-					$thisPostID = 704;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-				<div class="outcome-icon-div column5 float-to-left">
-					<?php
-					$thisPostID = 706;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-            </div><!--End outcome row-->
-
-        </div>
-	</div>
-    <div class="row"><!--Love People-->
-		<div class="column6 woc-section">
-			<h4 class="woc-heading">Love People</h4>
-            <div class="row outcome-row" align="center"><!--New outcome row-->
-				<div class="outcome-icon-div column5 float-to-left">
-					<?php
-					$thisPostID = 708;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-				<div class="outcome-icon-div column5 float-to-left">
-					<?php
-					$thisPostID = 710;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-            </div><!--End outcome row-->
-
-        </div>
-		<div class="column6 woc-section"><!--Be the Body-->
-			<h4 class="woc-heading">Be the Body</h4>
-            <div class="row outcome-row" align="center"><!--New outcome row-->
-				<div class="outcome-icon-div column5 float-to-left">
-					<?php
-					$thisPostID = 712;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-				<div class="outcome-icon-div column5 float-to-left">
-					<?php
-					$thisPostID = 714;
-                    getIcon($outcomeURL[$thisPostID], $imageURL[$thisPostID]);
-                    if ($userView !== "non_member") { 
-						getProgBars($trainingProgressIcon, $coreCheckedPercR[$thisPostID], $heartProgressIcon, $heartCheckScore[$thisPostID]);
-					}
-					getOutcomeInfo($outcomeURL[$thisPostID], $outcomeName[$thisPostID], $outcomeDefinition[$thisPostID]);
-					?>
-				</div>
-           </div><!--End outcome row-->
-
-        </div>
-	</div>
-</div><!--deepen section-->
+<a name='deepen-section'></a>
+<div id='deepen-section'>
+    <div class='woc-section float-to-left' style='width:50%'>
+        <h4>Love God</h4>
+        <?php getWOCsection($generalInfo, 'Deepen', 'Love God'); ?>
+    </div>
+    <div class='woc-section float-to-left' style='width:50%'>
+        <h4>Build Character</h4>
+        <?php getWOCsection($generalInfo, 'Deepen', 'Build Character'); ?>
+    </div>
+    <div class='woc-section float-to-left' style='width:50%'>
+        <h4>Love People</h4>
+        <?php getWOCsection($generalInfo, 'Deepen', 'Love People'); ?>
+    </div>
+    <div class='woc-section float-to-left' style='width:50%'>
+        <h4>Be the Body</h4>
+        <?php getWOCsection($generalInfo, 'Deepen', 'Be the Body'); ?>
+    </div>		
+</div><!--end of Develop-->
 
 </div><!-- end of #content-full -->
 

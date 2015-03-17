@@ -75,6 +75,7 @@ get_header();
 <div id="heart-check-results">
     <h3 class="outcome-heading">Results for <?php echo $outcomeName;?></h3>
 	<div class="row centered graph-results">
+<?php //Need to edit that first graph below so that it shows the latest score only instead of the average for that particular day.?>
         <div class="column6 current-score"><?php echo do_shortcode("[frm-graph id='$scoreFieldID' title='Your Score' type='bar' data_type='average' x_axis='created_at' x_start='$entryDate' x_end='$entryDate' min='0' max='100' user_id='$UserID' grid_color='green']")?></div>
         <?php if ($userView !== "non_member") { ?>
         <div class="column6 over-time-scores"><?php echo do_shortcode("[frm-graph id='$scoreFieldID' title='Scores Over Time' type='line' data_type='average' x_axis='created_at' user_id='$UserID' min='0' max='100' grid_color='green']")?></div>
