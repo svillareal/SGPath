@@ -5,13 +5,14 @@ class FrmProDisplaysHelper{
     public static function setup_new_vars(){
         $values = array();
         $defaults = self::get_default_opts();
-        foreach ($defaults as $var => $default)
-            $values[$var] = FrmAppHelper::get_param($var, $default);
+		foreach ( $defaults as $var => $default ) {
+			$values[ $var ] = FrmAppHelper::get_param( $var, $default );
+		}
 
         return $values;
     }
 
-    public static function setup_edit_vars($post, $check_post=true){
+    public static function setup_edit_vars( $post, $check_post = true ) {
         if ( ! $post ) {
             return false;
         }
@@ -19,7 +20,7 @@ class FrmProDisplaysHelper{
         $values = (object) $post;
         $defaults = self::get_default_opts();
 
-        foreach ( array('form_id', 'entry_id', 'post_id', 'dyncontent', 'param', 'type', 'show_count', 'insert_loc') as $var ) {
+        foreach ( array( 'form_id', 'entry_id', 'post_id', 'dyncontent', 'param', 'type', 'show_count', 'insert_loc') as $var ) {
             $values->{'frm_'. $var} = get_post_meta($post->ID, 'frm_'. $var, true);
             if ( $check_post ) {
                 $values->{'frm_'. $var} = FrmAppHelper::get_param($var, $values->{'frm_'. $var});
@@ -27,9 +28,9 @@ class FrmProDisplaysHelper{
         }
 
         $options = get_post_meta($post->ID, 'frm_options', true);
-        foreach ($defaults as $var => $default){
-            if ( ! isset($values->{'frm_'. $var}) ) {
-                $values->{'frm_'. $var} = isset($options[$var]) ? $options[$var] : $default;
+		foreach ( $defaults as $var => $default ) {
+            if ( ! isset( $values->{'frm_'. $var} ) ) {
+				$values->{'frm_'. $var} = isset($options[$var]) ? $options[$var] : $default;
                 if ( $check_post ) {
                     $values->{'frm_'. $var} = FrmAppHelper::get_post_param('options['. $var .']', $values->{'frm_'. $var});
                 }
@@ -56,8 +57,9 @@ class FrmProDisplaysHelper{
             'type' => '', 'show_count' => 'all', 'insert_loc' => 'none',
             'insert_pos' => 1, 'no_rt' => 0,
             'order_by' => array(), 'order' => array(), 'limit' => '', 'page_size' => '',
-            'empty_msg' => __('No Entries Found', 'formidable'), 'copy' => 0,
-            'where' => array(), 'where_is' => array(), 'where_val' => array()
+            'empty_msg' => __( 'No Entries Found', 'formidable' ), 'copy' => 0,
+			'where' => array(), 'where_is' => array(), 'where_val' => array(),
+			'group_by' => '',
         );
     }
 
@@ -74,7 +76,7 @@ class FrmProDisplaysHelper{
     /**
     * Check if a View has been duplicated. If it has, get the View object to be duplicated. If it has not been duplicated, just get the new post object.
     *
-    * @param $post object
+    * @param object $post
     * @return the View to be copied or the View that is being created (if it is not being duplicated)
     */
     public static function get_current_view( $post ) {

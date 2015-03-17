@@ -8,7 +8,7 @@ if ( is_array($field['options']) ) {
     foreach ( $field['options'] as $opt_key => $opt ) {
         $opt = apply_filters('frm_field_label_seen', $opt, $opt_key, $field);
         $checked = $field['value'] == $opt ? 'checked="true"' : '';
-        $last =  end($field['options']) == $opt ? ' frm_last' : '';
+        $last = end($field['options']) == $opt ? ' frm_last' : '';
 
 ?>
 <?php

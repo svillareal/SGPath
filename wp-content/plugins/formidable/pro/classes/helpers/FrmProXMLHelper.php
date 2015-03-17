@@ -54,10 +54,7 @@ class FrmProXMLHelper{
             unset($metas);
 
             // edit entry if the key and created time match
-            $editing = $wpdb->get_var($wpdb->prepare(
-                "SELECT id FROM {$wpdb->prefix}frm_items WHERE item_key=%s AND created_at=%s",
-                $entry['item_key'], date('Y-m-d H:i:s', strtotime($entry['created_at']))
-            ));
+            $editing = FrmDb::get_var( 'frm_items', array( 'item_key' => $entry['item_key'], 'created_at' => date('Y-m-d H:i:s', strtotime($entry['created_at'])) ) );
 
             if ( $editing ) {
                 FrmEntry::update($entry['id'], $entry);
@@ -86,7 +83,7 @@ class FrmProXMLHelper{
             return $start_row;
         }
 
-        if( ! ini_get('safe_mode') ) {
+		if ( ! ini_get( 'safe_mode' ) ) {
             set_time_limit(0); //Remove time limit to execute this function
         }
 
@@ -140,9 +137,9 @@ class FrmProXMLHelper{
         }
     }
 
-    /*
-    * Called by self::csv_to_entry_value
-    */
+    /**
+     * Called by self::csv_to_entry_value
+     */
     private static function set_values_for_fields($key, $field_id, $data, &$values) {
         global $importing_fields;
 
@@ -175,9 +172,9 @@ class FrmProXMLHelper{
         $_POST['item_meta'][$field_id] = $values['item_meta'][$field_id];
     }
 
-    /*
-    * Called by self::csv_to_entry_value
-    */
+    /**
+     * Called by self::csv_to_entry_value
+     */
     private static function set_values_for_data_fields($key, $field_id, $data, &$values) {
         $field_type = isset($field_id['type']) ? $field_id['type'] : false;
 
@@ -190,10 +187,10 @@ class FrmProXMLHelper{
 
         global $wpdb;
         if ( $linked ) {
-            $entry_id = $wpdb->get_var( $wpdb->prepare('SELECT item_id FROM '. $wpdb->prefix .'frm_item_metas WHERE meta_value = %s AND field_id = %d', $data[$key], $linked) );
+            $entry_id = FrmDb::get_var( 'frm_item_metas', array( 'meta_value' => $data[$key], 'field_id' => $linked), 'item_id' );
         } else {
             //get entry id of entry with item_key == $data[$key]
-            $entry_id = $wpdb->get_var( $wpdb->prepare('SELECT id FROM '. $wpdb->prefix .'frm_items WHERE item_key = %s', $data[$key]) );
+            $entry_id = FrmDb::get_var( 'frm_items', array( 'item_key' => $data[$key]) );
         }
 
         if ( $entry_id ) {
@@ -226,14 +223,14 @@ class FrmProXMLHelper{
 	    }
     }
 
-    /*
-    * Convert timestamps to the database format
-    */
+    /**
+     * Convert timestamps to the database format
+     */
     private static function convert_timestamps( &$values ) {
         $offset = get_option('gmt_offset') * 60 * 60;
 
         $frmpro_settings = new FrmProSettings();
-        foreach ( array('created_at', 'updated_at') as $stamp ) {
+        foreach ( array( 'created_at', 'updated_at') as $stamp ) {
             if ( ! isset($values[$stamp]) ) {
                 continue;
             }
@@ -241,8 +238,8 @@ class FrmProXMLHelper{
             // adjust the date format if it starts with the day
             if ( ! preg_match('/^\d{4}-\d{2}-\d{2}/', trim($values[$stamp])) && substr($frmpro_settings->date_format, 0, 1) == 'd' ) {
                 $reg_ex = str_replace(
-                    array('/', '.', '-', 'd', 'j', 'm', 'y', 'Y'),
-                    array('\/', '\.', '\-', '\d{2}', '\d', '\d{2}', '\d{2}', '\d{4}'),
+                    array( '/', '.', '-', 'd', 'j', 'm', 'y', 'Y'),
+                    array( '\/', '\.', '\-', '\d{2}', '\d', '\d{2}', '\d{2}', '\d{4}'),
                     $frmpro_settings->date_format
                 );
 
@@ -257,9 +254,9 @@ class FrmProXMLHelper{
         }
     }
 
-    /*
-    * Make sure values are in the format they should be saved in
-    */
+    /**
+     * Make sure values are in the format they should be saved in
+     */
     private static function convert_db_cols( &$values, $data, $entry_key ) {
         if ( ! isset($values['item_key']) || empty($values['item_key']) ) {
             $values['item_key'] = $data[$entry_key];
@@ -269,28 +266,25 @@ class FrmProXMLHelper{
             $values['user_id'] = FrmAppHelper::get_user_id_param($values['user_id']);
         }
 
-        if( isset($values['updated_by']) ) {
+		if ( isset( $values['updated_by'] ) ) {
             $values['updated_by'] = FrmAppHelper::get_user_id_param($values['updated_by']);
         }
 
-        if( isset($values['is_draft']) ) {
+		if ( isset( $values['is_draft'] ) ) {
             $values['is_draft'] = (int) $values['is_draft'];
         }
     }
 
-    /*
-    * Save the entry after checking if it should be created or updated
-    */
+    /**
+     * Save the entry after checking if it should be created or updated
+     */
     private static function save_or_edit_entry($values) {
         $editing = false;
         if ( isset($values['id']) && $values['item_key'] ) {
             global $wpdb;
 
             //check for updating by entry ID
-            $editing = $wpdb->get_var( $wpdb->prepare(
-                'SELECT id FROM '. $wpdb->prefix .'frm_items WHERE form_id=%d AND id=%d',
-                $values['form_id'], $values['id']
-            ) );
+            $editing = FrmDb::get_var( 'frm_items', array( 'form_id' => $values['form_id'], 'id' => $values['id']) );
         }
 
         if ( $editing ) {
@@ -315,7 +309,7 @@ class FrmProXMLHelper{
 
             if ( ! is_numeric($m) ) {
                 //get the ID from the URL if on this site
-                $m = $wpdb->get_col($wpdb->prepare("SELECT ID FROM {$wpdb->posts} WHERE guid='%s';", $m ));
+                $m = FrmDb::get_col( $wpdb->posts, array( 'guid' => $m), 'ID' );
             }
 
             if ( ! is_numeric($m) ) {
@@ -381,10 +375,7 @@ class FrmProXMLHelper{
         }
 
         if ( ! is_array($value) ) {
-            $new_id = $wpdb->get_var($wpdb->prepare(
-                "SELECT item_id FROM {$wpdb->prefix}frm_item_metas WHERE field_id=%d and meta_value=%s",
-                $field->field_options['form_select'], $value
-            ));
+            $new_id = FrmDb::get_var( 'frm_item_metas', array( 'field_id' => $field->field_options['form_select'], 'meta_value' => $value), 'item_id' );
 
             if ( $new_id && is_numeric($new_id) ) {
                 return $new_id;
@@ -410,10 +401,8 @@ class FrmProXMLHelper{
         $value = array_map('trim', $checked);
 
         foreach ( $value as $dfe_k => $dfe_id ) {
-            $new_id = $wpdb->get_var($wpdb->prepare(
-                "SELECT item_id FROM {$wpdb->prefix}frm_item_metas WHERE field_id=%d and meta_value=%s",
-                $field->field_options['form_select'], $dfe_id
-            ));
+            $query = array( 'field_id' => $field->field_options['form_select'], 'meta_value' => $dfe_id);
+            $new_id = FrmDb::get_var( 'frm_item_metas', $query, 'item_id' );
 
             if ( $new_id ) {
                 $value[$dfe_k] = $new_id;

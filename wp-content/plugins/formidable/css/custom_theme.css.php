@@ -1,6 +1,6 @@
 <?php
 if ( ! isset($saving) ) {
-    header("Content-type: text/css");
+    header( 'Content-type: text/css' );
 
     if ( isset($css) && $css ) {
         echo $css;
@@ -17,8 +17,28 @@ $default_style = $frm_style->get_default_style($styles);
 $defaults = $default_style->post_content;
 ?>
 
-.frm_hidden{
+.frm_hidden,
+.with_frm_style .frm_button.frm_hidden{
     display:none;
+}
+
+.frm_transparent{
+	color:transparent;
+}
+
+.input[type=file].frm_transparent:focus, .with_frm_style input[type=file]{
+	background-color:transparent;
+	border:none;
+	outline:none;
+	box-shadow:none;
+}
+
+.frm_preview_page:before{
+    content:normal !important;
+}
+
+.frm_preview_page{
+    padding:25px;
 }
 
 .with_frm_style .form-field.frm_col_field{
@@ -120,7 +140,8 @@ $defaults = $default_style->post_content;
 .with_frm_style .frm_button{
     text-decoration:none;
     border:1px solid #eee;
-    padding:5px;
+	padding:5px;
+	display:inline-block;
 }
 
 .with_frm_style .frm_submit{
@@ -195,6 +216,10 @@ foreach ( $styles as $style ) {
 
 .frm_ajax_loading{
     visibility:hidden;
+}
+
+.frm_ajax_loading.frm_loading_now{
+    visibility:visible;
 }
 
 .frm_form_submit_style{
@@ -1044,26 +1069,16 @@ table.frmcal-calendar .frmcal-today .frmcal_date{
     pointer-events:none;
 }
 
-.frm_form_field .frm_repeat_sec:last-child .frm_add_form_row{
+.frm_section_heading div.frm_repeat_sec:last-child .frm_add_form_row{
     opacity:100;
     pointer-events:auto;
-}
-
-.frm_form_field .frm_remove_form_row, .frm_form_field .frm_add_form_row{
-    float:left;
-}
-
-.frm_form_field .frm_repeat_sec:first-of-type .frm_remove_form_row,
-.frm_form_field .frm_repeat_grid:first-of-type .frm_remove_form_row,
-.frm_form_field .frm_repeat_inline:first-of-type .frm_remove_form_row{
-    display:none;
 }
 
 .frm_form_field .frm_repeat_grid .frm_form_field label.frm_primary_label{
     display:none !important;
 }
 
-.frm_form_field .frm_repeat_grid:first-of-type .frm_form_field label.frm_primary_label{
+.frm_form_field .frm_repeat_grid.frm_first_repeat .frm_form_field label.frm_primary_label{
     display:inherit !important;
 }
 

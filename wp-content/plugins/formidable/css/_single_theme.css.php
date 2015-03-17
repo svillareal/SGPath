@@ -11,12 +11,11 @@ if ( isset($_GET['frm_style_setting']) || isset($_GET['flat']) ) {
     $auto_width = isset($auto_width) ? $auto_width : 0;
     $submit_style = isset($submit_style) ? $submit_style : 0;
 
-    if ( isset($_GET['style_name']) && !empty($_GET['style_name']) ) {
-        $style_class = $_GET['style_name'] .'.with_frm_style';
+    if ( isset( $_GET['style_name'] ) && ! empty( $_GET['style_name'] ) ) {
+        $style_class = sanitize_text_field( $_GET['style_name'] ) .'.with_frm_style';
     } else {
         $style_class = 'with_frm_style';
     }
-
 } else {
     $style_class = 'frm_style_'. $style->post_name .'.with_frm_style';
     extract($style->post_content);
@@ -290,10 +289,18 @@ if ( ! isset($collapse_icon) ) {
 
 .<?php echo $style_class ?> input[type=file]{
     color:#<?php echo $text_color . $important ?>;
-    border:none;
     padding:0px;
-    font-family:<?php echo stripslashes($font) ?>;
-    font-size:<?php echo $field_font_size ?>;
+    font-family:<?php echo stripslashes($font) . $important ?>;
+    font-size:<?php echo $field_font_size . $important ?>;
+}
+
+.<?php echo $style_class ?> input[type=file].frm_transparent{
+    color:transparent<?php echo $important ?>;
+}
+
+.<?php echo $style_class ?> .frm_file_names, .<?php echo $style_class ?> .frm_uploaded_files .frm_remove_link{
+	font-family:<?php echo stripslashes($font) . $important ?>;
+	font-size:<?php echo $field_font_size . $important ?>;
 }
 
 .<?php echo $style_class ?> .frm_default,
@@ -355,7 +362,7 @@ if ( ! isset($collapse_icon) ) {
 }
 
 
-.<?php echo $style_class ?> .form-field input:focus,
+.<?php echo $style_class ?> .form-field input:not([type=file]):focus,
 .<?php echo $style_class ?> select:focus,
 .<?php echo $style_class ?> textarea:focus,
 .<?php echo $style_class ?> .frm_focus_field input[type=text],
@@ -372,7 +379,8 @@ if ( ! isset($collapse_icon) ) {
     box-shadow:0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(<?php echo FrmStylesHelper::hex2rgb($border_color_active) ?>, 0.6);
 }
 
-<?php if ( ! $submit_style ) { ?>
+<?php
+if ( ! $submit_style ) { ?>
 .<?php echo $style_class ?> input[type=submit],
 .<?php echo $style_class ?> .frm_submit input[type=button],
 .frm_form_submit_style,
@@ -381,9 +389,12 @@ if ( ! isset($collapse_icon) ) {
     font-family:<?php echo stripslashes($font) ?>;
     font-size:<?php echo $submit_font_size; ?>;
     height:<?php echo $submit_height . $important ?>;
-    line-height:normal <?php echo $important ?>;
+    line-height:normal<?php echo $important ?>;
     text-align:center;
-    background:#<?php echo $submit_bg_color; if ( ! empty($submit_bg_img) ) echo ' url('. $submit_bg_img .')'; ?>;
+    background:#<?php echo $submit_bg_color;
+	if ( ! empty($submit_bg_img) ) {
+		echo ' url('. $submit_bg_img .')';
+	} ?>;
     border-width:<?php echo $submit_border_width ?>;
     border-color:#<?php echo $submit_border_color . $important ?>;
     border-style:solid;
@@ -409,7 +420,7 @@ if ( ! isset($collapse_icon) ) {
 }
 
 <?php
-    if ( empty($submit_bg_img) ) {
+	if ( empty( $submit_bg_img ) ) {
 ?>.<?php echo $style_class ?> input[type=submit]:hover,
 .<?php echo $style_class ?> .frm_submit input[type=button]:hover,
 .<?php echo $style_class ?>.frm_login_form input[type=submit]:hover{
@@ -439,7 +450,6 @@ if ( ! isset($collapse_icon) ) {
 }
 <?php
     }
-
 }
 ?>
 
@@ -636,7 +646,6 @@ if ( ! isset($collapse_icon) ) {
 }
 .<?php echo $style_class ?> .frm_button .frm_icon_font:before{
     font-size:<?php echo $submit_font_size . $important ?>;
-    vertical-align:bottom;
 }
 
 /* RTL Grids */

@@ -1,7 +1,7 @@
 <?php $sanitized_name = sanitize_title_with_dashes($custom_data['meta_name']); ?>
 
 <tr id="frm_postmeta_<?php echo $sanitized_name ?>" class="frm_postmeta_row alternate">
-    <td class="left"><label class="screen-reader-text" for='meta-256-key'><?php _e('Name') ?></label>
+    <td class="left"><label class="screen-reader-text" for='meta-256-key'><?php _e( 'Name') ?></label>
     <?php
     if ( isset($cf_keys) && $echo && $custom_data['meta_name'] != '' && ! in_array($custom_data['meta_name'], (array) $cf_keys) ) {
         $cf_keys[] = $custom_data['meta_name'];
@@ -23,17 +23,17 @@
     <input type="text" class="hide-if-js frm_enternew" name="<?php echo $action_control->get_field_name('post_custom_fields') ?>[<?php echo $sanitized_name ?>][custom_meta_name]" value="" />
     <?php } ?>
 
-    <?php if(isset($cf_keys) && !empty($cf_keys)){ ?>
+    <?php if ( isset( $cf_keys ) && ! empty( $cf_keys ) ) { ?>
     <div class="clear"></div>
     <div style="margin-left:8px;">
         <a href="javascript:void(0)" class="hide-if-no-js frm_toggle_cf_opts">
-            <span class="frm_enternew"><?php _e('Enter new'); ?></span>
-            <span class="frm_cancelnew frm_hidden"><?php _e('Cancel', 'formidable'); ?></span>
+            <span class="frm_enternew"><?php _e( 'Enter new'); ?></span>
+            <span class="frm_cancelnew frm_hidden"><?php _e( 'Cancel', 'formidable' ); ?></span>
         </a>
     </div>
     <?php } ?>
     </td>
-    <td><label class="screen-reader-text" for='meta-256-value'><?php _e('Value', 'formidable') ?></label>
+    <td><label class="screen-reader-text" for='meta-256-value'><?php _e( 'Value', 'formidable' ) ?></label>
     <select name="<?php echo $action_control->get_field_name('post_custom_fields') ?>[<?php echo $sanitized_name ?>][field_id]" class="frm_single_post_field">
         <option value=""><?php _e( '&mdash; Select Field &mdash;', 'formidable' ); ?></option>
         <?php
@@ -42,7 +42,7 @@
                 $custom_data['field_id'] = '';
             }
 
-        foreach($values['fields'] as $fo){
+		foreach ( $values['fields'] as $fo ) {
             $fo = (array) $fo;
             if ( ! FrmFieldsHelper::is_no_save_field($fo['type']) ) { ?>
         <option value="<?php echo $fo['id'] ?>" <?php selected($custom_data['field_id'], $fo['id']) ?>><?php echo FrmAppHelper::truncate($fo['name'], 50) ?></option>

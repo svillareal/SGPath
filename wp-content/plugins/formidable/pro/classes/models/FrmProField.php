@@ -31,7 +31,7 @@ class FrmProField {
                 $field_data['field_options']['size'] = $width;
                 break;
             case 'user_id':
-                $field_data['name'] = __('User ID', 'formidable');
+                $field_data['name'] = __( 'User ID', 'formidable' );
                 break;
             case 'divider':
                 $field_data['field_options']['label'] = 'top';
@@ -43,27 +43,26 @@ class FrmProField {
                 }
                 break;
             case 'break':
-                $field_data['name'] = __('Next', 'formidable');
+                $field_data['name'] = __( 'Next', 'formidable' );
             break;
         }
         return $field_data;
     }
 
-    public static function update($field_options, $field, $values){
-        $defaults = FrmProFieldsHelper::get_default_field_opts(false, $field);
-        unset($defaults['post_field'], $defaults['custom_field'], $defaults['taxonomy'], $defaults['exclude_cat']);
+	public static function update( $field_options, $field, $values ) {
+		$defaults = FrmProFieldsHelper::get_default_field_opts( false, $field );
+		unset( $defaults['post_field'], $defaults['custom_field'], $defaults['taxonomy'], $defaults['exclude_cat'] );
 
         $defaults['minnum'] = 0;
         $defaults['maxnum'] = 9999;
 
-        foreach ($defaults as $opt => $default){
-            $field_options[$opt] = isset($values['field_options'][$opt.'_'.$field->id]) ? $values['field_options'][$opt.'_'.$field->id] : $default;
-            unset($opt);
-            unset($default);
+		foreach ( $defaults as $opt => $default ) {
+			$field_options[ $opt ] = isset( $values['field_options'][ $opt . '_' . $field->id ] ) ? $values['field_options'][ $opt . '_' . $field->id ] : $default;
+            unset( $opt, $default );
         }
 
-        foreach($field_options['hide_field'] as $i => $f){
-            if(empty($f)){
+		foreach ( $field_options['hide_field'] as $i => $f ) {
+			if ( empty( $f ) ) {
                 unset( $field_options['hide_field'][$i], $field_options['hide_field_cond'][$i] );
                 if ( isset($field_options['hide_opt']) && is_array($field_options['hide_opt']) ) {
                     unset($field_options['hide_opt'][$i]);
@@ -72,16 +71,6 @@ class FrmProField {
             unset($i, $f);
         }
 
-        /*
-        if($field_options['exclude_cat'] and (!isset($values['field_options']['show_exclude_'.$field->id]))){
-            $field_options['exclude_cat'] = 0;
-            $_POST['field_options']['exclude_cat_'.$field->id] = 0;
-        }else if(isset($field_options['exclude_cat']) and is_array($field_options['exclude_cat'])){
-            foreach($field_options['exclude_cat'] as $ex => $cat){
-                if(!$cat) unset($field_options['exclude_cat'][$ex]);
-            }
-        } */
-
         if ( $field->type == 'scale' ) {
             if ( (int) $field_options['maxnum'] >= 99 ) {
                 $field_options['maxnum'] = 10;
@@ -89,7 +78,7 @@ class FrmProField {
 
             $options = range($field_options['minnum'], $field_options['maxnum']);
 
-            FrmField::update($field->id, array('options' => serialize($options)));
+            FrmField::update($field->id, array( 'options' => serialize($options)));
         } else if ( $field->type == 'hidden' && isset($field_options['required']) && $field_options['required'] ) {
             $field_options['required'] = false;
         }
@@ -104,7 +93,7 @@ class FrmProField {
         }
 
         // switch out fields from calculation or default values
-        $switch_string = array('default_value', 'calc');
+        $switch_string = array( 'default_value', 'calc');
         foreach ( $switch_string as $opt ) {
             if ( ( ! isset($values['field_options'][$opt]) || empty($values['field_options'][$opt]) ) &&
                 ( ! isset($values[$opt]) || empty($values[$opt]) ) ) {

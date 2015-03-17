@@ -40,7 +40,7 @@ if (is_array($field['value'])){
 }else if ($field['type'] == 'break'){
     global $frm_vars;
 
-    if (isset($frm_vars['prev_page'][$field['form_id']]) and $frm_vars['prev_page'][$field['form_id']] == $field['field_order']){
+	if ( isset( $frm_vars['prev_page'][ $field['form_id'] ] ) && $frm_vars['prev_page'][ $field['form_id'] ] == $field['field_order'] ) {
         echo FrmFieldsHelper::replace_shortcodes($field['custom_html'], $field, array(), $form); ?>
 <input type="hidden" name="frm_next_page" class="frm_next_page" id="frm_next_p_<?php echo isset($frm_vars['prev_page'][$field['form_id']]) ? $frm_vars['prev_page'][$field['form_id']] : 0; ?>" value="" />
 <?php

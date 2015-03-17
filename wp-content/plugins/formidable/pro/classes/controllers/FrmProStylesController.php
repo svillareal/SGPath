@@ -30,12 +30,12 @@ class FrmProStylesController extends FrmStylesController{
     }
 
     public static function destroy() {
-        $id = $_GET['id'];
+        $id = (int) $_GET['id'];
 
         $frm_style = new FrmStyle();
         $frm_style->destroy($id);
 
-        $message = __('Your styling settings have been deleted.', 'formidable');
+        $message = __( 'Your styling settings have been deleted.', 'formidable' );
 
         self::edit('default', $message);
     }

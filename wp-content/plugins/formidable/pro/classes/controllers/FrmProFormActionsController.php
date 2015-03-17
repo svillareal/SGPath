@@ -11,7 +11,7 @@ class FrmProFormActionsController{
     }
 
     public static function email_action_control($settings) {
-	    $settings['event'] = array('create', 'update', 'delete');
+	    $settings['event'] = array( 'create', 'update', 'delete');
 	    $settings['priority'] = 41;
 
 	    return $settings;
@@ -25,21 +25,21 @@ class FrmProFormActionsController{
 
         // Text for different actions
         if ( $form_action->post_excerpt == 'email' ) {
-            $send =  __('Send', 'formidable');
-            $stop = __('Stop', 'formidable');
-            $this_action_if = __('this notification if', 'formidable');
+            $send = __( 'Send', 'formidable' );
+            $stop = __( 'Stop', 'formidable' );
+            $this_action_if = __( 'this notification if', 'formidable' );
         } if ( $form_action->post_excerpt == 'wppost' ) {
-            $send =  __('Create', 'formidable');
-            $stop = __('Don\'t create', 'formidable');
-            $this_action_if = __('this post if', 'formidable');
+            $send = __( 'Create', 'formidable' );
+            $stop = __( 'Don\'t create', 'formidable' );
+            $this_action_if = __( 'this post if', 'formidable' );
         } else if ( $form_action->post_excerpt == 'register' ) {
-            $send =  __('Register', 'formidable');
-            $stop = __('Don\'t register', 'formidable');
-            $this_action_if = __('user if', 'formidable');
+            $send = __( 'Register', 'formidable' );
+            $stop = __( 'Don\'t register', 'formidable' );
+            $this_action_if = __( 'user if', 'formidable' );
         } else {
-            $send =  __('Do', 'formidable');
-            $stop = __('Don\'t do', 'formidable');
-            $this_action_if = __('this action if', 'formidable');
+            $send = __( 'Do', 'formidable' );
+            $stop = __( 'Don\'t do', 'formidable' );
+            $this_action_if = __( 'this action if', 'formidable' );
         }
 
         $form_fields = $atts['values']['fields'];
@@ -48,8 +48,10 @@ class FrmProFormActionsController{
     }
 
     public static function _logic_row(){
+        check_ajax_referer( 'frm_ajax', 'nonce' );
+
 	    $meta_name = FrmAppHelper::get_param('meta_name');
-	    $form_id = FrmAppHelper::get_param('form_id');
+	    $form_id = (int) FrmAppHelper::get_param('form_id');
 	    $key = FrmAppHelper::get_param('email_id');
 	    $type = FrmAppHelper::get_param('type');
 
@@ -64,14 +66,14 @@ class FrmProFormActionsController{
         if ( isset($notification['conditions'][$meta_name]) ) {
             $condition = $notification['conditions'][$meta_name];
         } else {
-            $condition = array('hide_field_cond' => '==', 'hide_field' => '');
+            $condition = array( 'hide_field_cond' => '==', 'hide_field' => '');
         }
 
         if ( ! isset($condition['hide_field_cond']) ) {
             $condition['hide_field_cond'] = '==';
         }
 
-        FrmProFormsController::include_logic_row(array(
+        FrmProFormsController::include_logic_row( array(
             'form_id' => $form->id,
             'form' => $form,
             'meta_name' => $meta_name,
@@ -80,7 +82,7 @@ class FrmProFormActionsController{
             'name'  => 'frm_' . $type .'_action['. $key .'][post_content][conditions]['. $meta_name .']',
         ));
 
-        die();
+        wp_die();
 	}
 
     public static function fill_action_options($action, $type) {
@@ -117,25 +119,27 @@ class FrmProFormActionsController{
     }
 
     public static function _postmeta_row(){
+        check_ajax_referer( 'frm_ajax', 'nonce' );
+
         global $wpdb;
-        $custom_data = array('meta_name' => $_POST['meta_name'], 'field_id' => '');
-        $action_key = $_POST['action_key'];
+        $custom_data = array( 'meta_name' => $_POST['meta_name'], 'field_id' => '');
+        $action_key = (int) $_POST['action_key'];
         $action_control = FrmFormActionsController::get_form_actions( 'wppost' );
         $action_control->_set($action_key);
 
         $values = array();
 
         if ( isset($_POST['form_id']) ) {
-            $values['fields'] = FrmField::getAll($wpdb->prepare('fi.form_id=%d and fi.type not in', $_POST['form_id']) ." ('". implode("','", FrmFieldsHelper::no_save_fields()) ."')", 'field_order');
+			$values['fields'] = FrmField::getAll( array( 'fi.form_id' => (int) $_POST['form_id'], 'fi.type not' => FrmFieldsHelper::no_save_fields() ), 'field_order');
         }
         $echo = false;
 
         $limit = (int) apply_filters( 'postmeta_form_limit', 40 );
-    	$cf_keys = $wpdb->get_col( "SELECT meta_key FROM $wpdb->postmeta GROUP BY meta_key ORDER BY meta_key LIMIT $limit" );
+		$cf_keys = $wpdb->get_col( 'SELECT meta_key FROM ' . $wpdb->postmeta . ' GROUP BY meta_key ORDER BY meta_key LIMIT ' . (int) $limit );
     	if ( ! is_array($cf_keys) ) {
             $cf_keys = array();
         }
-        if ( ! in_array('_thumbnail_id', $cf_keys) ) {
+        if ( ! in_array( '_thumbnail_id', $cf_keys) ) {
             $cf_keys[] = '_thumbnail_id';
         }
         if ( ! empty($cf_keys) ) {
@@ -143,10 +147,12 @@ class FrmProFormActionsController{
         }
 
         include(FrmAppHelper::plugin_path() .'/pro/classes/views/frmpro-form-actions/_custom_field_row.php');
-        die();
+        wp_die();
     }
 
     public static function _posttax_row(){
+        check_ajax_referer( 'frm_ajax', 'nonce' );
+
         if ( isset($_POST['field_id']) ) {
             $field_vars = array(
                 'meta_name'     => $_POST['meta_name'],
@@ -155,12 +161,12 @@ class FrmProFormActionsController{
                 'exclude_cat'   => ( (int) $_POST['show_exclude'] ) ? '-1' : 0
             );
         } else {
-            $field_vars = array('meta_name' => '', 'field_id' => '', 'show_exclude' => 0, 'exclude_cat' => 0);
+            $field_vars = array( 'meta_name' => '', 'field_id' => '', 'show_exclude' => 0, 'exclude_cat' => 0);
         }
 
-        $tax_meta = $_POST['tax_key'];
-        $post_type = $_POST['post_type'];
-        $action_key = $_POST['action_key'];
+        $tax_meta = (int) $_POST['tax_key'];
+        $post_type = sanitize_text_field( $_POST['post_type'] );
+        $action_key = (int) $_POST['action_key'];
         $action_control = FrmFormActionsController::get_form_actions( 'wppost' );
         $action_control->_set($action_key);
 
@@ -171,12 +177,24 @@ class FrmProFormActionsController{
         $values = array();
 
         if ( isset($_POST['form_id']) ) {
-            $values['fields'] = FrmField::getAll("fi.form_id='". (int) $_POST['form_id'] ."' and fi.type in ('checkbox', 'radio', 'select', 'tag', 'data')", 'field_order');
-            $values['id'] = $_POST['form_id'];
+			$values['fields'] = FrmField::getAll( array( 'fi.form_id' => (int) $_POST['form_id'], 'fi.type' => array( 'checkbox', 'radio', 'select', 'tag', 'data') ), 'field_order');
+            $values['id'] = (int) $_POST['form_id'];
         }
 
         $echo = false;
         include(FrmAppHelper::plugin_path() .'/pro/classes/views/frmpro-form-actions/_post_taxonomy_row.php');
-        die();
+        wp_die();
+    }
+
+    public static function _replace_posttax_options(){
+        check_ajax_referer( 'frm_ajax', 'nonce' );
+
+        // Get the post type, and all taxonomies for that post type
+        $post_type = sanitize_text_field( $_POST['post_type'] );
+        $taxonomies = get_object_taxonomies($post_type);
+
+        // Get the HTML for the options
+        include(FrmAppHelper::plugin_path() . '/pro/classes/views/frmpro-form-actions/_post_taxonomy_select.php');
+        wp_die();
     }
 }

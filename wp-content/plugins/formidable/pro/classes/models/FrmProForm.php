@@ -68,7 +68,7 @@ class FrmProForm{
                 if ( !empty( $form->name ) ) {
                     $post_title = $form->name;
                 } else {
-                    $post_title = __('Single Post', 'formidable');
+                    $post_title = __( 'Single Post', 'formidable' );
                 }
 
                 //create new
@@ -76,7 +76,7 @@ class FrmProForm{
                     'post_status'   => 'publish',
                     'post_type'     => 'frm_display',
                     'post_title'    => $post_title,
-                    'post_excerpt'  => __('Used for the single post page', 'formidable'),
+                    'post_excerpt'  => __( 'Used for the single post page', 'formidable' ),
                     'post_content'  => $_POST['dyncontent'],
                 );
 
@@ -125,7 +125,7 @@ class FrmProForm{
 
         //create a new field
         $new_values = apply_filters('frm_before_field_created', FrmFieldsHelper::setup_new_vars('select', $form_id));
-        $new_values['name'] = __('Status', 'formidable');
+        $new_values['name'] = __( 'Status', 'formidable' );
         $new_values['field_options']['post_field'] = 'post_status';
         $settings['post_status'] = FrmField::create( $new_values );
     }
@@ -175,17 +175,17 @@ class FrmProForm{
         return $field_options;
     }
 
-    public static function update($id, $values){
+	public static function update( $id, $values ) {
         global $wpdb;
 
-        if (isset($values['options'])){
+		if ( isset( $values['options'] ) ) {
             $logged_in = isset($values['logged_in']) ? $values['logged_in'] : 0;
             $editable = isset($values['editable']) ? $values['editable'] : 0;
-            $updated = $wpdb->update( $wpdb->prefix .'frm_forms', array('logged_in' => $logged_in, 'editable' => $editable), array( 'id' => $id ) );
-            if($updated){
-                wp_cache_delete( $id, 'frm_form');
-                unset($updated);
-            }
+            $updated = $wpdb->update( $wpdb->prefix .'frm_forms', array( 'logged_in' => $logged_in, 'editable' => $editable), array( 'id' => $id ) );
+			if ( $updated ) {
+				wp_cache_delete( $id, 'frm_form' );
+				unset( $updated );
+			}
         }
     }
 
@@ -203,7 +203,7 @@ class FrmProForm{
             foreach($values['item_meta'] as $key => $value){
                 $field = FrmField::getOne($key);
                 if ($field && $field->type == 'hidden' and empty($value))
-                    $errors[] = __("Hidden fields must have a value.", 'formidable');
+                    $errors[] = __( 'Hidden fields must have a value.', 'formidable' );
             }
 
         }
@@ -216,7 +216,7 @@ class FrmProForm{
             $user_field = FrmField::get_all_types_in_form($form_id, 'user_id', 1);
             if ( ! $user_field ) {
                 $new_values = FrmFieldsHelper::setup_new_vars('user_id', $form_id);
-                $new_values['name'] = __('User ID', 'formidable');
+                $new_values['name'] = __( 'User ID', 'formidable' );
                 FrmField::create($new_values);
             }
         }

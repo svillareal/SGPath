@@ -27,11 +27,9 @@ class FrmUpdatesController{
 
     function __construct(){
         // This line can be modifed too
-        $this->pro_error_message_str = __('Your Formidable Pro License was Invalid', 'formidable');
+        $this->pro_error_message_str = __( 'Your Formidable Pro License was Invalid', 'formidable' );
 
         add_filter('site_transient_update_plugins', array( &$this, 'queue_update' ) );
-        //add_action('wp_ajax_frm_activate_license', array( &$this, 'activate'));
-        //add_action('wp_ajax_frm_deactivate_license', array( &$this, 'deactivate'));
 
         // Retrieve Pro Credentials
         if (is_multisite() && get_site_option($this->pro_wpmu_store)){
@@ -42,7 +40,7 @@ class FrmUpdatesController{
         }
 
         if ( $creds && is_array($creds) ) {
-            $cred_array = array('license' => '', 'pro_username' => '', 'pro_password' => '');
+            $cred_array = array( 'license' => '', 'pro_username' => '', 'pro_password' => '');
             $creds = array_intersect_key($creds, $cred_array);
             foreach ( $creds as $k => $cred ) {
                 $this->{$k} = $cred;
@@ -52,7 +50,7 @@ class FrmUpdatesController{
 
     }
 
-    function pro_is_authorized($force_check=false){
+    function pro_is_authorized( $force_check = false ) {
         if ( empty($this->license) && empty($this->pro_username) && empty($this->pro_password) ) {
             return false;
         }
@@ -97,52 +95,53 @@ class FrmUpdatesController{
 
         $license = $client->getResponse();
 
-        if($license && !empty($license))
-            $this->_update_auth(array('license' => $license, 'wpmu' => $this->pro_wpmu));
+        if ( $license && ! empty( $license ) ) {
+            $this->_update_auth( array( 'license' => $license, 'wpmu' => $this->pro_wpmu));
+        }
 
         return $client->getResponse();
     }
 
     public function pro_cred_form(){
         global $frm_vars;
-        if(isset($_POST) && isset($_POST['process_cred_form']) && $_POST['process_cred_form'] == 'Y'){
+		if ( $_POST && isset( $_POST['process_cred_form'] ) && $_POST['process_cred_form'] == 'Y' ) {
             if ( ! isset($_POST['frm_cred']) || ! wp_verify_nonce( $_POST['frm_cred'], 'frm_cred_nonce' ) ) {
                 $frm_settings = FrmAppHelper::get_settings();
-                $response = array('response' => $frm_settings->admin_permission, 'auth' => false);
+                $response = array( 'response' => $frm_settings->admin_permission, 'auth' => false);
             }else{
                 $response = $this->process_form();
             }
 
-            if($response['auth']){
+			if ( $response['auth'] ) {
                 $frm_vars['pro_is_authorized'] = true;
 ?>
-<div id="message" class="updated"><strong><?php _e('Your Pro installation is now active. Enjoy!', 'formidable'); ?></strong></div>
+<div id="message" class="updated"><strong><?php _e( 'Your Pro installation is now active. Enjoy!', 'formidable' ); ?></strong></div>
 <?php       }else{ ?>
 <div class="error">
-    <strong><?php _e('ERROR', 'formidable'); ?></strong>: <?php echo $response['response']; ?>
+    <strong><?php _e( 'ERROR', 'formidable' ); ?></strong>: <?php echo $response['response']; ?>
 </div>
 <?php
             }
         }
 ?>
-<div style="float:left;width:55%">
+<div id="frm_license_top">
     <?php $this->display_form();
 
     if ( ! $frm_vars['pro_is_authorized'] ) { ?>
-    <p>Already signed up? <a href="https://formidablepro.com/account/?action=licenses" target="_blank"><?php _e('Click here', 'formidable') ?></a> to get your license number.</p>
+    <p>Already signed up? <a href="https://formidablepro.com/account/?action=licenses" target="_blank"><?php _e( 'Click here', 'formidable' ) ?></a> to get your license number.</p>
     <?php } ?>
 </div>
 
-<?php if($frm_vars['pro_is_authorized']){ ?>
+<?php if ( $frm_vars['pro_is_authorized'] ) { ?>
 <div class="frm_pro_installed">
-<div><strong class="alignleft" style="margin-right:10px;"><?php _e('Formidable Pro is Installed', 'formidable') ?></strong>
-    <a href="javascript:void(0)" class="frm_show_auth_form button-secondary alignleft"><?php _e('Enter new license', 'formidable') ?></a>
-    <a href="#" id="frm_deauthorize_link" class="button-secondary alignright"><?php _e('Deauthorize this site', 'formidable') ?></a>
+<div><strong class="alignleft" style="margin-right:10px;"><?php _e( 'Formidable Pro is Installed', 'formidable' ) ?></strong>
+    <a href="javascript:void(0)" class="frm_show_auth_form button-secondary alignleft"><?php _e( 'Enter new license', 'formidable' ) ?></a>
+    <a href="#" id="frm_deauthorize_link" class="button-secondary alignright"><?php _e( 'Deauthorize this site', 'formidable' ) ?></a>
     <div class="spinner"></div>
 </div>
 <div class="clear"></div>
 </div>
-<p class="frm_aff_link"><a href="https://formidablepro.com/account/?action=licenses" target="_blank"><?php _e('Account', 'formidable') ?></a></p>
+<p class="frm_aff_link"><a href="https://formidablepro.com/account/?action=licenses" target="_blank"><?php _e( 'Account', 'formidable' ) ?></a></p>
 <?php } ?>
 
 <div class="clear"></div>
@@ -165,14 +164,14 @@ class FrmUpdatesController{
     <?php if ( is_multisite() ) {
         $creds = $this->get_pro_cred_form_vals(); ?>
         <br/><label for="proplug-wpmu"><input type="checkbox" value="1" name="proplug-wpmu" id="proplug-wpmu" <?php checked($creds['wpmu'], 1) ?> />
-        <?php _e('Use this license to enable Formidable Pro site-wide', 'formidable'); ?></label>
+        <?php _e( 'Use this license to enable Formidable Pro site-wide', 'formidable' ); ?></label>
     <?php } ?>
     </p>
-    <input class="button-secondary" type="submit" value="<?php _e('Save License', 'formidable'); ?>" />
-    <?php if($frm_vars['pro_is_authorized']){
-        _e('or', 'formidable');
+	<input class="button-secondary" type="submit" value="<?php esc_attr_e( 'Save License', 'formidable' ); ?>" />
+    <?php if ( $frm_vars['pro_is_authorized'] ) {
+        _e( 'or', 'formidable' );
     ?>
-        <a href="javascript:void(0)" class="frm_show_auth_form button-secondary"><?php _e('Cancel', 'formidable'); ?></a>
+        <a href="javascript:void(0)" class="frm_show_auth_form button-secondary"><?php _e( 'Cancel', 'formidable' ); ?></a>
     <?php } ?>
     </form>
 </div>
@@ -202,7 +201,7 @@ class FrmUpdatesController{
             update_option($this->pro_auth_store, true);
         }
 
-        $this->license = (isset($creds['license']) && !empty($creds['license'])) ? $creds['license'] : '';
+        $this->license = ( isset( $creds['license'] ) && ! empty( $creds['license'] ) ) ? $creds['license'] : '';
     }
 
     function get_pro_cred_form_vals(){
@@ -212,42 +211,7 @@ class FrmUpdatesController{
         return compact('license', 'wpmu');
     }
 
-    /*
-    function activate(){
-        $message = '';
-        $errors = array();
-
-        if ( !isset($_POST[ $this->pro_license_str ]) || empty($_POST[ $this->pro_license_str ]) ) {
-            $errors[] = __('Please enter a license number', 'formidable');
-            include(FrmAppHelper::plugin_path() .'/classes/views/shared/errors.php');
-            die();
-        }
-
-        $this->license = $_POST[ $this->pro_license_str ];
-        $domain = home_url();
-        $args = compact('domain');
-
-        try{
-            $act = $this->send_mothership_request($this->plugin_nicename .'/activate/'. $hlpdsk_settings->license, $args);
-
-            if(!is_array($act)){
-                $errors[] = $act;
-            }else{
-                $this->manually_queue_update();
-                $hlpdsk_settings->store(false);
-                $message = $act['message'];
-            }
-        }
-        catch(Exception $e){
-            $errors[] = $e->getMessage();
-        }
-
-        include(FrmAppHelper::plugin_path() .'/classes/views/shared/errors.php');
-        die();
-    }
-    */
-
-    function check_license($license=false){
+    function check_license( $license = false ) {
         $save = true;
         if(empty($license)){
             $license = $this->license;
@@ -255,7 +219,7 @@ class FrmUpdatesController{
         }
 
         if(empty($license))
-            return array('auth' => false, 'response' => __('Please enter a license number', 'formidable'));
+            return array( 'auth' => false, 'response' => __( 'Please enter a license number', 'formidable' ));
 
         $domain = home_url();
         $args = compact('domain');
@@ -285,40 +249,11 @@ class FrmUpdatesController{
 
             }
 
-            return array('auth' => $auth, 'response' => $act);
+            return array( 'auth' => $auth, 'response' => $act);
         }
 
-        return array('auth' => false, 'response' => __('Please enter a license number', 'formidable'));
+        return array( 'auth' => false, 'response' => __( 'Please enter a license number', 'formidable' ));
     }
-
-    /*
-    function deactivate(){
-        delete_option($this->pro_cred_store);
-        delete_option($this->pro_auth_store);
-
-        if(empty($this->license))
-            return;
-
-        $domain = home_url();
-        $args = compact('domain');
-        $errors = array();
-
-        try{
-            $act = $this->send_mothership_request($this->plugin_nicename .'/deactivate/'. $this->license, $args);
-            if ( ! is_array($act) ) {
-                $errors[] = $act;
-            } else {
-                $message = $act['message'];
-            }
-        }
-        catch(Exception $e){
-            $errors[] = $e->getMessage();
-        }
-
-        include(FrmAppHelper::plugin_path() .'/classes/views/shared/errors.php');
-        die();
-    }
-    */
 
     function queue_update($transient) {
         if ( ! is_object($transient) || ! $this->pro_is_authorized() ) {
@@ -359,16 +294,16 @@ class FrmUpdatesController{
             }
 
             remove_filter('frm_pro_update_msg', array(&$this, 'no_permission_msg'));
-        } else if (isset($transient->response) && isset($transient->response[$this->plugin_name]) &&
-            isset($transient->response[$this->plugin_name]->upgrade_notice) &&
-            !empty($transient->response[$this->plugin_name]->upgrade_notice)) {
+        } else if ( isset( $transient->response ) && isset( $transient->response[ $this->plugin_name ] ) &&
+            isset( $transient->response[ $this->plugin_name ]->upgrade_notice ) &&
+            ! empty( $transient->response[ $this->plugin_name ]->upgrade_notice ) ) {
             add_filter('frm_pro_update_msg', array(&$this, 'no_permission_msg'));
         }
 
         return $transient;
     }
 
-    function queue_addon_update($transient, $plugin, $force=false, $checked=false){
+    function queue_addon_update( $transient, $plugin, $force = false, $checked = false ) {
         if ( $force !== true ) {
             // make sure another plugin isn't inserting other data
             $force = false;
@@ -408,8 +343,8 @@ class FrmUpdatesController{
                 $transient->response[$plugin->plugin_name]->package = $version_info['url'];
             }else{
                 //new version available, but no permission
-                $expired = isset($version_info['expired']) ? __('expired', 'formidable') : __('invalid', 'formidable');
-                $transient->response[$plugin->plugin_name]->upgrade_notice = sprintf(__('An update is available, but your license is %s.', 'formidable'), $expired);
+                $expired = isset($version_info['expired']) ? __( 'expired', 'formidable' ) : __( 'invalid', 'formidable' );
+                $transient->response[$plugin->plugin_name]->upgrade_notice = sprintf(__( 'An update is available, but your license is %s.', 'formidable' ), $expired);
                 add_filter('frm_pro_update_msg', array(&$this, 'no_permission_msg'));
             }
 
@@ -496,11 +431,11 @@ class FrmUpdatesController{
     }
 
     function queue_button(){ ?>
-<a href="<?php echo admin_url('admin.php?page=helpdesk-options&action=queue&_wpnonce=' . wp_create_nonce( $this->manually_queue_update() )); ?>" class="button"><?php _e('Check for Update', 'formidable')?></a>
+<a href="<?php echo admin_url('admin.php?page=helpdesk-options&action=queue&_wpnonce=' . wp_create_nonce( $this->manually_queue_update() )); ?>" class="button"><?php _e( 'Check for Update', 'formidable' )?></a>
 <?php
     }
 
-    function send_mothership_request( $endpoint, $args = array(), $domain='' ) {
+    function send_mothership_request( $endpoint, $args = array(), $domain = '' ) {
         if ( empty($domain) ) {
             $domain = $this->pro_mothership;
         }
@@ -517,12 +452,12 @@ class FrmUpdatesController{
         $body = wp_remote_retrieve_body( $resp );
 
         if(is_wp_error($resp)){
-            $message = sprintf(__('You had an error communicating with Strategy11\'s API. %1$sClick here%2$s for more information.', 'formidable'), '<a href="http://formidablepro.com/knowledgebase/why-cant-i-activate-formidable-pro/" target="_blank">', '</a>');
+            $message = sprintf(__( 'You had an error communicating with Strategy11\'s API. %1$sClick here%2$s for more information.', 'formidable' ), '<a href="http://formidablepro.com/knowledgebase/why-cant-i-activate-formidable-pro/" target="_blank">', '</a>');
             if(is_wp_error($resp))
                 $message .= ' '. $resp->get_error_message();
             return $message;
         }else if($body == 'error' || is_wp_error($body)){
-            return __('You had an HTTP error connecting to Strategy11\'s API', 'formidable');
+            return __( 'You had an HTTP error connecting to Strategy11\'s API', 'formidable' );
         }else{
             $json_res = json_decode($body, true);
             if ( null !== $json_res ) {
@@ -532,15 +467,15 @@ class FrmUpdatesController{
                     return $json_res;
                 }
             }else if(isset($resp['response']) && isset($resp['response']['code'])){
-                return sprintf(__('There was a %1$s error: %2$s', 'formidable'), $resp['response']['code'], $resp['response']['message'] .' '. $resp['body']);
+                return sprintf(__( 'There was a %1$s error: %2$s', 'formidable' ), $resp['response']['code'], $resp['response']['message'] .' '. $resp['body']);
             }
         }
 
-        return __( 'Your License Key was invalid', 'formidable');
+        return __( 'Your License Key was invalid', 'formidable' );
     }
 
     function no_permission_msg(){
-        return __('A Formidable Forms update is available, but your license is invalid.', 'formidable');
+        return __( 'A Formidable Forms update is available, but your license is invalid.', 'formidable' );
     }
 
 }

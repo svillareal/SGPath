@@ -7,8 +7,8 @@ class FrmProEntry{
         $user_ID = get_current_user_id();
         $params = (isset($frm_vars['form_params']) && is_array($frm_vars['form_params']) && isset($frm_vars['form_params'][$values['form_id']])) ? $frm_vars['form_params'][$values['form_id']] : FrmEntriesController::get_params($values['form_id']);
 
-        if($params['action'] != 'create'){
-            if(FrmProFormsHelper::going_to_prev($values['form_id'])){
+		if ( $params['action'] != 'create' ) {
+			if ( FrmProFormsHelper::going_to_prev( $values['form_id'] ) ) {
                 add_filter('frm_continue_to_create', '__return_false');
                 $errors = array();
             } else if ( FrmProFormsHelper::saving_draft() ) {
@@ -23,12 +23,12 @@ class FrmProEntry{
         global $wpdb;
 
         $can_submit = true;
-        if (isset($form_options['single_entry']) and $form_options['single_entry']){
+		if ( isset( $form_options['single_entry'] ) && $form_options['single_entry'] ) {
             $admin_entry = FrmAppHelper::is_admin();
 
-            if ($form_options['single_entry_type'] == 'cookie' and isset($_COOKIE['frm_form'. $form->id . '_' . COOKIEHASH])){
+			if ( $form_options['single_entry_type'] == 'cookie' && isset( $_COOKIE['frm_form' . $form->id . '_' . COOKIEHASH ] ) ) {
                 $can_submit = $admin_entry ? true : false;
-            }else if ($form_options['single_entry_type'] == 'ip'){
+			} else if ( $form_options['single_entry_type'] == 'ip' ) {
                 if ( ! $admin_entry ) {
                     $prev_entry = FrmEntry::getAll( array( 'it.ip' => FrmAppHelper::get_ip_address() ), '', 1 );
                     if ( $prev_entry ) {
@@ -37,12 +37,7 @@ class FrmProEntry{
                 }
             } else if ( ( $form_options['single_entry_type'] == 'user' || ( isset($form->options['save_draft']) && $form->options['save_draft'] == 1 ) ) && ! $form->editable ) {
                 if ( $user_ID ) {
-                    $query = $wpdb->prepare('user_id = %d AND form_id = %d', $user_ID, $form->id);
-                    if ( $form_options['single_entry_type'] != 'user' ) {
-                        $query .= $wpdb->prepare(' AND is_draft = %d', 1);
-                    }
-                    $meta = $wpdb->get_var('SELECT id FROM '. $wpdb->prefix .'frm_items WHERE '. $query);
-                    unset($query);
+                    $meta = FrmProEntriesHelper::check_for_user_entry( $user_ID, $form, ( $form_options['single_entry_type'] != 'user' ) );
                 }
 
                 if ( isset($meta) && $meta ) {
@@ -64,7 +59,7 @@ class FrmProEntry{
         if ( ( ( $_POST && isset($_POST['frm_page_order_'. $form->id]) ) || FrmProFormsHelper::going_to_prev($form->id) ) && ! FrmProFormsHelper::saving_draft() ) {
             add_filter('frm_continue_to_create', '__return_false');
         } else if ( $form->editable && isset($form_options['single_entry']) && $form_options['single_entry'] && $form_options['single_entry_type'] == 'user' && $user_ID && ! FrmAppHelper::is_admin() ) {
-            $meta = $wpdb->get_var($wpdb->prepare('SELECT id FROM '. $wpdb->prefix .'frm_items WHERE user_id = %d AND form_id = %d', $user_ID, $form->id));
+            $meta = FrmDb::get_var( $wpdb->prefix .'frm_items', array( 'user_id' => $user_ID, 'form_id' => $form->id) );
 
             if ( $meta ) {
                 $frmpro_settings = new FrmProSettings();
@@ -92,13 +87,14 @@ class FrmProEntry{
             $values = $fields ? FrmEntriesHelper::setup_new_vars($fields, $form) : array();
             require(FrmAppHelper::plugin_path() .'/classes/views/frm-entries/new.php');
             add_filter('frm_continue_to_create', '__return_false');
-        }else if ($form->editable and isset($form->options['single_entry']) and $form->options['single_entry'] and $form->options['single_entry_type'] == 'user'){
+		} else if ( $form->editable && isset( $form->options['single_entry'] ) && $form->options['single_entry'] && $form->options['single_entry_type'] == 'user' ) {
 
             $user_ID = get_current_user_id();
-            if($user_ID){
-                $entry = FrmEntry::getAll(array('it.user_id' => $user_ID, 'it.form_id' => $form->id), '', 1, true);
-                if($entry)
-                    $entry = reset($entry);
+			if ( $user_ID ) {
+                $entry = FrmEntry::getAll( array( 'it.user_id' => $user_ID, 'it.form_id' => $form->id), '', 1, true);
+				if ( $entry ) {
+					$entry = reset( $entry );
+				}
             }else{
                 $entry = false;
             }
@@ -109,7 +105,7 @@ class FrmProEntry{
                 $record = $frm_vars['created_entries'][$form->id]['entry_id'];
                 $saved_message = isset($form->options['success_msg']) ? $form->options['success_msg'] : $frm_settings->success_msg;
                 if ( FrmProFormsHelper::saving_draft() ) {
-                    $saved_message = isset($form->options['draft_msg']) ? $form->options['draft_msg'] : __('Your draft has been saved.', 'formidable');
+                    $saved_message = isset($form->options['draft_msg']) ? $form->options['draft_msg'] : __( 'Your draft has been saved.', 'formidable' );
                 }
                 $saved_message = apply_filters('frm_content', $saved_message, $form, ($record ? $record : false));
                 $message = wpautop(do_shortcode($record ? $saved_message : $frm_settings->failed_msg));
@@ -118,8 +114,8 @@ class FrmProEntry{
                 FrmProEntriesController::show_responses($record, $fields, $form, $title, $description, $message);
             }
             add_filter('frm_continue_to_create', '__return_false');
-        }else if ( FrmProFormsHelper::saving_draft() ) {
-            $record = (isset($frm_vars['created_entries']) and isset($frm_vars['created_entries'][$form->id])) ? $frm_vars['created_entries'][$form->id]['entry_id'] : 0;
+		} else if ( FrmProFormsHelper::saving_draft() ) {
+            $record = ( isset( $frm_vars['created_entries'] ) && isset( $frm_vars['created_entries'][ $form->id ] ) ) ? $frm_vars['created_entries'][ $form->id ]['entry_id'] : 0;
 
             if ( ! $record ) {
                 return;
@@ -225,10 +221,10 @@ class FrmProEntry{
         return $values;
     }
 
-    /*
-    * After an entry is duplicated, also duplicate the sub entries
-    * @since 2.0
-    */
+    /**
+     * After an entry is duplicated, also duplicate the sub entries
+     * @since 2.0
+     */
     public static function duplicate_sub_entries( $entry_id, $form_id, $args ) {
         $form_fields = FrmProFormsHelper::has_field('form', $form_id, false);
         $section_fields = FrmProFormsHelper::has_repeat_field($form_id, false);
@@ -265,14 +261,18 @@ class FrmProEntry{
         if ( ! empty($sub_ids) ) {
             // update the parent id for new entries
             global $wpdb;
-            $wpdb->query('UPDATE '. $wpdb->prefix .'frm_items SET parent_item_id = '. $entry_id .' WHERE id in ('. implode(',', array_filter($sub_ids, 'is_numeric') ) .')');
+			$where = array( 'id' => $sub_ids );
+			FrmDb::get_where_clause_and_values( $where );
+			array_unshift( $where['values'], $entry_id );
+
+			$wpdb->query( $wpdb->prepare('UPDATE ' . $wpdb->prefix . 'frm_items SET parent_item_id = %d ' . $where['where'], $where['values'] ) );
         }
     }
 
-    /*
-    * After the sub entry and parent entry are created, we can update the parent id field
-    * @since 2.0
-    */
+    /**
+     * After the sub entry and parent entry are created, we can update the parent id field
+     * @since 2.0
+     */
     public static function update_parent_id($entry_id, $form_id) {
         $form_fields = FrmProFormsHelper::has_field('form', $form_id, false);
         $section_fields = FrmProFormsHelper::has_repeat_field($form_id, false);
@@ -303,14 +303,17 @@ class FrmProEntry{
         }
 
         if ( ! empty($sub_ids) ) {
+			$where = array( 'id' => $sub_ids );
+			FrmDb::get_where_clause_and_values( $where );
+			array_unshift( $where['values'], $entry_id );
+
             global $wpdb;
-            $wpdb->query("UPDATE {$wpdb->prefix}frm_items SET parent_item_id = $entry_id WHERE id in (". implode(',', array_filter($sub_ids, 'is_numeric') ) .")");
+			$wpdb->query( $wpdb->prepare( 'UPDATE ' . $wpdb->prefix . 'frm_items SET parent_item_id = %d' . $where['where'], $where['values'] ) );
         }
     }
 
     public static function get_sub_entries($entry_id, $meta = false) {
-        $where = array('parent_item_id' => $entry_id);
-        $entries = FrmEntry::getAll($where, '', '', $meta, false);
+		$entries = FrmEntry::getAll( array( 'parent_item_id' => $entry_id ), '', '', $meta, false );
         return $entries;
     }
 
@@ -326,15 +329,15 @@ class FrmProEntry{
     }
 
     /**
-    *
-    * Modify values just before creating entry or saving form
-    *
-    * @since 2.0
-    *
-    * @param $values - array of posted values
-    * @param $location string. If Other vals are not cleared by JavaScript when selection is changed, value should be cleared in this function. Other vals are not cleared with JavaScript on the back-end.
-    * @return $values array
-    */
+     *
+     * Modify values just before creating entry or saving form
+     *
+     * @since 2.0
+     *
+     * @param array $values - posted values
+     * @param string $location If Other vals are not cleared by JavaScript when selection is changed, value should be cleared in this function. Other vals are not cleared with JavaScript on the back-end.
+     * @return array $values
+     */
     public static function mod_other_vals( $values = false, $location = 'front' ){
         $set_post = false;
         if ( ! $values ) {
@@ -393,10 +396,10 @@ class FrmProEntry{
         return $values;
     }
 
-    /*
-    * Insert all post variables into the post array
-    * return array
-    */
+    /**
+     * Insert all post variables into the post array
+     * @return array
+     */
     public static function setup_post($action, $entry, $form) {
         $temp_fields = FrmField::get_all_for_form($form->id);
         $fields = array();
@@ -450,9 +453,9 @@ class FrmProEntry{
         }
     }
 
-    /*
-    * Add custom fields to the post array
-    */
+    /**
+     * Add custom fields to the post array
+     */
     private static function populate_custom_fields( $action, $entry, $fields, &$new_post ) {
         // populate custom fields
         foreach ( $action->post_content['post_custom_fields'] as $custom_field ) {
@@ -570,7 +573,7 @@ class FrmProEntry{
 
     private static function populate_from_custom_code( &$new_post ) {
         if ( isset($_POST['frm_wp_post']) ) {
-            __deprecated_argument('frm_wp_post', '2.0', __('Use <code>frm_new_post</code> filter instead.', 'formidable'));
+            __deprecated_argument('frm_wp_post', '2.0', __( 'Use <code>frm_new_post</code> filter instead.', 'formidable' ));
             foreach ( (array) $_POST['frm_wp_post']  as $key => $value ) {
                 list($field_id, $meta_name) = explode('=', $key);
                 if ( ! empty($meta_name) ) {
@@ -582,7 +585,7 @@ class FrmProEntry{
         }
 
         if ( isset($_POST['frm_wp_post_custom']) ) {
-            __deprecated_argument('frm_wp_post_custom', '2.0', __('Use <code>frm_new_post</code> filter instead.', 'formidable'));
+            __deprecated_argument('frm_wp_post_custom', '2.0', __( 'Use <code>frm_new_post</code> filter instead.', 'formidable' ));
             foreach ( (array) $_POST['frm_wp_post_custom']  as $key => $value ) {
                 list($field_id, $meta_name) = explode('=', $key);
                 if ( ! empty($meta_name) ) {
@@ -594,7 +597,7 @@ class FrmProEntry{
         }
 
         if ( isset($_POST['frm_tax_input']) ) {
-            __deprecated_argument('frm_tax_input', '2.0', __('Use <code>frm_new_post</code> filter instead.', 'formidable'));
+            __deprecated_argument('frm_tax_input', '2.0', __( 'Use <code>frm_new_post</code> filter instead.', 'formidable' ));
             foreach ( (array) $_POST['frm_tax_input']  as $key => $value ) {
                 self::fill_taxonomies($new_post['taxonomies'], $key, $value);
                 unset($key, $value);
@@ -630,12 +633,12 @@ class FrmProEntry{
         $post['post_type'] = $action->post_content['post_type'];
 
         if ( isset($_POST['frm_user_id']) && is_numeric($_POST['frm_user_id']) ) {
-            $post['post_author'] = $_POST['frm_user_id'];
+            $post['post_author'] = (int) $_POST['frm_user_id'];
         }
 
         $status = ( isset($post['post_status']) && ! empty($post['post_status']) ) ? true : false;
 
-        if ( ! $status && $action && in_array($action->post_content['post_status'], array('pending', 'publish')) ) {
+        if ( ! $status && $action && in_array($action->post_content['post_status'], array( 'pending', 'publish')) ) {
             $post['post_status'] = $action->post_content['post_status'];
         }
 
@@ -702,9 +705,9 @@ class FrmProEntry{
     	return $post_ID;
     }
 
-    /*
-    * Override the post content and date format
-    */
+    /**
+     * Override the post content and date format
+     */
     private static function post_value_overrides( &$post, $new_post, $editing, $form, $entry, &$dyn_content ) {
         //if empty post content and auto display, then save compiled post content
         $display_id = ( $editing ) ? get_post_meta($post['ID'], 'frm_display_id', true) : ( isset($new_post['post_custom']['frm_display_id']) ? $new_post['post_custom']['frm_display_id'] : 0 );
@@ -721,9 +724,9 @@ class FrmProEntry{
 		}
     }
 
-    /*
-    * Add taxonomies after save in case user doesn't have permissions
-    */
+    /**
+     * Add taxonomies after save in case user doesn't have permissions
+     */
     private static function save_taxonomies( $new_post, $post_ID ) {
     	foreach ( $new_post['taxonomies'] as $taxonomy => $tags ) {
             if ( is_taxonomy_hierarchical($taxonomy) ) {
@@ -736,9 +739,9 @@ class FrmProEntry{
         }
     }
 
-    /*
-    * link the uploads to the post
-    */
+    /**
+     * link the uploads to the post
+     */
     private static function link_post_attachments( $post_ID, $editing ) {
     	global $frm_vars, $wpdb;
 
@@ -749,9 +752,13 @@ class FrmProEntry{
     	        $exclude_attached = array_merge($exclude_attached, (array) $media_id);
 
     	        if ( is_array($media_id) ) {
-    	            $attach_string = implode( ',', array_filter($media_id) );
+					$attach_string = array_filter( $media_id );
     	            if ( ! empty($attach_string) ) {
-    				    $wpdb->query( $wpdb->prepare( "UPDATE $wpdb->posts SET post_parent = %d WHERE post_type = %s AND ID IN ( $attach_string )", $post_ID, 'attachment' ) );
+						$where = array( 'post_type' => 'attachment', 'ID' => $attach_string );
+						FrmDb::get_where_clause_and_values( $where );
+						array_unshift( $where['values'], $post_ID );
+
+						$wpdb->query( $wpdb->prepare( 'UPDATE ' . $wpdb->posts . ' SET post_parent = %d' . $where['where'], $where['values'] ) );
 
     	                foreach ( $media_id as $m ) {
     	                    clean_attachment_cache( $m );
@@ -759,7 +766,7 @@ class FrmProEntry{
     	                }
     	            }
     	        } else {
-    	            $wpdb->update( $wpdb->posts, array('post_parent' => $post_ID), array( 'ID' => $media_id, 'post_type' => 'attachment' ) );
+    	            $wpdb->update( $wpdb->posts, array( 'post_parent' => $post_ID), array( 'ID' => $media_id, 'post_type' => 'attachment' ) );
     	            clean_attachment_cache( $media_id );
     	        }
     	    }
@@ -768,9 +775,9 @@ class FrmProEntry{
         self::unlink_post_attachments($post_ID, $editing, $exclude_attached);
     }
 
-    /*
-    * unattach files from this post
-    */
+    /**
+     * unattach files from this post
+     */
     private static function unlink_post_attachments( $post_ID, $editing, $exclude_attached ) {
     	if ( ! $editing || ! count($_FILES) ) {
             return;
@@ -786,7 +793,7 @@ class FrmProEntry{
 
         $attachments = get_posts( $args );
         foreach ( $attachments as $attachment ) {
-            $wpdb->update( $wpdb->posts, array('post_parent' => null), array( 'ID' => $attachment->ID ) );
+            $wpdb->update( $wpdb->posts, array( 'post_parent' => null), array( 'ID' => $attachment->ID ) );
         }
     }
 
@@ -805,17 +812,17 @@ class FrmProEntry{
     	update_post_meta( $post_ID, '_edit_last', $user_ID );
     }
 
-    /*
-    * save post_id with the entry
-    * If entry was updated, get updated entry object
-    */
+    /**
+     * save post_id with the entry
+     * If entry was updated, get updated entry object
+     */
     private static function save_post_id_to_entry($post_ID, &$entry, $editing) {
         if ( $editing ) {
             return;
         }
 
         global $wpdb;
-        $updated = $wpdb->update( $wpdb->prefix .'frm_items', array('post_id' => $post_ID), array( 'id' => $entry->id ) );
+        $updated = $wpdb->update( $wpdb->prefix .'frm_items', array( 'post_id' => $post_ID), array( 'id' => $entry->id ) );
         if ( $updated ) {
             wp_cache_delete( $entry->id, 'frm_entry' );
             wp_cache_delete( $entry->id .'_nometa', 'frm_entry' );
@@ -824,9 +831,9 @@ class FrmProEntry{
         }
     }
 
-    /*
-    * update dynamic content after all post fields are updated
-    */
+    /**
+     * update dynamic content after all post fields are updated
+     */
     private static function save_dynamic_content( $post, $post_ID, $dyn_content, $form, $entry ) {
         if ( $dyn_content == '' ) {
             return;
@@ -835,13 +842,13 @@ class FrmProEntry{
         $new_content = apply_filters('frm_content', $dyn_content, $form, $entry);
         if ( $new_content != $post['post_content'] ) {
             global $wpdb;
-            $wpdb->update( $wpdb->posts, array( 'post_content' => $new_content ), array('ID' => $post_ID) );
+            $wpdb->update( $wpdb->posts, array( 'post_content' => $new_content ), array( 'ID' => $post_ID) );
         }
     }
 
-    /*
-    * delete entry meta so it won't be duplicated
-    */
+    /**
+     * delete entry meta so it won't be duplicated
+     */
     private static function delete_duplicated_meta( $action, $entry ) {
         global $wpdb;
 
@@ -856,7 +863,10 @@ class FrmProEntry{
         }
 
         if ( ! empty($field_ids) ) {
-            $wpdb->query( $wpdb->prepare('DELETE FROM '. $wpdb->prefix .'frm_item_metas WHERE item_id=%d AND field_id', $entry->id ) . ' IN ('. implode(',', $field_ids) .')');
+			$where = array( 'item_id' => $entry->id, 'field_id' => $field_ids );
+			FrmDb::get_where_clause_and_values( $where );
+
+			$wpdb->query( $wpdb->prepare( 'DELETE FROM ' . $wpdb->prefix . 'frm_item_metas' . $where['where'], $where['values'] ) );
         }
     }
 
@@ -866,11 +876,11 @@ class FrmProEntry{
         if ( $entry ) {
             $post_id = $entry->post_id;
         } else {
-            $post_id = $wpdb->get_var($wpdb->prepare("SELECT post_id FROM {$wpdb->prefix}frm_items WHERE id=%d", $entry_id));
+            $post_id = FrmDb::get_var( $wpdb->prefix .'frm_items', array( 'id' => $entry_id). 'post_id' );
         }
 
         // delete child entries
-        $child_entries = $wpdb->get_col($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_items WHERE parent_item_id=%d", $entry_id));
+        $child_entries = FrmDb::get_col( $wpdb->prefix .'frm_items', array( 'parent_item_id' => $entry_id) );
         foreach ( $child_entries as $child_entry ) {
             FrmEntry::destroy($child_entry);
         }
@@ -895,7 +905,7 @@ class FrmProEntry{
 
         if ( !comments_open($comment_post_ID) ) {
         	do_action('comment_closed', $comment_post_ID);
-        	//wp_die( __('Sorry, comments are closed for this item.') );
+        	//wp_die( __( 'Sorry, comments are closed for this item.') );
         	return;
         } else if ( 'trash' == $status ) {
         	do_action('comment_on_trash', $comment_post_ID);
@@ -988,13 +998,13 @@ class FrmProEntry{
         $query = apply_filters('frm_view_order', $query, $args);
 
         if ( ! empty($query['where']) ) {
-            $query['where'] =  'WHERE '. $query['where'];
+			$query['where'] = FrmAppHelper::prepend_and_or_where( 'WHERE ', $query['where'] );
         }
 
 		$query['order'] = rtrim($query['order'], ', ');
 
 		$query = implode($query, ' ') . $args['limit'];
-        $entries = $wpdb->get_results($query, OBJECT_K);
+		$entries = $wpdb->get_results( $query, OBJECT_K );
 
 		unset($query, $where);
 
@@ -1024,21 +1034,17 @@ class FrmProEntry{
     			return stripslashes_deep($entries);
     		}
 
+            $meta_where = array( 'field_id !' => 0 );
             if ( count($get_entry_ids) > 50 ) {
-                $meta_where = $wpdb->prepare('fi.form_id = %d', $args['display']->frm_form_id);
+                $meta_where['fi.form_id'] = $args['display']->frm_form_id;
             } else {
-                $meta_where = 'item_id in ('. implode(',', array_filter($get_entry_ids, 'is_numeric')) .')';
-                $cache_key .= implode('', $get_entry_ids);
+                $meta_where['item_id'] = $get_entry_ids;
             }
 
-            $query = "SELECT item_id, meta_value, field_id, field_key FROM {$wpdb->prefix}frm_item_metas it
-                LEFT OUTER JOIN {$wpdb->prefix}frm_fields fi ON it.field_id=fi.id
-                WHERE $meta_where and field_id != 0";
-
-            $metas = $wpdb->get_results($query);
-            unset($query);
-
-            wp_cache_set($cache_key, $metas, 'frm_entry', 300);
+            $metas = FrmDb::get_results(
+                $wpdb->prefix .'frm_item_metas it LEFT OUTER JOIN '. $wpdb->prefix .'frm_fields fi ON it.field_id=fi.id',
+                $meta_where, 'item_id, meta_value, field_id, field_key'
+            );
 		}
 
         if ( $metas ) {
@@ -1068,7 +1074,7 @@ class FrmProEntry{
     }
 
     private static function prepare_entries_query( &$query, &$args ) {
-        if ( in_array('rand', $args['order_by_array']) ) {
+        if ( in_array( 'rand', $args['order_by_array']) ) {
             //If random is set, set the order to random
             $query['order'] = ' ORDER BY RAND()';
             return;
@@ -1093,7 +1099,7 @@ class FrmProEntry{
 			$query['order'] = ' ORDER BY';
 
 			foreach ( $args['order_by_array'] as $o_key => $order_by ) {
-				$query['order'] .= ' it.' . $order_by . ' ' . $args['order_array'][$o_key] . ', ';
+				$query['order'] .= ' it.' . sanitize_title( $order_by ) . ' ' . $args['order_array'][ $o_key ] . ', ';
 				unset($order_by);
 			}
             return;
@@ -1144,7 +1150,7 @@ class FrmProEntry{
         } else if ( is_numeric($args['order_by_array'][$o_key]) ) {
             //if ordering by a normal, non-post field
             $query['select'] .= $wpdb->prepare(' LEFT JOIN '. $wpdb->prefix .'frm_item_metas em'. $o_key .' ON em'. $o_key .'.item_id=it.id AND em'. $o_key .'.field_id=%d ', $o_field->id);
-            $query['order'] .= 'CASE when em'. $o_key .'.meta_value IS NULL THEN 1 ELSE 0 END, em'. $o_key .'.meta_value '. ( in_array($o_field->type, array('number', 'scale')) ? '+0 ' : '') . $args['order_array'][$o_key] .', ';
+            $query['order'] .= 'CASE when em'. $o_key .'.meta_value IS NULL THEN 1 ELSE 0 END, em'. $o_key .'.meta_value '. ( in_array($o_field->type, array( 'number', 'scale')) ? '+0 ' : '') . $args['order_array'][$o_key] .', ';
 
 			//Meta value is only necessary for time field reordering and only if time field is first ordering field
 			//Check if time field (for time field ordering)
@@ -1156,10 +1162,10 @@ class FrmProEntry{
         }
     }
 
-    /*
-    * Reorder entries if 12 hour time field is selected for first ordering field.
-    * If the $time_field variable is set, this means the first ordering field is a time field.
-    */
+    /**
+     * Reorder entries if 12 hour time field is selected for first ordering field.
+     * If the $time_field variable is set, this means the first ordering field is a time field.
+     */
     private static function reorder_time_entries( &$entries, $time_field ) {
         if ( ! $time_field || ! is_array($entries) || empty($entries) ) {
             return;
@@ -1179,7 +1185,7 @@ class FrmProEntry{
 				continue;
 			}
 
-        	$parts = str_replace(array(' PM',' AM'), '', $entry->metas[$time_field->id]);
+        	$parts = str_replace( array( ' PM',' AM'), '', $entry->metas[$time_field->id]);
         	$parts = explode(':', $parts);
         	if ( is_array($parts) ) {
             	if ( ( preg_match('/PM/', $entry->metas[$time_field->id]) && ( (int) $parts[0] != 12 ) ) ||
@@ -1213,6 +1219,6 @@ class FrmProEntry{
     }
 
     public static function update_post() {
-        _deprecated_function( __FUNCTION__, '2.0', array('FrmProEntry::save_post') );
+        _deprecated_function( __FUNCTION__, '2.0', array( 'FrmProEntry::save_post') );
     }
 }

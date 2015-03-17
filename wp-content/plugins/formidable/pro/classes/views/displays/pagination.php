@@ -1,5 +1,7 @@
-<?php if($page_count <= 1)
+<?php
+if ( $page_count <= 1 ) {
     return; // Only show the pager bar if there is more than 1 page
+}
 ?>
 <div class="<?php echo apply_filters('frm_pagination_class', 'frm_pagination_cont') ?>">
 <ul class="<?php echo apply_filters('frm_ul_pagination_class', 'frm_pagination') ?>">
@@ -8,18 +10,19 @@
         $current_page = FrmAppHelper::get_param($page_param, '1');
     }
 
-    $page_params = (isset($page_params)) ? $page_params : '';
-    $s = FrmAppHelper::get_param('frm_search', false);
-    if($s)
-        $page_params .= '&frm_search='. urlencode($s);
+	$page_params = isset( $page_params ) ? $page_params : '';
+	$s = FrmAppHelper::get_param( 'frm_search', false );
+	if ( $s ) {
+		$page_params .= '&frm_search=' . urlencode( $s );
+	}
 
     if ( $current_page > 1 ) { // Only show the prev page button if the current page is not the first page ?>
-<li class="<?php echo apply_filters('frm_prev_page_class', '') ?>"><a href="<?php echo add_query_arg(array($page_param => $current_page - 1)); echo $page_params; ?>" class="prev"><?php echo apply_filters('frm_prev_page_label', '&#171;') ?></a></li> <?php
+<li class="<?php echo apply_filters('frm_prev_page_class', '') ?>"><a href="<?php echo add_query_arg( array($page_param => $current_page - 1)); echo $page_params; ?>" class="prev"><?php echo apply_filters('frm_prev_page_label', '&#171;') ?></a></li> <?php
     }
 
     // First page is always displayed
 ?>
-<li class="<?php echo ( $current_page == 1 ) ? 'active' : '' ?>"><a href="<?php echo add_query_arg(array($page_param => 1)); echo $page_params; ?>">1</a></li><?php
+<li class="<?php echo ( $current_page == 1 ) ? 'active' : '' ?>"><a href="<?php echo add_query_arg( array($page_param => 1)); echo $page_params; ?>">1</a></li><?php
 
     // If the current page is more than 2 spaces away from the first page then we put some dots in here
     if ( $current_page >= 5 ) { ?>
@@ -30,7 +33,7 @@
     $low_page = ($current_page >= 5) ? ($current_page-2) : 2;
     $high_page = (($current_page + 2) < ($page_count-1)) ? ($current_page+2) : ($page_count-1);
     for ( $i = $low_page; $i <= $high_page; $i++ ) { ?>
-<li class="<?php echo ( $current_page == $i ) ? 'active' : '' ?>"><a href="<?php echo add_query_arg(array($page_param => $i)); echo $page_params; ?>"><?php echo $i; ?></a></li> <?php
+<li class="<?php echo ( $current_page == $i ) ? 'active' : '' ?>"><a href="<?php echo add_query_arg( array($page_param => $i)); echo $page_params; ?>"><?php echo $i; ?></a></li> <?php
     }
     unset($low_page, $high_page, $i);
 
@@ -41,11 +44,11 @@
 
     // Display the last page icon
 ?>
-<li class="<?php echo ($current_page == $page_count) ? 'active' : '' ?>"><a href="<?php echo add_query_arg(array($page_param => $page_count)); echo $page_params; ?>"><?php echo $page_count; ?></a></li><?php
+<li class="<?php echo ($current_page == $page_count) ? 'active' : '' ?>"><a href="<?php echo add_query_arg( array($page_param => $page_count)); echo $page_params; ?>"><?php echo $page_count; ?></a></li><?php
 
     // Display the next page icon if there is a next page
-    if($current_page < $page_count){ ?>
-<li class="<?php echo apply_filters('frm_next_page_class', '') ?>"><a href="<?php echo add_query_arg(array($page_param => $current_page + 1)); echo $page_params; ?>" class="next"><?php echo apply_filters('frm_next_page_label', '&#187;') ?></a></li><?php
+	if ( $current_page < $page_count ) { ?>
+<li class="<?php echo apply_filters('frm_next_page_class', '') ?>"><a href="<?php echo add_query_arg( array($page_param => $current_page + 1)); echo $page_params; ?>" class="next"><?php echo apply_filters('frm_next_page_label', '&#187;') ?></a></li><?php
     } ?>
 </ul>
 </div>

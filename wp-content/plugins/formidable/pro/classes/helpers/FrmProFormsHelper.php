@@ -12,7 +12,7 @@ class FrmProFormsHelper{
 
     public static function setup_edit_vars($values){
         $record = FrmForm::getOne($values['id']);
-        foreach (array('logged_in' => $record->logged_in, 'editable' => $record->editable) as $var => $default)
+        foreach ( array( 'logged_in' => $record->logged_in, 'editable' => $record->editable) as $var => $default)
             $values[$var] = FrmAppHelper::get_param($var, $default);
 
         foreach (self::get_default_opts() as $opt => $default){
@@ -54,6 +54,9 @@ class FrmProFormsHelper{
         );
 
         if ( empty($field['value']) ) {
+			// Row count must be zero if field value is empty
+			$repeat_atts['row_count'] = 0;
+
             // add an empty sub entry
             self::repeat_field_set($field_name, $repeat_atts);
             return;
@@ -61,6 +64,9 @@ class FrmProFormsHelper{
 
         foreach ( (array) $field['value'] as $k => $checked ) {
             $repeat_atts['i'] = $k;
+
+			// Keep track of row count
+			$repeat_atts['row_count'] = $k;
 
             if ( ! isset($field['value']['form']) ) {
                 // this is not a posted value from moving between pages
@@ -102,6 +108,7 @@ class FrmProFormsHelper{
             'errors'    => array(),
             'parent_field' => 0,
             'repeat'    => 0,
+			'row_count'	=> false,
         );
         $args = wp_parse_args($args, $defaults);
 
@@ -166,7 +173,7 @@ class FrmProFormsHelper{
 
         $field_class = ( ! empty($format) && isset($classes[$count]) ) ? $classes[$count] : '';
 
-        echo '<div id="frm_section_'. $args['parent_field']['id'] .'-'. $args['i'] .'" class="frm_repeat_'. ( empty($format) ? 'sec' : $format ) .' frm_repeat_'. $args['parent_field']['id'] .'">' . "\n";
+        echo '<div id="frm_section_'. $args['parent_field']['id'] .'-'. $args['i'] .'" class="frm_repeat_'. ( empty($format) ? 'sec' : $format ) .' frm_repeat_'. $args['parent_field']['id'] . ( $args['row_count'] === 0 ? ' frm_first_repeat' : '' ) . '">' . "\n";
 
         $label_pos = 'top';
         $field_num = 1;
@@ -195,7 +202,7 @@ class FrmProFormsHelper{
             }
             $field_num++;
 
-            if ( 'top' == $label_pos && in_array($subfield['label'], array('top', 'hidden', '')) ) {
+            if ( 'top' == $label_pos && in_array($subfield['label'], array( 'top', 'hidden', '')) ) {
                 // add placeholder label if repeating
                 $label_pos = 'hidden';
             }
@@ -236,10 +243,10 @@ class FrmProFormsHelper{
             global $wpdb;
 
             // get end field
-            $query = $wpdb->prepare('fi.form_id=%d AND type=%s AND field_order > %d', $args['parent_field']['form_id'], 'end_divider', $args['parent_field']['field_order']);
+			$query = array( 'fi.form_id' => $args['parent_field']['form_id'], 'type' => 'end_divider', 'field_order >' => $args['parent_field']['field_order'] + 1 );
             $end = (array) FrmField::getAll($query, 'field_order', 1);
 
-            foreach ( array('format', 'add_label' ,'remove_label') as $o ) {
+            foreach ( array( 'format', 'add_label' ,'remove_label') as $o ) {
                 if ( isset($end['field_options'][$o]) ) {
                     $end[$o] = $end['field_options'][$o];
                 }
@@ -264,8 +271,8 @@ class FrmProFormsHelper{
         $defaults = array(
             'add_icon'      => '',
             'remove_icon'   => '',
-            'add_label'     => __('Add', 'formidable'),
-            'remove_label'  => __('Remove', 'formidable'),
+            'add_label'     => __( 'Add', 'formidable' ),
+            'remove_label'  => __( 'Remove', 'formidable' ),
             'add_classes'   => ' frm_button',
             'remove_classes' => ' frm_button',
         );
@@ -284,6 +291,11 @@ class FrmProFormsHelper{
             $args['add_classes'] = ' frm_icon_font frm_plus_icon';
             $args['remove_classes'] = ' frm_icon_font frm_minus_icon';
         }
+
+		// Hide Remove button on first row
+		if ( $args['row_count'] === 0 ) {
+			$args['remove_classes'] .= ' frm_hidden';
+		}
 
         $triggers = '<div class="frm_form_field frm_'. $args['label_pos'] .'_container '. ( empty($args['field_class']) ? '' : 'frm_last_'. $args['field_class'] ) .'">';
 
@@ -339,7 +351,7 @@ class FrmProFormsHelper{
                     continue;
                 }
 
-                if ( $field['hide_opt'][$i] != '' && in_array($observed_field->field_options['data_type'], array('radio', 'checkbox', 'select')) ) {
+                if ( $field['hide_opt'][$i] != '' && in_array($observed_field->field_options['data_type'], array( 'radio', 'checkbox', 'select')) ) {
                     $display_none[] = $field['id'];
                 } else if ( $field['hide_opt'][$i] == '' && self::is_show_data_field($field) ) {
                     self::hide_some_data_types($field, $observed_field, $display_none);
@@ -362,7 +374,7 @@ class FrmProFormsHelper{
 
     private static function hide_some_data_types($field, $observed_field, array &$display_none) {
         $observed_options = maybe_unserialize($observed_field->field_options);
-        if ( in_array($observed_options['data_type'], array('checkbox', 'select')) ) {
+        if ( in_array($observed_options['data_type'], array( 'checkbox', 'select')) ) {
             $display_none[] = $field['id'];
         }
     }
@@ -444,7 +456,7 @@ $(document.getElementById('<?php echo $datepicker ?>')).change(function(){frmFro
                 }
 
                 $html_field_id = '="field_'. $calc_fields[$val]->field_key;
-                if ( $field['form_id'] != $calc_fields[$val]->form_id || in_array($calc_fields[$val]->type, array('radio', 'scale', 'checkbox')) ) {
+                if ( $field['form_id'] != $calc_fields[$val]->form_id || in_array($calc_fields[$val]->type, array( 'radio', 'scale', 'checkbox')) ) {
                     $html_field_id = '^'. $html_field_id .'-';
                 }
                 $field_keys[$calc_fields[$val]->id] = '[id'. $html_field_id .'"]';
@@ -455,8 +467,9 @@ $(document.getElementById('<?php echo $datepicker ?>')).change(function(){frmFro
 
             $triggers[] = reset($field_keys);
             $calc_rules['calc'][$result] = array(
-                'calc'      => $calc,
-                'fields'    => array(),
+				'calc'      	=> $calc,
+				'calc_dec'		=> $field['calc_dec'],
+				'fields'    	=> array(),
             );
             $calc_rules['fieldKeys'] = $calc_rules['fieldKeys'] + $field_keys;
 
@@ -513,19 +526,19 @@ $(document.getElementById('<?php echo $datepicker ?>')).change(function(){frmFro
             'edit_value' => $frmpro_settings->update_value, 'edit_msg' => $frmpro_settings->edit_msg,
             'edit_action' => 'message', 'edit_url' => '', 'edit_page_id' => 0,
             'logged_in' => 0, 'logged_in_role' => '', 'editable' => 0, 'save_draft' => 0,
-            'draft_msg' => __('Your draft has been saved.', 'formidable'),
+            'draft_msg' => __( 'Your draft has been saved.', 'formidable' ),
             'editable_role' => '', 'open_editable_role' => '-1',
             'copy' => 0, 'single_entry' => 0, 'single_entry_type' => 'user',
             'success_page_id' => '', 'success_url' => '', 'ajax_submit' => 0,
-            'cookie_expiration' => 8000, 'prev_value' => __('Previous', 'formidable'),
+            'cookie_expiration' => 8000, 'prev_value' => __( 'Previous', 'formidable' ),
             'submit_align' => '',
         );
     }
 
     public static function get_taxonomy_count($taxonomy, $post_categories, $tax_count=0){
-        if(isset($post_categories[$taxonomy . $tax_count])){
-            $tax_count++;
-            $tax_count = self::get_taxonomy_count($taxonomy, $post_categories, $tax_count);
+		if ( isset( $post_categories[ $taxonomy . $tax_count ] ) ) {
+			$tax_count++;
+			$tax_count = self::get_taxonomy_count( $taxonomy, $post_categories, $tax_count );
         }
         return $tax_count;
     }
@@ -541,7 +554,7 @@ $(document.getElementById('<?php echo $datepicker ?>')).change(function(){frmFro
         return $back;
     }
 
-    public static function get_prev_button($form, $class=''){
+    public static function get_prev_button( $form, $class = '' ) {
         $html = '[if back_button]<input type="submit" value="[back_label]" name="frm_prev_page" formnovalidate="formnovalidate" class="frm_prev_page '. $class .'" [back_hook] />[/if back_button]';
         return self::get_draft_button( $form, $class, $html, 'back_button' );
     }
@@ -557,7 +570,7 @@ $(document.getElementById('<?php echo $datepicker ?>')).change(function(){frmFro
             return;
         }
 
-        $message = isset($form->options['draft_msg']) ? $form->options['draft_msg'] : __('Your draft has been saved.', 'formidable');
+        $message = isset($form->options['draft_msg']) ? $form->options['draft_msg'] : __( 'Your draft has been saved.', 'formidable' );
         $message = apply_filters('frm_content', $message, $form, $record);
         $message = wpautop( do_shortcode($message) );
     }
@@ -587,7 +600,7 @@ $(document.getElementById('<?php echo $datepicker ?>')).change(function(){frmFro
         global $wpdb;
 
         if ( $single ) {
-            $included = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_fields WHERE form_id=%d AND type=%s", $form_id, $type));
+            $included = FrmDb::get_var( 'frm_fields', array( 'form_id' => $form_id, 'type' => $type) );
             if ( $included ) {
                 $included = FrmField::getOne($included);
             }
@@ -598,10 +611,10 @@ $(document.getElementById('<?php echo $datepicker ?>')).change(function(){frmFro
         return $included;
     }
 
-    /*
-    * @since 2.0
-    * @return array of repeatable section fields
-    */
+    /**
+     * @since 2.0
+     * @return array of repeatable section fields
+     */
     public static function has_repeat_field($form_id, $single = true) {
         $fields = self::has_field('divider', $form_id, $single);
         if ( ! $fields ) {

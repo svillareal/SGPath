@@ -1,9 +1,11 @@
 <?php
 
-for ($i=$week_begins; $i<($maxday+$startday); $i++){
+for ( $i = $week_begins; $i < ( $maxday+$startday ); $i++ ) {
     $pos = $i % 7;
     $end_tr = false;
-    if($pos == $week_begins ) echo "<tr>\n";
+	if ( $pos == $week_begins ) {
+		echo "<tr>\n";
+	}
 
     $day = $i - $startday + 1;
 
@@ -11,20 +13,22 @@ for ($i=$week_begins; $i<($maxday+$startday); $i++){
     $day_class = '';
 
     //check for today
-    if(isset($today) and $day == $today)
+	if ( isset( $today ) && $day == $today ) {
         $day_class .= ' frmcal-today';
+	}
 
-    if(($pos == $week_begins) or ($pos == $week_ends))
+	if ( $pos == $week_begins || $pos == $week_ends ) {
         $day_class .= ' frmcal-week-end';
+	}
 
 ?>
 <td<?php echo ( ! empty($day_class) ) ? ' class="'. $day_class .'"' : ''; ?>><div class="frmcal_date"><?php
 echo isset($day_names[$i]) ? $day_names[$i] .' ' : '';
 unset($day_class);
 
-    if(($i < $startday)){
+	if ( $i < $startday ) {
         echo '</div>';
-    }else{
+	} else {
         ?><div class="frmcal_num"><?php echo $day ?></div></div> <div class="frmcal-content">
 <?php
         if ( isset($daily_entries[$i]) && ! empty($daily_entries[$i]) ) {
@@ -37,8 +41,8 @@ unset($day_class);
                     echo '<div class="frm_cal_multi_'. $entry->id .'">'. $this_content .'</div>';
                 } else {
                     // switch [event_date] to [calendar_date] so it can be replaced on each individual date instead of each entry
-                    $new_content = str_replace(array('[event_date]', '[event_date '), array('[calendar_date]', '[calendar_date '), $new_content);
-                    $this_content = apply_filters('frm_display_entry_content', $new_content, $entry, $shortcodes, $display, $show, '', array('event_date' => $current_entry_date));
+                    $new_content = str_replace( array( '[event_date]', '[event_date '), array( '[calendar_date]', '[calendar_date '), $new_content);
+                    $this_content = apply_filters('frm_display_entry_content', $new_content, $entry, $shortcodes, $display, $show, '', array( 'event_date' => $current_entry_date));
 
                     $used_entries[$entry->id] = $this_content;
                     $this_content = FrmProFieldsHelper::replace_calendar_date_shortcode($this_content, $current_entry_date);
@@ -52,7 +56,7 @@ unset($day_class);
     ?></div>
 </td>
 <?php
-    if($pos == $week_ends ){
+	if ( $pos == $week_ends ) {
         $end_tr = true;
         echo "</tr>\n";
     }

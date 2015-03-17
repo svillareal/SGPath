@@ -142,7 +142,7 @@ class FrmProHooksController{
         // enqueue right before scripts are printed
         add_action('admin_footer', 'FrmProEntriesController::enqueue_footer_js', 19);
         // print our scripts after js files have been loaded
-        add_action('admin_footer', 'FrmProEntriesController::footer_js', 20);
+        add_action('admin_print_footer_scripts', 'FrmProEntriesController::footer_js', 40);
 
         add_action('frm_after_show_entry', 'FrmProEntriesController::show_comments');
         add_action('frm_show_entry_publish_box', 'FrmProEntriesController::add_duplicate_link');
@@ -182,7 +182,7 @@ class FrmProHooksController{
         add_action('frm_form_action_settings', 'FrmProFormActionsController::fill_action_options', 10, 2);
 
         // Forms Controller
-        if ( FrmAppHelper::is_admin_page('formidable') ) {
+        if ( FrmAppHelper::is_admin_page('formidable' ) ) {
             // form builder page hooks
             add_action('frm_noallow_class', 'FrmProFormsController::noallow_class');
             add_action('frm_extra_form_instruction_tabs', 'FrmProFormsController::instruction_tabs');
@@ -267,8 +267,7 @@ class FrmProHooksController{
         // Fields Controller
         add_action('wp_ajax_frm_get_field_selection', 'FrmProFieldsController::get_field_selection');
         add_action('wp_ajax_frm_get_field_values', 'FrmProFieldsController::get_field_values');
-        add_action('wp_ajax_frm_get_cat_opts', 'FrmProFieldsController::get_cat_opts');
-        add_action('wp_ajax_frm_get_title_opts', 'FrmProFieldsController::get_title_opts');
+        add_action('wp_ajax_frm_get_dynamic_widget_opts', 'FrmProFieldsController::get_dynamic_widget_opts');
         add_action('wp_ajax_frm_fields_ajax_get_data', 'FrmProFieldsController::ajax_get_data');
         add_action('wp_ajax_nopriv_frm_fields_ajax_get_data', 'FrmProFieldsController::ajax_get_data');
         add_action('wp_ajax_frm_fields_ajax_data_options', 'FrmProFieldsController::ajax_data_options');
@@ -283,6 +282,7 @@ class FrmProHooksController{
         add_action('wp_ajax_frm_add_form_logic_row', 'FrmProFormActionsController::_logic_row');
         add_action('wp_ajax_frm_add_postmeta_row', 'FrmProFormActionsController::_postmeta_row');
         add_action('wp_ajax_frm_add_posttax_row', 'FrmProFormActionsController::_posttax_row');
+        add_action('wp_ajax_frm_replace_posttax_options', 'FrmProFormActionsController::_replace_posttax_options');
 
         // Forms Controller
         add_action('wp_ajax_frm_add_form_row', 'FrmProFormsController::add_form_row');

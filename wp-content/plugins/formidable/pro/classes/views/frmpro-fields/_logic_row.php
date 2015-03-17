@@ -3,14 +3,15 @@
     <option value=""><?php _e( '&mdash; Select &mdash;' ) ?></option>
     <?php
     $sel = false;
-    foreach ($form_fields as $ff){
+	foreach ( $form_fields as $ff ) {
         if ( $ff->id == $field['id'] || FrmFieldsHelper::is_no_save_field($ff->type) || in_array($ff->type, array( 'file', 'rte', 'date')) || ( $ff->type == 'data' && ( ! isset($ff->field_options['data_type']) || $ff->field_options['data_type'] == 'data' || $ff->field_options['data_type'] == '' ) ) ) {
             continue;
         }
 
-        $selected = ($ff->id == $hide_field) ? ' selected="selected"' : '';
-        if(!empty($selected))
+		$selected = ( $ff->id == $hide_field ) ? ' selected="selected"' : '';
+		if ( ! empty( $selected ) ) {
             $sel = true;
+		}
     ?>
     <option value="<?php echo esc_attr( $ff->id ) ?>"<?php echo $selected ?>><?php echo esc_html( FrmAppHelper::truncate($ff->name, 24) ); ?></option>
     <?php } ?>
@@ -18,19 +19,19 @@
 <?php
 if ( $hide_field && ! $sel ) {
 //remove conditional logic if the field doesn't exist ?>
-<script type="text/javascript">jQuery(document).ready(function($){ $('#frm_logic_<?php echo (int) $field['id'] ?>_<?php echo esc_attr( $meta_name ) ?> .frm_remove_tag').click(); });</script>
+<script type="text/javascript">jQuery(document).ready(frmAdminBuild.triggerRemoveLogic(<?php echo (int) $field['id'] ?>, '<?php echo esc_attr( $meta_name ) ?>'););</script>
 <?php
 }
-_e('is', 'formidable');
+_e( 'is', 'formidable' );
 $field['hide_field_cond'][$meta_name] = htmlspecialchars_decode($field['hide_field_cond'][$meta_name]); ?>
 
 <select name="field_options[hide_field_cond_<?php echo esc_attr( $field['id'] ) ?>][]">
-    <option value="==" <?php selected($field['hide_field_cond'][$meta_name], '==') ?>><?php _e('equal to', 'formidable') ?></option>
-    <option value="!=" <?php selected($field['hide_field_cond'][$meta_name], '!=') ?>><?php _e('NOT equal to', 'formidable') ?> &nbsp;</option>
-    <option value=">" <?php selected($field['hide_field_cond'][$meta_name], '>') ?>><?php _e('greater than', 'formidable') ?></option>
-    <option value="<" <?php selected($field['hide_field_cond'][$meta_name], '<') ?>><?php _e('less than', 'formidable') ?></option>
-    <option value="LIKE" <?php selected($field['hide_field_cond'][$meta_name], 'LIKE') ?>><?php _e('like', 'formidable') ?></option>
-    <option value="not LIKE" <?php selected($field['hide_field_cond'][$meta_name], 'not LIKE') ?>><?php _e('not like', 'formidable') ?> &nbsp;</option>
+    <option value="==" <?php selected($field['hide_field_cond'][$meta_name], '==') ?>><?php _e( 'equal to', 'formidable' ) ?></option>
+    <option value="!=" <?php selected($field['hide_field_cond'][$meta_name], '!=') ?>><?php _e( 'NOT equal to', 'formidable' ) ?> &nbsp;</option>
+    <option value=">" <?php selected($field['hide_field_cond'][$meta_name], '>') ?>><?php _e( 'greater than', 'formidable' ) ?></option>
+    <option value="<" <?php selected($field['hide_field_cond'][$meta_name], '<') ?>><?php _e( 'less than', 'formidable' ) ?></option>
+    <option value="LIKE" <?php selected($field['hide_field_cond'][$meta_name], 'LIKE') ?>><?php _e( 'like', 'formidable' ) ?></option>
+    <option value="not LIKE" <?php selected($field['hide_field_cond'][$meta_name], 'not LIKE') ?>><?php _e( 'not like', 'formidable' ) ?> &nbsp;</option>
 </select>
 
 <span id="frm_show_selected_values_<?php echo esc_attr( $field['id'] .'_'. $meta_name ) ?>">

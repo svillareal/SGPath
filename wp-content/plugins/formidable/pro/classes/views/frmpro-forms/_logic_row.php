@@ -1,5 +1,5 @@
 <div id="<?php echo $id ?>" class="frm_logic_row frm_logic_row_<?php echo $key ?>">
-<select name="<?php echo $names['hide_field'] ?>" <?php if ( !empty($onchange)) { ?>onchange="<?php echo $onchange ?>"<?php } ?>>
+<select name="<?php echo $names['hide_field'] ?>" <?php if ( ! empty( $onchange ) ) { ?>onchange="<?php echo $onchange ?>"<?php } ?>>
     <option value=""><?php _e( '&mdash; Select &mdash;' ) ?></option>
     <?php
     foreach ( $form_fields as $ff ) {
@@ -18,15 +18,15 @@
         unset($ff);
         } ?>
 </select>
-<?php _e('is', 'formidable'); ?>
+<?php _e( 'is', 'formidable' ); ?>
 
 <select name="<?php echo $names['hide_field_cond'] ?>">
-    <option value="==" <?php selected($condition['hide_field_cond'], '==') ?>><?php _e('equal to', 'formidable') ?></option>
-    <option value="!=" <?php selected($condition['hide_field_cond'], '!=') ?>><?php _e('NOT equal to', 'formidable') ?> &nbsp;</option>
-    <option value=">" <?php selected($condition['hide_field_cond'], '>') ?>><?php _e('greater than', 'formidable') ?></option>
-    <option value="<" <?php selected($condition['hide_field_cond'], '<') ?>><?php _e('less than', 'formidable') ?></option>
-    <option value="LIKE" <?php selected($condition['hide_field_cond'], 'LIKE') ?>><?php _e('like', 'formidable') ?></option>
-    <option value="not LIKE" <?php selected($condition['hide_field_cond'], 'not LIKE') ?>><?php _e('not like', 'formidable') ?> &nbsp;</option>
+    <option value="==" <?php selected($condition['hide_field_cond'], '==') ?>><?php _e( 'equal to', 'formidable' ) ?></option>
+    <option value="!=" <?php selected($condition['hide_field_cond'], '!=') ?>><?php _e( 'NOT equal to', 'formidable' ) ?> &nbsp;</option>
+    <option value=">" <?php selected($condition['hide_field_cond'], '>') ?>><?php _e( 'greater than', 'formidable' ) ?></option>
+    <option value="<" <?php selected($condition['hide_field_cond'], '<') ?>><?php _e( 'less than', 'formidable' ) ?></option>
+    <option value="LIKE" <?php selected($condition['hide_field_cond'], 'LIKE') ?>><?php _e( 'like', 'formidable' ) ?></option>
+    <option value="not LIKE" <?php selected($condition['hide_field_cond'], 'not LIKE') ?>><?php _e( 'not like', 'formidable' ) ?> &nbsp;</option>
 </select>
 
 <span id="frm_show_selected_values_<?php echo $key ?>_<?php echo $meta_name ?>">
@@ -37,7 +37,7 @@
 
     $val = isset($condition['hide_opt']) ? $condition['hide_opt'] : '';
     if ( ! isset($field) ) {
-        $field = array('hide_opt' => array($meta_name => $val));
+        $field = array( 'hide_opt' => array($meta_name => $val));
     }
     $field_name = $names['hide_opt'];
 

@@ -7,7 +7,7 @@
         <input type="<?php echo $field['type'] ?>" name="<?php echo $field_name ?><?php echo ($field['type'] == 'checkbox')? '[' . $opt_key . ']':''; ?>" <?php echo isset($checked)? $checked : ''; ?> value="<?php echo esc_attr($field_val) ?>"/>
     <?php } ?>
 
-    <label class="frm_ipe_field_option field_<?php echo $field['id']?>_option" id="field_<?php echo  $field['id']?>-<?php echo $opt_key ?>"><?php echo ($opt == '') ? __('(Blank)', 'formidable') : $opt ?></label>
+    <label class="frm_ipe_field_option field_<?php echo $field['id']?>_option" id="field_<?php echo  $field['id']?>-<?php echo $opt_key ?>"><?php echo ($opt == '') ? __( '(Blank)', 'formidable' ) : $opt ?></label>
 
     <?php
     // Other Text field

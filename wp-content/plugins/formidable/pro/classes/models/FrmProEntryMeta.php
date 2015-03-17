@@ -17,15 +17,15 @@ class FrmProEntryMeta{
     }
 
     /**
-    * Upload files and add new tags
-    *
-    * @since 2.0
-    * @param $values array (posted values)
-    * @param $field_id integer
-    * @param $entry_id integer
-    * @return $values array
-    *
-    */
+     * Upload files and add new tags
+     *
+     * @since 2.0
+     * @param array $values posted values
+     * @param integer $field_id
+     * @param integer $entry_id
+     * @return array $values
+     *
+     */
     public static function prepare_data_before_db( $values, $field_id, $entry_id ){
         // If confirmation field, exit now
         if ( ! is_numeric( $field_id ) ) {
@@ -66,7 +66,7 @@ class FrmProEntryMeta{
             $slug = sanitize_title($tag);
             if ( ! isset($_POST['frm_wp_post']) ) {
                 if ( ! term_exists($slug, $tax_type) ) {
-                    wp_insert_term( trim($tag), $tax_type, array('slug' => $slug));
+                    wp_insert_term( trim($tag), $tax_type, array( 'slug' => $slug));
                 }
             }
 
@@ -86,7 +86,7 @@ class FrmProEntryMeta{
         }
 
         if ( $field->type == 'form' ||  $field->type == 'divider' ) {
-            self::validate_embeded_form($errors, $field);
+            self::validate_embeded_form($errors, $field, $args['exclude'] );
         } else if ( $field->type == 'user_id' ) {
             // make sure we have a user ID
             if ( ! is_numeric($value) ) {
@@ -129,9 +129,9 @@ class FrmProEntryMeta{
             return $errors;
         }
         
-        if((($field->type != 'tag' and $value == 0) or ($field->type == 'tag' and $value == '')) and isset($field->field_options['post_field']) and $field->field_options['post_field'] == 'post_category' and $field->required == '1'){
+		if ( ( ( $field->type != 'tag' && $value == 0 ) || ( $field->type == 'tag' && $value == '' ) ) && isset( $field->field_options['post_field'] ) && $field->field_options['post_field'] == 'post_category' && $field->required == '1' ) {
             $frm_settings = FrmAppHelper::get_settings();
-            $errors['field'. $field->temp_id] = ( ! isset($field->field_options['blank']) || $field->field_options['blank'] == '' || $field->field_options['blank'] == 'Untitled cannot be blank' ) ? $frm_settings->blank_msg : $field->field_options['blank'];
+			$errors['field' . $field->temp_id ] = ( ! isset( $field->field_options['blank'] ) || $field->field_options['blank'] == '' || $field->field_options['blank'] == 'Untitled cannot be blank' ) ? $frm_settings->blank_msg : $field->field_options['blank'];
         }
 
         //Don't require fields hidden with shortcode fields="25,26,27"
@@ -146,6 +146,9 @@ class FrmProEntryMeta{
 
         //Don't require a field hidden in a conditional page or section heading
         self::validate_child_conditional_field($errors, $field, $value);
+
+		// Don't require a Dynamic Field with no avilable options
+		self::validate_empty_dynamic_field( $errors, $field, $value );
 
         //make sure the [auto_id] is still unique
         self::validate_auto_id($field, $value);
@@ -173,7 +176,7 @@ class FrmProEntryMeta{
             $value = trim($value);
         }
 
-        $validate_fields = array('number', 'phone', 'date');
+        $validate_fields = array( 'number', 'phone', 'date');
         if ( in_array($field->type, $validate_fields) ) {
             $function_name = 'validate_'. $field->type .'_field';
             self::$function_name($errors, $field, $value);
@@ -183,7 +186,7 @@ class FrmProEntryMeta{
         return $errors;
     }
 
-    public static function validate_embeded_form(&$errors, $field) {
+    public static function validate_embeded_form(&$errors, $field, $exclude = array()) {
         // If this is a section, but not a repeating section, exit now
         if ( $field->type == 'divider' && ! FrmProFieldsHelper::is_repeating_field($field) ) {
             return;
@@ -196,10 +199,10 @@ class FrmProEntryMeta{
             return;
         }
 
-        $where = apply_filters('frm_posted_field_ids', 'fi.form_id in ('. implode(',', array_filter($subforms, 'is_numeric')) .')');
-        /*if ( $exclude ) {
-            $where .= " and fi.type not in ('". implode("','", $exclude) ."')";
-        }*/
+        $where = apply_filters('frm_posted_field_ids', array( 'fi.form_id' => $subforms ) );
+        if ( ! empty( $exclude ) ) {
+            $where['fi.type not'] = $exclude;
+        }
 
         $subfields = FrmField::getAll($where, 'field_order');
         unset($where);
@@ -207,7 +210,7 @@ class FrmProEntryMeta{
         foreach ( $subfields as $subfield ) {
             if ( isset($_POST['item_meta'][$field->id]) ){
                 foreach ( $_POST['item_meta'][$field->id] as $k => $values ) {
-                    if ( ! empty($k) && in_array($k, array('form', 'id')) ) {
+                    if ( ! empty($k) && in_array($k, array( 'form', 'id')) ) {
                         continue;
                     }
 
@@ -235,8 +238,9 @@ class FrmProEntryMeta{
         }
 
         $file_name = 'file'. $field->id;
-        if ( isset($args['key_pointer']) && $args['key_pointer'] ) {
-            $file_name .= '-'. $args['key_pointer'];
+
+        if ( isset( $args['key_pointer'] ) && ( $args['key_pointer'] || $args['key_pointer'] === 0 ) ) {
+            $file_name .= '-' . $args['key_pointer'];
         }
 
         if ( ! isset($_FILES[$file_name]) ) {
@@ -265,6 +269,7 @@ class FrmProEntryMeta{
             return;
         }
 
+        // If blank errors are set, remove them since a file was uploaded in this field
         if ( isset($errors['field'. $field->temp_id]) ) {
             unset($errors['field'. $field->temp_id]);
         }
@@ -280,7 +285,7 @@ class FrmProEntryMeta{
 
                 // check allowed file size
                 if ( ! empty($file_uploads['error']) && in_array(1, $file_uploads['error']) ) {
-                    $errors['field'. $field->temp_id] = __('This file is too big', 'formidable');
+                    $errors['field'. $field->temp_id] = __( 'This file is too big', 'formidable' );
                 }
 
                 if ( empty($name) ) {
@@ -298,33 +303,33 @@ class FrmProEntryMeta{
         } else {
             // check allowed file size
             if ( ! empty($file_uploads['error']) && in_array(1, $file_uploads['error']) ) {
-                $errors['field'. $field->temp_id] = __('This file is too big', 'formidable');
+                $errors['field'. $field->temp_id] = __( 'This file is too big', 'formidable' );
             }
 
             $file_type = wp_check_filetype( $file_uploads['name'], $mimes );
         }
 
         if ( isset($file_type) && ! $file_type['ext'] ) {
-            $errors['field'. $field->temp_id] = ($field->field_options['invalid'] == __('This field is invalid', 'formidable') || $field->field_options['invalid'] == '' || $field->field_options['invalid'] == $field->name.' '. __('is invalid', 'formidable')) ? __('Sorry, this file type is not permitted for security reasons.', 'formidable') : $field->field_options['invalid'];
+            $errors['field'. $field->temp_id] = ($field->field_options['invalid'] == __( 'This field is invalid', 'formidable' ) || $field->field_options['invalid'] == '' || $field->field_options['invalid'] == $field->name.' '. __( 'is invalid', 'formidable' )) ? __( 'Sorry, this file type is not permitted for security reasons.', 'formidable' ) : $field->field_options['invalid'];
         }
     }
 
-    /*
-    * Remove any errors set on fields with no input
-    * Also set global to indicate whether section is hidden
-    */
+    /**
+     * Remove any errors set on fields with no input
+     * Also set global to indicate whether section is hidden
+     */
     public static function validate_no_input_fields(&$errors, $field) {
-        if ( ! in_array($field->type, array('break', 'html', 'divider', 'end_divider')) ) {
+        if ( ! in_array($field->type, array( 'break', 'html', 'divider', 'end_divider')) ) {
             return;
         }
 
         $hidden = FrmProFieldsHelper::is_field_hidden($field, stripslashes_deep($_POST));
         if ( $field->type == 'break' ) {
             global $frm_hidden_break;
-            $frm_hidden_break = array('field_order' => $field->field_order, 'hidden' => $hidden);
+            $frm_hidden_break = array( 'field_order' => $field->field_order, 'hidden' => $hidden);
         } else if ( $field->type == 'divider' ) {
             global $frm_hidden_divider;
-            $frm_hidden_divider = array('field_order' => $field->field_order, 'hidden' => $hidden);
+            $frm_hidden_divider = array( 'field_order' => $field->field_order, 'hidden' => $hidden);
         }
 
         if ( isset($errors['field'. $field->temp_id]) ) {
@@ -345,9 +350,9 @@ class FrmProEntryMeta{
         }
     }
 
-    /*
-    * Don't require a conditionally hidden field
-    */
+    /**
+     * Don't require a conditionally hidden field
+     */
     public static function validate_conditional_field(&$errors, $field, &$value) {
         if ( ! isset($field->field_options['hide_field']) || empty($field->field_options['hide_field']) ) {
             return;
@@ -361,9 +366,9 @@ class FrmProEntryMeta{
         }
     }
 
-    /*
-    * Don't require a field hidden in a conditional page or section heading
-    */
+    /**
+     * Don't require a field hidden in a conditional page or section heading
+     */
     public static function validate_child_conditional_field(&$errors, $field, &$value) {
         if ( ! isset($errors['field'. $field->temp_id]) && $value == '' ) {
             return;
@@ -378,9 +383,55 @@ class FrmProEntryMeta{
         }
     }
 
-    /*
-    * Make sure the [auto_id] is still unique
-    */
+	/**
+	* Don't require a dynamic field that has no options
+	*/
+	public static function validate_empty_dynamic_field(&$errors, $field, $value) {
+		// Leave now if we are not validating an empty, required, dependent Dynamic field
+		if ( $field->type == 'data' && $field->field_options['hide_field'] && $field->required == '1' && empty( $value ) ) {
+
+			// Loop through all conditional logic on this field and check for Dynamic parents
+			foreach ( $field->field_options['hide_field'] as $key => $condition_field ) {
+
+				// Check if conditional logic depends on another Dynamic field
+				$dynamic_parent = FrmField::getOne( $condition_field );
+				if ( $dynamic_parent->type != 'data' ) {
+					return;
+				}
+
+				// Get linked field data
+				$selected_field_id = $field->field_options['form_select'];
+				if ( ! is_numeric( $selected_field_id ) ) {
+					// TODO: Set this up for hierachical taxonomies as well
+					return;
+				}
+				$data_field = FrmField::getOne( $selected_field_id );
+
+				// Get value from previous Dynamic field
+				$parent_val = $field->field_options['hide_opt'][$key];
+		        // Makes sure this works with multi-select and non multi-select fields
+		        if ( ! is_array( $parent_val ) ) {
+		            $parent_val = explode(',', $parent_val);
+		        }
+
+				// If this is a regular dynamic field
+				if ( is_numeric( $selected_field_id ) ) {
+		            $metas = array();
+		            FrmProEntryMetaHelper::meta_through_join( $condition_field, $data_field, $parent_val, $field, $metas);
+					$metas = stripslashes_deep($metas);error_log('metas');error_log(print_r($metas,1));
+					if ( empty( $metas ) ) {
+						unset($errors['field'. $field->temp_id]);
+						return;
+					}
+				}
+				unset( $key, $condition_field);
+			}
+		}
+	}
+
+    /**
+     * Make sure the [auto_id] is still unique
+     */
     public static function validate_auto_id($field, &$value) {
         if ( empty($field->default_value) || is_array($field->default_value) || empty($value) || ! is_numeric($value) || strpos($field->default_value, '[auto_id') === false ) {
             return;
@@ -392,8 +443,10 @@ class FrmProEntryMeta{
         }
     }
 
+    /**
+     * Make sure this value is unique
+     */
     public static function validate_unique_field(&$errors, $field, $value) {
-        //check uniqueness
         if ( empty($value) || ! isset($field->field_options['unique']) || ! $field->field_options['unique'] ) {
             return;
         }
@@ -450,7 +503,7 @@ class FrmProEntryMeta{
         //If editing entry or if user hits Next/Submit on a draft
         if ( $args['action'] == 'update' ) {
             //If in repeating section
-            if ( isset( $args['key_pointer'] ) && $args['key_pointer'] ) {
+            if ( isset( $args['key_pointer'] ) && ( $args['key_pointer'] || $args['key_pointer'] === 0 ) ) {
                 $entry_id = str_replace( 'i', '', $args['key_pointer'] );
             } else {
                 $entry_id = ( $_POST && isset($_POST['id']) ) ? $_POST['id'] : false;
@@ -459,12 +512,12 @@ class FrmProEntryMeta{
             $prev_value = FrmEntryMeta::get_entry_meta_by_field($entry_id, $field->id);
 
             if ( $prev_value != $value && $conf_val != $value ) {
-                $errors['conf_field'. $field->temp_id] = isset($field->field_options['conf_msg']) ? $field->field_options['conf_msg'] : __('The entered values do not match', 'formidable');
+                $errors['conf_field'. $field->temp_id] = isset($field->field_options['conf_msg']) ? $field->field_options['conf_msg'] : __( 'The entered values do not match', 'formidable' );
                 $errors['field' . $field->temp_id] = '';
             }
         } else if ( $args['action'] == 'create' && $conf_val != $value ) {
             //If creating entry
-            $errors['conf_field'. $field->temp_id] = isset($field->field_options['conf_msg']) ? $field->field_options['conf_msg'] : __('The entered values do not match', 'formidable');
+            $errors['conf_field'. $field->temp_id] = isset($field->field_options['conf_msg']) ? $field->field_options['conf_msg'] : __( 'The entered values do not match', 'formidable' );
             $errors['field' . $field->temp_id] = '';
         }
     }
@@ -486,9 +539,9 @@ class FrmProEntryMeta{
 		    if ( $frm_settings->use_html && isset($field->field_options['minnum']) && isset($field->field_options['maxnum']) ) {
 		        //minnum maxnum
 		        if ( (float) $value < $field->field_options['minnum'] ) {
-		            $errors['field'. $field->temp_id] = __('Please select a higher number', 'formidable');
+		            $errors['field'. $field->temp_id] = __( 'Please select a higher number', 'formidable' );
 		        } else if ( (float) $value > $field->field_options['maxnum'] ) {
-		            $errors['field'. $field->temp_id] = __('Please select a lower number', 'formidable');
+		            $errors['field'. $field->temp_id] = __( 'Please select a lower number', 'formidable' );
 		        }
 		    }
 
@@ -548,10 +601,9 @@ class FrmProEntryMeta{
     * Get media ID(s) to be saved to database and set global media ID values
     *
     * @since 2.0
-    * @param $values array (posted values)
-    * @param $field_id integer
-    * @param $entry_id integer
-    * @return $values array
+    * @param array $values (posted values), pass by reference
+    * @param integer $field_id
+    * @param integer $entry_id
     *
     */
     private static function prepare_file_upload_meta( &$values, $field, $entry_id ) {
@@ -612,9 +664,9 @@ class FrmProEntryMeta{
     /**
     *
     * @since 2.0
-    * @param $field_id
+    * @param int $field_id
     * @param $new_value to set
-    * @param $args array with repeating, key_pointer, and parent_field
+    * @param array $args array with repeating, key_pointer, and parent_field
     */
     private static function set_file_posted_vals( $field_id, $new_value, $args = array() ) {
         // If in repeating section
@@ -632,9 +684,9 @@ class FrmProEntryMeta{
     *
     * @since 2.0
     * @param $media_ids, usually array
-    * @param $field object
-    * @param $values array to save to database
-    * @return $mids array of numeric media ids
+    * @param object $field
+    * @param array $values array to save to database
+    * @return array $mids array of numeric media ids
     */
     private static function get_final_media_ids( $media_ids, $field, &$values ) {
         $mids = array();
@@ -683,11 +735,11 @@ class FrmProEntryMeta{
     * Get name of uploaded file
     *
     * @since 2.0
-    * @param $field_id integer
-    * @param $file_name string, pass by reference
-    * @param $parent_field. Retrieves ID of repeating section.
+    * @param integer $field_id
+    * @param string $file_name pass by reference
+    * @param int $parent_field. Retrieves ID of repeating section.
     * @param $key_pointer. Gets pointer if in repeating section.
-    * @param $repeating boolean. Tells whether field is inside of repeating section.
+    * @param boolean $repeating Tells whether field is inside of repeating section.
     *
     */
     public static function get_file_name( $field_id, &$file_name, &$parent_field, &$key_pointer, &$repeating ) {
@@ -709,38 +761,42 @@ class FrmProEntryMeta{
         }
     }
 
-    /*
-    * Get metas for post or non-post fields
-    *
-    * @since 2.0
-    */
-    public static function get_all_metas_for_field( $field, $args=array() ){
+    /**
+     * Get metas for post or non-post fields
+     *
+     * @since 2.0
+     */
+    public static function get_all_metas_for_field( $field, $args = array() ) {
         global $wpdb;
 
-        // If field is not a post field
+		$query = array();
+
         if ( ! isset( $field->field_options['post_field'] ) || ! $field->field_options['post_field'] ) {
-            $query = 'SELECT em.meta_value FROM '. $wpdb->prefix .'frm_item_metas em ';
-            $query .= 'INNER JOIN '. $wpdb->prefix .'frm_items e ON (e.id=em.item_id)';
-            $query .= $wpdb->prepare('WHERE em.field_id=%d', $field->id) . ' AND e.is_draft=0';
+			// If field is not a post field
+			$get_field = 'em.meta_value';
+			$get_table = $wpdb->prefix .'frm_item_metas em INNER JOIN '. $wpdb->prefix .'frm_items e ON (e.id=em.item_id)';
 
-        // If field is a custom field
+			$query['em.field_id'] = $field->id;
+			$query['e.is_draft'] = 0;
         } else if ( $field->field_options['post_field'] == 'post_custom' ) {
-            $query = "SELECT pm.meta_value FROM " . $wpdb->postmeta . " pm";
-            $query .= " INNER JOIN " . $wpdb->prefix . "frm_items e ON pm.post_id=e.post_id";
+			// If field is a custom field
+			$get_field = 'pm.meta_value';
+			$get_table = $wpdb->postmeta . ' pm INNER JOIN ' . $wpdb->prefix . 'frm_items e ON pm.post_id=e.post_id';
+
             $query .= " WHERE pm.meta_key='" . $field->field_options['custom_field'] . "'";
+			$query['pm.meta_key'] = $field->field_options['custom_field'];
 
             // Make sure to only get post metas that are linked to this form
-            $query .= " AND e.form_id=" . $field->form_id;
-
-        // If field is a non-category post field
+			$query['e.form_id'] = $field->form_id;
         } else if ( $field->field_options['post_field'] != 'post_category'){
-            $query = "SELECT p." . $field->field_options['post_field'] . " FROM " . $wpdb->posts . " p";
-            $query .= " INNER JOIN " . $wpdb->prefix . "frm_items e ON p.ID=e.post_id";
-            // Make sure to only get post metas that are linked to this form
-            $query .= " WHERE e.form_id=" . $field->form_id;
+			// If field is a non-category post field
+			$get_field = 'p.' . sanitize_title( $field->field_options['post_field'] );
+			$get_table = $wpdb->posts . ' p INNER JOIN ' . $wpdb->prefix . 'frm_items e ON p.ID=e.post_id';
 
-        // If field is a category field
+            // Make sure to only get post metas that are linked to this form
+			$query['e.form_id'] = $field->form_id;
         } else {
+			// If field is a category field
             //TODO: Make this work
             return array();
             //$field_options = FrmProFieldsHelper::get_category_options( $field );
@@ -749,11 +805,8 @@ class FrmProEntryMeta{
         // Add queries for additional args
         self::add_meta_query( $query, $args );
 
-        // Cache it
-        $cache_key = 'all_metas_for_field_'. $field->id . maybe_serialize($args);
-
         // Get the metas
-        $metas = FrmAppHelper::check_cache( $cache_key, 'frm_entry', $query, 'get_col' );
+		$metas = FrmDb::get_col( $get_table, $query, $get_field );
 
         // Maybe unserialize
         foreach ( $metas as $k => $v ) {
@@ -768,28 +821,25 @@ class FrmProEntryMeta{
     }
 
     public static function add_meta_query( &$query, $args ) {
-        global $wpdb;
 
         // If entry IDs is set
         if ( isset( $args['entry_ids'] ) ) {
-            $query .= ' AND e.id in (' . implode( ',', $args['entry_ids'] ) . ')';
+            $query['e.id'] = $args['entry_ids'];
         }
 
         // If user ID is set
         if ( isset( $args['user_id'] ) ) {
-            $query .= $wpdb->prepare( ' AND e.user_id=%d', $args['user_id'] );
+            $query['e.user_id'] = $args['user_id'];
         }
 
         // If start date is set
         if ( isset( $args['start_date'] ) ) {
-            $start_date = $wpdb->prepare('%s', date('Y-m-d', strtotime( $args['start_date'] ) ) );
-            $query .= ' AND e.created_at>=' . $start_date;
+            $query['e.created_at >'] = date( 'Y-m-d', strtotime( $args['start_date'] ) );
         }
 
         // If end date is set
         if ( isset( $args['end_date'] ) ) {
-            $end_date = $wpdb->prepare('%s', date('Y-m-d 23:59:59', strtotime( $args['end_date'] )));
-            $query .= ' AND e.created_at<=' . $end_date;
+            $query['e.created_at <'] = date( 'Y-m-d 23:59:59', strtotime( $args['end_date'] ) );
         }
     }
 

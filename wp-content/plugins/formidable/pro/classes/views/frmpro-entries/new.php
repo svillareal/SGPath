@@ -1,14 +1,14 @@
 <div id="form_entries_page" class="wrap">
     <div class="frmicon icon32"><br/></div>
-    <h2 style="height:34px;"><?php _e('Add New Entry', 'formidable'); ?></h2>
+    <h2 style="height:34px;"><?php _e( 'Add New Entry', 'formidable' ); ?></h2>
 
-    <?php if(empty($values)){ ?>
+    <?php if ( empty( $values ) ) { ?>
     <div class="frm_forms <?php echo FrmFormsHelper::get_form_style_class($form); ?>" id="frm_form_<?php echo (int) $form->id ?>_container">
         <div id="poststuff">
             <div id="post-body" class="metabox-holder columns-2">
             <div id="post-body-content">
             <?php FrmAppController::get_form_nav($form, true); ?>
-            <p class="clear frm_error_style"><strong><?php _e('Oops!', 'formidable') ?></strong> <?php printf(__('You did not add any fields to your form. %1$sGo back%2$s and add some.', 'formidable'), '<br/><a href="'. admin_url('?page=formidable&frm_action=edit&id='. $form->id) .'">', '</a>') ?></p>
+            <p class="clear frm_error_style"><strong><?php _e( 'Oops!', 'formidable' ) ?></strong> <?php printf(__( 'You did not add any fields to your form. %1$sGo back%2$s and add some.', 'formidable' ), '<br/><a href="'. admin_url('?page=formidable&frm_action=edit&id='. $form->id) .'">', '</a>') ?></p>
             </div>
             <?php include(FrmAppHelper::plugin_path() .'/pro/classes/views/frmpro-entries/sidebar-new.php'); ?>
             </div>

@@ -7,11 +7,11 @@ class FrmProPostAction extends FrmFormAction {
 		    'classes'   => 'ab-icon frm_dashicon_font dashicons-before',
             'limit'     => 1,
             'priority'  => 40,
-            'event'     => array('create', 'update'),
+            'event'     => array( 'create', 'update'),
             'force_event' => true,
 		);
 
-		$this->FrmFormAction('wppost', __('Create Post', 'formidable'), $action_ops);
+		$this->FrmFormAction('wppost', __( 'Create Post', 'formidable' ), $action_ops);
 	}
 
 	function form( $form_action, $args = array() ) {
@@ -33,14 +33,18 @@ class FrmProPostAction extends FrmFormAction {
         $display = false;
         $displays = array();
 
-        $display_ids = $wpdb->get_col($wpdb->prepare("SELECT post_ID FROM $wpdb->postmeta WHERE meta_key=%s AND meta_value=%d", 'frm_form_id', $form_id));
+        $display_ids = FrmDb::get_col( $wpdb->postmeta, array( 'meta_key' => 'frm_form_id', 'meta_value' => $form_id), 'post_ID' );
 
         if ( $display_ids ) {
-            $query = "SELECT p.ID, p.post_title FROM $wpdb->posts p LEFT JOIN $wpdb->postmeta pm ON (p.ID = pm.post_ID)
-                    WHERE pm.meta_key='frm_show_count' AND post_type='frm_display'
-                    AND pm.meta_value in ('dynamic','calendar','one') AND p.post_status in ('publish', 'private')
-                    AND p.ID in (". implode(',', $display_ids) .") ORDER BY p.post_title ASC";
-            $displays = $wpdb->get_results($query);
+            $query_args = array(
+                'pm.meta_key' => 'frm_show_count', 'post_type' => 'frm_display',
+                'pm.meta_value' => array( 'dynamic', 'calendar', 'one'),
+                'p.post_status' => array( 'publish', 'private'),
+                'p.ID' => $display_ids,
+            );
+            $displays = FrmDb::get_results(
+                $wpdb->posts .' p LEFT JOIN '. $wpdb->postmeta .' pm ON (p.ID = pm.post_ID)', $query_args, 'p.ID, p.post_title', array( 'order_by' => 'p.post_title ASC')
+            );
 
             if ( isset($form_action->post_content['display_id']) ) {
                 // get view from settings
@@ -82,14 +86,14 @@ class FrmProPostAction extends FrmFormAction {
             'post_status'   => '',
             'post_custom_fields' => array(),
             'post_password' => '',
-            'event'         => array('create', 'update'),
+            'event'         => array( 'create', 'update'),
         );
 	}
 
 	function get_switch_fields() {
 	    return array(
-            'post_category' => array('field_id'),
-            'post_custom_fields' => array('field_id'),
+            'post_category' => array( 'field_id'),
+            'post_custom_fields' => array( 'field_id'),
         );
 	}
 }

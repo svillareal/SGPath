@@ -55,7 +55,7 @@ if ( 'date' == $field['type'] ) {
     <?php } ?>
 </select> :
 <select name="<?php echo esc_attr( $field_name ) ?>[m]" id="<?php echo esc_attr( $html_id ) ?>_m" <?php do_action( 'frm_field_input_html', $field ) ?>>
-    <?php foreach($field['options']['m'] as $min){ ?>
+    <?php foreach ( $field['options']['m'] as $min ) { ?>
         <option value="<?php echo esc_attr( $min ) ?>" <?php selected( $m, $min ) ?>><?php echo $min ?></option>
     <?php } ?>
 </select>
@@ -83,7 +83,7 @@ if ( 'date' == $field['type'] ) {
 ?>
 <input type="text" id="<?php echo esc_attr( $html_id ) ?>" name="<?php echo esc_attr( $field_name ) ?>" value="<?php echo esc_attr( $field['value'] ) ?>" <?php do_action( 'frm_field_input_html', $field ) ?>/>
 <?php
-} else if ( in_array($field['type'], array('number', 'password', 'range')) ) {
+} else if ( in_array($field['type'], array( 'number', 'password', 'range')) ) {
 ?>
 <input type="<?php echo ( $frm_settings->use_html || $field['type'] == 'password' ) ? esc_attr( $field['type'] ) : 'text'; ?>" id="<?php echo esc_attr( $html_id ) ?>" name="<?php echo esc_attr( $field_name ) ?>" value="<?php echo esc_attr( $field['value'] ) ?>" <?php do_action( 'frm_field_input_html', $field ) ?>/>
 <?php
@@ -114,7 +114,7 @@ if ( 'date' == $field['type'] ) {
 <div id="<?php echo user_can_richedit() ? 'postdivrich' : 'postdiv'; ?>" class="postarea frm_full_rte">
 <?php
     wp_editor(str_replace('&quot;', '"', $field['value']), $html_id,
-        array('dfw' => true, 'textarea_name' => $field_name)
+        array( 'dfw' => true, 'textarea_name' => $field_name)
     );
 ?>
 </div>
@@ -123,7 +123,7 @@ if ( 'date' == $field['type'] ) {
 } else if ($field['type'] == 'rte' ) {
 
     if ( ! isset($frm_vars['ajax_edit']) || ! $frm_vars['ajax_edit'] ) {
-        $e_args = array('media_buttons' => false, 'textarea_name' => $field_name);
+        $e_args = array( 'media_buttons' => false, 'textarea_name' => $field_name);
         if ( $field['max'] ) {
             $e_args['textarea_rows'] = $field['max'];
         }

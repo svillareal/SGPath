@@ -2,7 +2,7 @@
 <div class="wrap">
     <?php FrmStylesHelper::style_menu('custom_css'); ?>
 
-    <p><?php _e('You can add custom css here or in your theme style.css', 'formidable') ?></p>
+    <p><?php _e( 'You can add custom css here or in your theme style.css', 'formidable' ) ?></p>
 
     <?php include(FrmAppHelper::plugin_path() .'/classes/views/shared/errors.php'); ?>
 
@@ -14,7 +14,7 @@
 		<input type="hidden" name="frm_action" value="save_css" />
         <?php wp_nonce_field( 'frm_custom_css_nonce', 'frm_custom_css' ); ?>
 
-        <textarea name="<?php echo esc_attr( $frm_style->get_field_name('custom_css') ) ?>" id="custom_css" class="hide-if-js" style="width:100%;"><?php echo FrmAppHelper::esc_textarea($style->post_content['custom_css']) ?></textarea>
+        <textarea name="<?php echo esc_attr( $frm_style->get_field_name('custom_css') ) ?>" id="frm_custom_css_box" class="hide-if-js"><?php echo FrmAppHelper::esc_textarea($style->post_content['custom_css']) ?></textarea>
 
         <?php
         foreach ( $style->post_content as $k => $v ) {
@@ -25,7 +25,7 @@
         <input type="hidden" value="<?php echo esc_attr($v) ?>" name="<?php echo esc_attr( $frm_style->get_field_name( $k ) ) ?>" />    
         <?php
         } ?>
-		<p class="button-controls"><input type="submit" name="nav-menu-locations" id="nav-menu-locations" class="button button-primary left" value="<?php _e('Save Changes', 'formidable') ?>"  /></p>
+		<p class="button-controls"><input type="submit" name="nav-menu-locations" id="nav-menu-locations" class="button button-primary left" value="<?php esc_attr_e( 'Save Changes', 'formidable' ) ?>" /></p>
 
     </form>
 </div>

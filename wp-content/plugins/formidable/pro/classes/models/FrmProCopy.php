@@ -11,7 +11,7 @@ class FrmProCopy{
     public static function create( $values ){
         global $wpdb, $blog_id;
 
-        $exists = $wpdb->query('DESCRIBE '. self::table_name());
+        $exists = $wpdb->query( 'DESCRIBE '. self::table_name() );
         if ( ! $exists ) {
             self::install(true);
         }
@@ -30,7 +30,7 @@ class FrmProCopy{
         }
         $new_values['created_at'] = current_time('mysql', 1);
 
-        $exists = self::getAll(array('blog_id' => $blog_id, 'form_id' => $new_values['form_id'], 'type' => $new_values['type']), '', ' LIMIT 1');
+        $exists = self::getAll( array( 'blog_id' => $blog_id, 'form_id' => $new_values['form_id'], 'type' => $new_values['type']), '', ' LIMIT 1');
         if ( $exists ) {
             return false;
         }
@@ -45,22 +45,17 @@ class FrmProCopy{
 
     public static function destroy( $id ){
       global $wpdb;
-      return $wpdb->delete(self::table_name(), array('id' => $id));
+      return $wpdb->delete(self::table_name(), array( 'id' => $id));
     }
 
-    public static function getAll($where = '', $order_by = '', $limit = ''){
-        global $wpdb;
-        $query = 'SELECT * FROM '. self::table_name() .' '.
-                FrmAppHelper::prepend_and_or_where(' WHERE ', $where) . $order_by . $limit;
-        $method = ( $limit == ' LIMIT 1' ) ? 'get_row' : 'get_results';
+	public static function getAll( $where = array(), $order_by = '', $limit = '' ) {
+		$method = ( $limit == ' LIMIT 1' ) ? 'row' : 'results';
+		$results = FrmDb::get_var( self::table_name(), $where, '*', $args = array( 'order_by' => $order_by ), $limit, $method );
 
-        $cache_key = 'all_'. maybe_serialize($where) . $order_by . $limit;
-        $results = FrmAppHelper::check_cache($cache_key, 'frm_copy', $query, $method);
+		return $results;
+	}
 
-        return $results;
-    }
-
-    public static function install($force=false){
+    public static function install( $force = false ) {
         $db_version = 1.2; // this is the version of the database we're moving to
         $old_db_version = get_site_option('frmpro_copies_db_version');
 
@@ -95,9 +90,9 @@ class FrmProCopy{
         self::copy_forms($force);
     }
 
-    /*
-    * Copy forms that are set to copy from one site to another
-    */
+    /**
+     * Copy forms that are set to copy from one site to another
+     */
     private static function copy_forms($force) {
         if ( ! $force ) { //don't check on every page load
             $last_checked = get_option('frmpro_copies_checked');
@@ -140,7 +135,7 @@ class FrmProCopy{
             }
 
             if ( $values->post_name != $temp->copy_key ) {
-                $wpdb->update(self::table_name(), array('copy_key' => $values->post_name), array('id' => $temp->id) );
+                $wpdb->update(self::table_name(), array( 'copy_key' => $values->post_name), array( 'id' => $temp->id) );
             }
 
             FrmProDisplay::duplicate($temp->form_id, true, $temp->blog_id);

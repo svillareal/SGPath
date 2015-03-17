@@ -12,14 +12,14 @@ class FrmProSettings extends FrmSettings{
     public $date_format;
     public $permalinks;
 
-    /*
-    * @return array
-    */
+    /**
+     * @return array
+     */
     function default_options(){
         return array(
-            'edit_msg'          => __('Your submission was successfully saved.', 'formidable'),
-            'update_value'      => __('Update', 'formidable'),
-            'already_submitted' => __('You have already submitted that form', 'formidable'),
+            'edit_msg'          => __( 'Your submission was successfully saved.', 'formidable' ),
+            'update_value'      => __( 'Update', 'formidable' ),
+            'already_submitted' => __( 'You have already submitted that form', 'formidable' ),
             'rte_off'           => false,
             'csv_format'        => 'UTF-8',
         );

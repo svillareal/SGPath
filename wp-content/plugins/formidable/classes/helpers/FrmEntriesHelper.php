@@ -1,13 +1,15 @@
 <?php
-if(!defined('ABSPATH')) die('You are not allowed to call this page directly.');
+if ( ! defined('ABSPATH') ) {
+	die( 'You are not allowed to call this page directly.' );
+}
 
-class FrmEntriesHelper{
+class FrmEntriesHelper {
 
-    public static function setup_new_vars($fields, $form='', $reset=false){
+    public static function setup_new_vars( $fields, $form = '', $reset = false ) {
         global $frm_vars;
         $values = array();
-        foreach ( array('name' => '', 'description' => '', 'item_key' => '') as $var => $default ) {
-            $values[$var] = FrmAppHelper::get_post_param($var, $default);
+		foreach ( array( 'name' => '', 'description' => '', 'item_key' => '' ) as $var => $default ) {
+            $values[ $var ] = FrmAppHelper::get_post_param( $var, $default );
         }
 
         $values['fields'] = array();
@@ -20,8 +22,8 @@ class FrmEntriesHelper{
             $posted_val = false;
             $new_value = $default;
 
-            if ( ! $reset && $_POST && isset($_POST['item_meta'][$field->id]) && $_POST['item_meta'][$field->id] != '' ) {
-                $new_value = stripslashes_deep($_POST['item_meta'][$field->id]);
+            if ( ! $reset && $_POST && isset( $_POST['item_meta'][ $field->id ] ) && $_POST['item_meta'][ $field->id ] != '' ) {
+                $new_value = stripslashes_deep( $_POST['item_meta'][ $field->id ] );
                 $posted_val = true;
             } else if ( isset($field->field_options['clear_on_focus']) && $field->field_options['clear_on_focus'] ) {
                 $new_value = '';
@@ -57,14 +59,14 @@ class FrmEntriesHelper{
                 'required' => $field->required,
                 'field_key' => $field->field_key,
                 'field_order' => $field->field_order,
-                'form_id' => $field->form_id
+                'form_id' => $field->form_id,
             );
 
             $opt_defaults = FrmFieldsHelper::get_default_field_opts($field_array['type'], $field, true);
             $opt_defaults['required_indicator'] = '';
 
-            foreach ($opt_defaults as $opt => $default_opt){
-                $field_array[$opt] = (isset($field->field_options[$opt]) && $field->field_options[$opt] != '') ? $field->field_options[$opt] : $default_opt;
+			foreach ( $opt_defaults as $opt => $default_opt ) {
+                $field_array[ $opt ] = ( isset( $field->field_options[ $opt ] ) && $field->field_options[ $opt ] != '' ) ? $field->field_options[ $opt ] : $default_opt;
                 unset($opt, $default_opt);
             }
 
@@ -77,13 +79,7 @@ class FrmEntriesHelper{
             }
 
             $field_array = apply_filters('frm_setup_new_fields_vars', $field_array, $field);
-
-            foreach ( (array) $field->field_options as $k => $v ) {
-                if ( ! isset($field_array[$k]) ) {
-                    $field_array[$k] = $v;
-                }
-                unset($k, $v);
-            }
+            $field_array = array_merge( $field->field_options, $field_array );
 
             $values['fields'][] = $field_array;
 
@@ -95,7 +91,7 @@ class FrmEntriesHelper{
         $form->options = maybe_unserialize($form->options);
         if ( is_array($form->options) ) {
             foreach ( $form->options as $opt => $value ) {
-                $values[$opt] = FrmAppHelper::get_post_param($opt, $value);
+                $values[ $opt ] = FrmAppHelper::get_post_param( $opt, $value );
                 unset($opt, $value);
             }
         }
@@ -116,7 +112,7 @@ class FrmEntriesHelper{
         return apply_filters('frm_setup_new_entry', $values);
     }
 
-    public static function setup_edit_vars($values, $record){
+    public static function setup_edit_vars($values, $record) {
         //$values['description'] = maybe_unserialize( $record->description );
         $values['item_key'] = isset($_POST['item_key']) ? $_POST['item_key'] : $record->item_key;
         $values['form_id'] = $record->form_id;
@@ -124,7 +120,7 @@ class FrmEntriesHelper{
         return apply_filters('frm_setup_edit_entry_vars', $values, $record);
     }
 
-    public static function get_admin_params($form=null){
+    public static function get_admin_params( $form = null ) {
         $form_id = $form;
         if ( $form === null ) {
             $form_id = self::get_current_form_id();
@@ -136,22 +132,23 @@ class FrmEntriesHelper{
         foreach ( array(
             'id' => '', 'form_name' => '', 'paged' => 1, 'form' => $form_id,
             'field_id' => '', 'search' => '', 'sort' => '', 'sdir' => '', 'fid' => '',
-            'keep_post' => ''
+            'keep_post' => '',
         ) as $var => $default ) {
-            $values[$var] = FrmAppHelper::get_param($var, $default);
+            $values[ $var ] = FrmAppHelper::get_param( $var, $default );
         }
 
         return $values;
     }
 
-    public static function set_current_form($form_id){
-        global $frm_vars, $wpdb;
+    public static function set_current_form($form_id) {
+		global $frm_vars;
 
-        $query = $wpdb->prepare('is_template=%d AND (status is NULL OR status = %s OR status = %s)', '0', '', 'published');
+		$query = array();
         if ( $form_id ) {
-            $query .= $wpdb->prepare(' AND id = %d', $form_id);
+			$query['id'] = $form_id;
         }
-        $frm_vars['current_form'] = FrmForm::getAll($query, 'name', 1);
+
+        $frm_vars['current_form'] = FrmForm::get_published_forms( $query, 1 );
 
         return $frm_vars['current_form'];
     }
@@ -159,26 +156,26 @@ class FrmEntriesHelper{
     public static function get_current_form($form_id = 0) {
         global $frm_vars, $wpdb;
 
-        if ( isset($frm_vars['current_form']) && $frm_vars['current_form'] ) {
-            if ( ! $form_id || $form_id == $frm_vars['current_form']->id ) {
-                return $frm_vars['current_form'];
-            }
-        }
+		if ( isset($frm_vars['current_form']) && $frm_vars['current_form'] && ( ! $form_id || $form_id == $frm_vars['current_form']->id ) ) {
+			return $frm_vars['current_form'];
+		}
 
-        $form_id = FrmAppHelper::get_param('form', $form_id);
+        $form_id = (int) FrmAppHelper::get_param('form', $form_id);
         return self::set_current_form($form_id);
     }
 
-    public static function get_current_form_id(){
+    public static function get_current_form_id() {
         $form = self::get_current_form();
         $form_id = $form ? $form->id : 0;
 
         return $form_id;
     }
 
-    /*
-    * If $entry is numeric, get the entry object
-    */
+    /**
+     * If $entry is numeric, get the entry object
+     * @param int|object $entry by reference
+     *
+     */
     public static function maybe_get_entry( &$entry ) {
         if ( $entry && is_numeric($entry) ) {
             $entry = FrmEntry::getOne($entry);
@@ -191,7 +188,7 @@ class FrmEntriesHelper{
         }
 
         if ( $atts['default_email'] ) {
-            $values[$f->id] = array('label' => '['. $f->id .' show=field_label]', 'val' => '['. $f->id .']');
+            $values[ $f->id ] = array( 'label' => '['. $f->id .' show=field_label]', 'val' => '['. $f->id .']' );
             return;
         }
 
@@ -202,7 +199,7 @@ class FrmEntriesHelper{
 
         if ( $atts['entry'] && ! isset( $atts['entry']->metas[ $f->id ] ) ) {
             // In case include_blank is set
-            $atts['entry']->metas[$f->id] = '';
+            $atts['entry']->metas[ $f->id ] = '';
 
             if ( FrmAppHelper::pro_is_installed() ) {
                 // If field is a post field
@@ -213,7 +210,7 @@ class FrmEntriesHelper{
                         'exclude_cat' => (isset($f->field_options['exclude_cat']) ? $f->field_options['exclude_cat'] : 0)
                     ));
                     if ( $p_val != '' ) {
-                        $atts['entry']->metas[$f->id] = $p_val;
+                        $atts['entry']->metas[ $f->id ] = $p_val;
                     }
                 }
 
@@ -222,22 +219,22 @@ class FrmEntriesHelper{
                     // get entry ids linked through repeat field or embeded form
                     $child_entries = FrmProEntry::get_sub_entries($atts['entry']->id, true);
                     $val = FrmProEntryMetaHelper::get_sub_meta_values($child_entries, $f);
-                    if ( !empty( $val ) ) {
-                        $atts['entry']->metas[$f->id] = $val;
+                    if ( ! empty( $val ) ) {
+                        $atts['entry']->metas[ $f->id ] = $val;
                     }
                 }
             }
 
             // Don't include blank values
-            if ( ! $atts['include_blank'] && FrmAppHelper::is_empty_value( $atts['entry']->metas[$f->id] ) ) {
+            if ( ! $atts['include_blank'] && FrmAppHelper::is_empty_value( $atts['entry']->metas[ $f->id ] ) ) {
                 return;
             }
         }
 
         $val = '';
         if ( $atts['entry'] ) {
-            $prev_val = maybe_unserialize($atts['entry']->metas[$f->id]);
-            $meta = array('item_id' => $atts['id'], 'field_id' => $f->id, 'meta_value' => $prev_val, 'field_type' => $f->type);
+            $prev_val = maybe_unserialize( $atts['entry']->metas[ $f->id ] );
+            $meta = array( 'item_id' => $atts['id'], 'field_id' => $f->id, 'meta_value' => $prev_val, 'field_type' => $f->type);
 
             //This filter applies to the default-message shortcode and frm-show-entry shortcode only
             if ( isset($atts['filter']) && $atts['filter'] == false ) {
@@ -254,19 +251,19 @@ class FrmEntriesHelper{
         }
 
         if ( $atts['format'] != 'text' ) {
-            $values[$f->field_key] = $val;
+            $values[ $f->field_key ] = $val;
         } else {
-            $values[$f->id] = array('label' => $f->name, 'val' => $val);
+            $values[ $f->id ] = array( 'label' => $f->name, 'val' => $val );
         }
     }
 
-    /*
-    * Replace returns with HTML line breaks for display
-    * @ since 2.0
-    */
+    /**
+     * Replace returns with HTML line breaks for display
+     * @since 2.0
+     */
     public static function textarea_display_value( &$value, $type, $plain_text ) {
         if ( $type == 'textarea' && ! $plain_text ) {
-            $value = str_replace(array("\r\n", "\r", "\n"), ' <br/>', $value);
+            $value = str_replace( array("\r\n", "\r", "\n"), ' <br/>', $value);
         }
     }
 
@@ -295,13 +292,13 @@ class FrmEntriesHelper{
             $values['browser'] = self::get_browser($data['browser']);
             $values['referrer'] = $data['referrer'];
         } else {
-            //$content .= "\r\n\r\n" . __('User Information', 'formidable') ."\r\n";
-            $values['ip'] = array('label' => __('IP Address', 'formidable'), 'val' => $atts['entry']->ip);
+            //$content .= "\r\n\r\n" . __( 'User Information', 'formidable' ) ."\r\n";
+            $values['ip'] = array( 'label' => __( 'IP Address', 'formidable' ), 'val' => $atts['entry']->ip);
             $values['browser'] = array(
-                'label' => __('User-Agent (Browser/OS)', 'formidable'),
+                'label' => __( 'User-Agent (Browser/OS)', 'formidable' ),
                 'val' => self::get_browser($data['browser']),
             );
-            $values['referrer'] = array('label' => __('Referrer', 'formidable'), 'val' => $data['referrer']);
+            $values['referrer'] = array( 'label' => __( 'Referrer', 'formidable' ), 'val' => $data['referrer']);
         }
     }
 
@@ -321,11 +318,11 @@ class FrmEntriesHelper{
 
             // merge defaults, global settings, and shortcode options
             foreach ( $default_settings as $key => $setting ) {
-                if ( $atts[$key] != '' ) {
+                if ( $atts[ $key ] != '' ) {
                     continue;
                 }
 
-                $atts[$key] = $setting;
+                $atts[ $key ] = $setting;
                 unset($key, $setting);
             }
 
@@ -341,7 +338,7 @@ class FrmEntriesHelper{
         foreach ( $values as $id => $value ) {
             if ( $atts['plain_text'] ) {
                 if ( 'rtl' == $atts['direction'] ) {
-                    $content[] =  $value['val'] . ' :'. $value['label'] ."\r\n";
+                    $content[] = $value['val'] . ' :'. $value['label'] ."\r\n";
                 } else {
                     $content[] = $value['label'] . ': '. $value['val'] ."\r\n";
                 }
@@ -375,7 +372,7 @@ class FrmEntriesHelper{
     public static function replace_default_message($message, $atts) {
         if ( strpos($message, '[default-message') === false &&
             strpos($message, '[default_message') === false &&
-            !empty($message) ) {
+            ! empty( $message ) ) {
             return $message;
         }
 
@@ -386,8 +383,8 @@ class FrmEntriesHelper{
         preg_match_all("/\[(default-message|default_message)\b(.*?)(?:(\/))?\]/s", $message, $shortcodes, PREG_PATTERN_ORDER);
 
         foreach ( $shortcodes[0] as $short_key => $tag ) {
-            $add_atts = shortcode_parse_atts( $shortcodes[2][$short_key] );
-            if ( $add_atts ){
+            $add_atts = shortcode_parse_atts( $shortcodes[2][ $short_key ] );
+            if ( $add_atts ) {
                 $this_atts = array_merge($atts, $add_atts);
             } else {
                 $this_atts = $atts;
@@ -396,14 +393,14 @@ class FrmEntriesHelper{
             $default = FrmEntriesController::show_entry_shortcode($this_atts);
 
             // Add the default message
-            $message = str_replace($shortcodes[0][$short_key], $default, $message);
+            $message = str_replace( $shortcodes[0][ $short_key ], $default, $message );
         }
 
         return $message;
     }
 
     public static function prepare_display_value($entry, $field, $atts) {
-		$field_value = isset($entry->metas[$field->id]) ? $entry->metas[$field->id] : false;
+		$field_value = isset( $entry->metas[ $field->id ] ) ? $entry->metas[ $field->id ] : false;
         if ( FrmAppHelper::pro_is_installed() ) {
 		    FrmProEntriesHelper::get_dfe_values($field, $entry, $field_value);
         }
@@ -417,13 +414,13 @@ class FrmEntriesHelper{
 
 	    if ( strpos($atts['embedded_field_id'], 'form') === 0 ) {
             //this is a repeating section
-            $child_entries = FrmEntry::getAll( array('it.parent_item_id' => $entry->id) );
+            $child_entries = FrmEntry::getAll( array( 'it.parent_item_id' => $entry->id) );
         } else {
             // get all values for this field
-	        $child_values = isset($entry->metas[$atts['embedded_field_id']]) ? $entry->metas[$atts['embedded_field_id']] : false;
+	        $child_values = isset( $entry->metas[ $atts['embedded_field_id'] ] ) ? $entry->metas[ $atts['embedded_field_id'] ] : false;
 
             if ( $child_values ) {
-	            $child_entries = FrmEntry::getAll('it.id in ('. implode(',', array_filter( (array) $child_values, 'is_numeric') ) .')');
+	            $child_entries = FrmEntry::getAll( array( 'it.id' => (array) $child_values ) );
 	            //$atts['post_id']
 	        }
 	    }
@@ -454,10 +451,10 @@ class FrmEntriesHelper{
         return $val;
     }
 
-    /*
-    * Prepare the saved value for display
-    * @return string
-    */
+    /**
+     * Prepare the saved value for display
+     * @return string
+     */
     public static function display_value($value, $field, $atts = array()) {
 
         $defaults = array(
@@ -496,7 +493,8 @@ class FrmEntriesHelper{
 
         if ( is_array($value) && $atts['type'] != 'file' ) {
             foreach ( $value as $val ) {
-                if ( is_array($val) ) { //TODO: add options for display (li or ,)
+                if ( is_array($val) ) {
+					//TODO: add options for display (li or ,)
                     $new_value .= implode($atts['sep'], $val);
                     if ( $atts['type'] != 'data' ) {
                         $new_value .= '<br/>';
@@ -525,9 +523,9 @@ class FrmEntriesHelper{
             $value = $args['temp_value'];
         }
         if ( empty($args['parent_field_id']) ) {
-            $_POST['item_meta'][$field->id] = $value;
+            $_POST['item_meta'][ $field->id ] = $value;
         } else {
-            $_POST['item_meta'][$args['parent_field_id']][$args['key_pointer']][$field->id] = $value;
+            $_POST['item_meta'][ $args['parent_field_id'] ][ $args['key_pointer'] ][ $field->id ] = $value;
         }
     }
 
@@ -538,9 +536,9 @@ class FrmEntriesHelper{
             $field_id = $field;
         }
         if ( empty($args['parent_field_id']) ) {
-            $value = isset($_POST['item_meta'][$field_id]) ? $_POST['item_meta'][$field_id] : '';
+            $value = isset( $_POST['item_meta'][ $field_id ] ) ? $_POST['item_meta'][ $field_id ] : '';
         } else {
-            $value = $_POST['item_meta'][$args['parent_field_id']][$args['key_pointer']][$field_id];
+            $value = $_POST['item_meta'][ $args['parent_field_id'] ][ $args['key_pointer'] ][ $field_id ];
         }
     }
 
@@ -549,9 +547,9 @@ class FrmEntriesHelper{
     *
     * @since 2.0
     *
-    * @param $field object
-    * @param $value string or array
-    * @param $args array
+    * @param object $field
+    * @param string|array $value
+    * @param array $args
     */
     public static function maybe_set_other_validation( $field, &$value, &$args ) {
         $args['other'] = false;
@@ -563,12 +561,12 @@ class FrmEntriesHelper{
         self::set_other_repeating_vals( $field, $value, $args );
 
         // Check if there are any posted "Other" values
-        if ( isset( $field->field_options['other'] ) && $field->field_options['other'] && isset( $_POST['item_meta']['other'][$field->id] ) ) {
+        if ( isset( $field->field_options['other'] ) && $field->field_options['other'] && isset( $_POST['item_meta']['other'][ $field->id ] ) ) {
 
             // Save original value
             $args['temp_value'] = $value;
             $args['other'] = true;
-            $other_vals = $_POST['item_meta']['other'][$field->id];
+            $other_vals = $_POST['item_meta']['other'][ $field->id ];
 
             // Set the validation value now
             self::set_other_validation_val( $value, $other_vals, $field, $args );
@@ -580,22 +578,22 @@ class FrmEntriesHelper{
     *
     * @since 2.0
     *
-    * @param $field object
-    * @param $value string or array
-    * @param $args array
+    * @param object $field
+    * @param string|array $value
+    * @param array $args
     */
-    public static function set_other_repeating_vals( $field, &$value, &$args ){
+    public static function set_other_repeating_vals( $field, &$value, &$args ) {
         if ( ! $args['parent_field_id'] ) {
             return;
         }
 
         // Check if there are any other posted "other" values for this field
-        if ( isset( $field->field_options['other'] ) && $field->field_options['other'] && isset( $_POST['item_meta'][$args['parent_field_id']][$args['key_pointer']]['other'][$field->id] ) ) {
+        if ( isset( $field->field_options['other'] ) && $field->field_options['other'] && isset( $_POST['item_meta'][ $args['parent_field_id'] ][ $args['key_pointer'] ]['other'][ $field->id ] ) ) {
             // Save original value
             $args['temp_value'] = $value;
             $args['other'] = true;
 
-            $other_vals = $_POST['item_meta'][$args['parent_field_id']][$args['key_pointer']]['other'][$field->id];
+            $other_vals = $_POST['item_meta'][ $args['parent_field_id'] ][ $args['key_pointer'] ]['other'][ $field->id ];
 
             // Set the validation value now
             self::set_other_validation_val( $value, $other_vals, $field, $args );
@@ -611,10 +609,10 @@ class FrmEntriesHelper{
     *
     * @since 2.0
     *
-    * @param $value string or array
-    * @param $other_vals string or array (usually of posted values)
-    * @param $field object
-    * @param $args array
+    * @param string|array $value
+    * @param string|array $other_vals (usually of posted values)
+    * @param object $field
+    * @param array $args
     */
     public static function set_other_validation_val( &$value, $other_vals, $field, &$args ) {
         // Checkboxes and multi-select dropdowns
@@ -625,23 +623,22 @@ class FrmEntriesHelper{
             if ( count( $value ) == 0 ) {
                 $value = '';
             }
-
-        // Radio and dropdowns
         } else {
+			// Radio and dropdowns
             $other_key = array_filter( array_keys($field->options), 'is_string');
             $other_key = reset( $other_key );
 
             // Multi-select dropdown
             if ( is_array( $value ) ) {
-                $o_key = array_search( $field->options[$other_key], $value );
+                $o_key = array_search( $field->options[ $other_key ], $value );
                 if ( $o_key ) {
                     // Modify original value so key is preserved
-                    $value[$other_key] = $value[$o_key];
-                    unset( $value[$o_key] );
+                    $value[ $other_key ] = $value[ $o_key ];
+                    unset( $value[ $o_key ] );
                     $args['temp_value'] = $value;
-                    $value[$other_key] = reset( $other_vals );
+                    $value[ $other_key ] = reset( $other_vals );
                 }
-            } else if ( $field->options[$other_key] == $value ) {
+            } else if ( $field->options[ $other_key ] == $value ) {
                 $value = $other_vals;
             }
         }
@@ -651,7 +648,7 @@ class FrmEntriesHelper{
         _deprecated_function( __FUNCTION__, '1.07.09');
     }
 
-    public static function enqueue_scripts($params){
+    public static function enqueue_scripts($params) {
         do_action('frm_enqueue_form_scripts', $params);
     }
 
@@ -674,8 +671,8 @@ class FrmEntriesHelper{
     }
 
     public static function get_browser($u_agent) {
-        $bname = __('Unknown', 'formidable');
-        $platform = __('Unknown', 'formidable');
+        $bname = __( 'Unknown', 'formidable' );
+        $platform = __( 'Unknown', 'formidable' );
         $ub = '';
 
         //First get the platform?
@@ -700,14 +697,14 @@ class FrmEntriesHelper{
         } else if ( preg_match('/Safari/i', $u_agent) ) {
             $bname = 'Apple Safari';
             $ub = 'Safari';
-        } else if ( preg_match('/Opera/i',$u_agent) ) {
+        } else if ( preg_match('/Opera/i', $u_agent) ) {
             $bname = $ub = 'Opera';
         } else if ( preg_match('/Netscape/i', $u_agent) ) {
             $bname = $ub = 'Netscape';
         }
 
         // finally get the correct version number
-        $known = array('Version', $ub, 'other');
+        $known = array( 'Version', $ub, 'other');
         $pattern = '#(?<browser>' . join('|', $known) . ')[/ ]+(?<version>[0-9.|a-zA-Z.]*)#';
         preg_match_all($pattern, $u_agent, $matches); // get the matching numbers
 
@@ -716,7 +713,7 @@ class FrmEntriesHelper{
         if ( $i != 1 ) {
             //we will have two since we are not using 'other' argument yet
             //see if version is before or after the name
-            if ( strripos($u_agent, 'Version') < strripos($u_agent,$ub) ) {
+            if ( strripos( $u_agent, 'Version' ) < strripos( $u_agent, $ub ) ) {
                 $version = $matches['version'][0];
             } else {
                 $version = $matches['version'][1];

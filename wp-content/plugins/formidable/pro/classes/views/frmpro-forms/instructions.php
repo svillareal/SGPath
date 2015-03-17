@@ -1,14 +1,13 @@
 <div id="frm-dynamic-values" class="tabs-panel" style="display:none;max-height:none;">
-	<p class="howto"><?php _e('Add dynamic default values as default text to fields in your form', 'formidable') ?>
+	<p class="howto"><?php _e( 'Add dynamic default values as default text to fields in your form', 'formidable' ) ?>
     <ul class="frm_code_list" style="margin-bottom:0;">
         <?php
         $col = 'one';
-        foreach ($tags as $tag => $label){
-            if(is_array($label)){
-                $title = (isset($label['title'])) ? $label['title'] : '';
-                $label = (isset($label['label'])) ? $label['label'] : reset($label);
-            }else{
-                $title = '';
+		foreach ( $tags as $tag => $label ) {
+			$title = '';
+			if ( is_array( $label ) ) {
+				$title = isset( $label['title'] ) ? $label['title'] : '';
+				$label = isset( $label['label'] ) ? $label['label'] : reset( $label );
             }
 
         ?>

@@ -6,8 +6,8 @@ class FrmProAppController{
         register_taxonomy( 'frm_tag', 'formidable', array(
             'hierarchical' => false,
             'labels' => array(
-                'name' => __('Formidable Tags', 'formidable'),
-                'singular_name' => __('Formidable Tag', 'formidable'),
+                'name' => __( 'Formidable Tags', 'formidable' ),
+                'singular_name' => __( 'Formidable Tag', 'formidable' ),
             ),
             'public' => true,
             'show_ui' => true,
@@ -21,7 +21,7 @@ class FrmProAppController{
     }
 
     public static function set_get($atts){
-        foreach($atts as $att => $val){
+		foreach ( $atts as $att => $val ) {
             $_GET[$att] = $val;
             unset($att, $val);
         }

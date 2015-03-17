@@ -20,7 +20,7 @@ $field->options = maybe_unserialize($field->options);
 $max = max($field->options);
 
 $d = 0;
-if($stat != floor($stat)){
+if ( $stat != floor( $stat ) ) {
     $stat = round($stat, 2);
     list($n, $d) = explode('.', $stat);
     if ( strlen($d) == 1 ) {

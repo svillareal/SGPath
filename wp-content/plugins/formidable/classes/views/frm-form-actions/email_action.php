@@ -6,14 +6,14 @@ class FrmEmailAction extends FrmFormAction {
 		$action_ops = array(
 		    'classes'   => 'frm_email_icon frm_icon_font',
             'active'    => true,
-            'event'     => array('create'),
+            'event'     => array( 'create'),
             'limit'     => 99,
             'priority'  => 10,
             'ajax_load' => false,
 		);
 		$action_ops = apply_filters('frm_email_control_settings', $action_ops);
 
-		$this->FrmFormAction('email', __('Email Notification', 'formidable'), $action_ops);
+		$this->FrmFormAction('email', __( 'Email Notification', 'formidable' ), $action_ops);
 	}
 
 	public function form( $form_action, $args = array() ) {
@@ -33,7 +33,7 @@ class FrmEmailAction extends FrmFormAction {
             'email_message' => '[default-message]',
             'inc_user_info' => 0,
             'plain_text'    => 0,
-            'event'         => array('create'),
+            'event'         => array( 'create'),
 	    );
 	}
 

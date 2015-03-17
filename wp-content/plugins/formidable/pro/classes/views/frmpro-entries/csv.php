@@ -8,37 +8,36 @@ header('Last-Modified: '. gmdate('D, d M Y H:i:s') .' GMT');
 header('Cache-Control: no-cache, must-revalidate');
 header('Pragma: no-cache');
 
-do_action('frm_csv_headers', array('form_id' => $form_id, 'fields' => $form_cols));
+do_action('frm_csv_headers', array( 'form_id' => $form_id, 'fields' => $form_cols));
 
 //if BOM
 //echo chr(239) . chr(187) . chr(191);
 
-foreach ($form_cols as $col){
-    if ( isset($col->field_options['separate_value']) && $col->field_options['separate_value'] && ! in_array($col->type, array('user_id', 'file', 'data', 'date')) ) {
-        echo '"'. str_replace('"', '""', FrmProEntriesHelper::encode_value(strip_tags($col->name .' '. __('(label)', 'formidable')), $charset, $to_encoding)) .'"'. $col_sep;
+foreach ( $form_cols as $col ) {
+    if ( isset($col->field_options['separate_value']) && $col->field_options['separate_value'] && ! in_array($col->type, array( 'user_id', 'file', 'data', 'date')) ) {
+        echo '"'. str_replace('"', '""', FrmProEntriesHelper::encode_value(strip_tags($col->name .' '. __( '(label)', 'formidable' )), $charset, $to_encoding)) .'"'. $col_sep;
     }
 
     echo '"'. FrmProEntriesHelper::encode_value(strip_tags($col->name), $charset, $to_encoding) .'"'. $col_sep;
 }
 
-if($comment_count){
-    for ($i=0; $i<$comment_count; $i++){
-        echo '"'. FrmProEntriesHelper::encode_value(__('Comment', 'formidable'), $charset, $to_encoding) .'"'. $col_sep;
-        echo '"'. FrmProEntriesHelper::encode_value(__('Comment User', 'formidable'), $charset, $to_encoding) .'"'. $col_sep;
-        echo '"'. FrmProEntriesHelper::encode_value(__('Comment Date', 'formidable'), $charset, $to_encoding) .'"'. $col_sep;
+if ( $comment_count ) {
+	for ( $i = 0; $i < $comment_count; $i++ ) {
+        echo '"'. FrmProEntriesHelper::encode_value(__( 'Comment', 'formidable' ), $charset, $to_encoding) .'"'. $col_sep;
+        echo '"'. FrmProEntriesHelper::encode_value(__( 'Comment User', 'formidable' ), $charset, $to_encoding) .'"'. $col_sep;
+        echo '"'. FrmProEntriesHelper::encode_value(__( 'Comment Date', 'formidable' ), $charset, $to_encoding) .'"'. $col_sep;
     }
     unset($i);
 }
 
-echo '"'. __('Timestamp', 'formidable') .'"'. $col_sep .'"'. __('Last Updated', 'formidable') .'"'. $col_sep .'"'. __('Created By', 'formidable') .'"'. $col_sep .'"'. __('Updated By', 'formidable') .'"'. $col_sep .'"'. __('Draft', 'formidable') .'"'. $col_sep .'"IP"'. $col_sep .'"ID"'. $col_sep .'"Key"'."\n";
+echo '"'. __( 'Timestamp', 'formidable' ) .'"'. $col_sep .'"'. __( 'Last Updated', 'formidable' ) .'"'. $col_sep .'"'. __( 'Created By', 'formidable' ) .'"'. $col_sep .'"'. __( 'Updated By', 'formidable' ) .'"'. $col_sep .'"'. __( 'Draft', 'formidable' ) .'"'. $col_sep .'"IP"'. $col_sep .'"ID"'. $col_sep .'"Key"'."\n";
 
 // fetch 20 posts at a time rather than loading the entire table into memory
 while ( $next_set = array_splice( $entry_ids, 0, 20 ) ) {
-    $where = 'id IN (' . join( ',', $next_set ) . ') OR parent_item_id IN (' . join( ',', $next_set ) . ')';
     // order by parent_item_id so children will be first
-    $entries = FrmEntry::getAll($where, ' ORDER BY parent_item_id DESC', '', true, false);
+	$entries = FrmEntry::getAll( array( 'or' => 1, 'id' => $next_set, 'parent_item_id' => $next_set ), ' ORDER BY parent_item_id DESC', '', true, false);
 
-foreach($entries as $entry){
+foreach ( $entries as $entry ) {
     if ( $entry->form_id != $form_id ) {
         if ( isset($entry->metas) ) {
             // add child entries to the parent
@@ -64,7 +63,7 @@ foreach($entries as $entry){
         continue;
     }
 
-    foreach ($form_cols as $col){
+	foreach ( $form_cols as $col ) {
         $field_value = isset($entry->metas[$col->id]) ? $entry->metas[$col->id] : false;
 
         if ( ! $field_value && $entry->post_id ) {
@@ -83,7 +82,7 @@ foreach($entries as $entry){
             }
         }
 
-        if (in_array($col->type, array('user_id', 'file', 'date', 'data'))){
+        if (in_array($col->type, array( 'user_id', 'file', 'date', 'data'))){
             $field_value = FrmProFieldsHelper::get_export_val($field_value, $col);
         }else{
             if ( isset($col->field_options['separate_value']) && $col->field_options['separate_value'] ) {
@@ -99,14 +98,14 @@ foreach($entries as $entry){
                 $sep_value = FrmProEntriesHelper::encode_value($sep_value, $charset, $to_encoding);
                 $sep_value = str_replace('"', '""', $sep_value); //escape for CSV files.
                 if ( $line_break != 'return' ) {
-                    $sep_value = str_replace(array("\r\n", "\r", "\n"), $line_break, $sep_value);
+                    $sep_value = str_replace( array("\r\n", "\r", "\n"), $line_break, $sep_value);
                 }
                 echo '"'. $sep_value .'"'. $col_sep;;
                 unset($sep_value);
             }
 
             $checked_values = maybe_unserialize($field_value);
-            $checked_values = apply_filters('frm_csv_value', $checked_values, array('field' => $col));
+            $checked_values = apply_filters('frm_csv_value', $checked_values, array( 'field' => $col));
 
             if (is_array($checked_values)){
                 $field_value = implode($sep, $checked_values);
@@ -122,7 +121,7 @@ foreach($entries as $entry){
         $field_value = FrmProEntriesHelper::encode_value($field_value, $charset, $to_encoding);
         $field_value = str_replace('"', '""', $field_value); //escape for CSV files.
         if ( $line_break != 'return' ) {
-            $field_value = str_replace(array("\r\n", "\r", "\n"), $line_break, $field_value);
+            $field_value = str_replace( array("\r\n", "\r", "\n"), $line_break, $field_value);
         }
 
         echo '"'. $field_value .'"'. $col_sep;
@@ -131,10 +130,10 @@ foreach($entries as $entry){
         unset($field_value);
     }
 
-    $comments = FrmEntryMeta::getAll("item_id=". (int) $entry->id ." and field_id=0", ' ORDER BY it.created_at ASC');
+    $comments = FrmEntryMeta::getAll( array( 'item_id' => (int) $entry->id, 'field_id' => 0 ), ' ORDER BY it.created_at ASC');
     $place_holder = $comment_count;
-    if($comments){
-        foreach($comments as $comment){
+	if ( $comments ) {
+		foreach ( $comments as $comment ) {
             $c = maybe_unserialize($comment->meta_value);
             if ( ! isset($c['comment']) ) {
                 continue;

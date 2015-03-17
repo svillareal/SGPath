@@ -1,5 +1,5 @@
 <?php
-if(empty($values['fields']) ) {
+if ( empty( $values['fields'] ) ) {
     return;
 }
 

@@ -15,7 +15,7 @@ class FrmProDb{
         flush_rewrite_rules();
 
         if ( $old_db_version ) {
-            if ( $db_version >= 16 and $old_db_version < 16 ) {
+            if ( $db_version >= 16 && $old_db_version < 16 ) {
                 self::migrate_to_16();
             }
 
@@ -25,7 +25,7 @@ class FrmProDb{
 
             if ( $db_version >= 25 && $old_db_version < 25 ) {
                 // let's remove the old displays now
-                $wpdb->query('DROP TABLE IF EXISTS '. $wpdb->prefix .'frm_display');
+                $wpdb->query( 'DROP TABLE IF EXISTS '. $wpdb->prefix .'frm_display' );
             }
 
             if ( $db_version >= 27 && $old_db_version < 27 ) {
@@ -48,7 +48,7 @@ class FrmProDb{
         }
 
         global $wpdb;
-        $wpdb->query('DROP TABLE IF EXISTS '. $wpdb->prefix .'frm_display');
+        $wpdb->query( 'DROP TABLE IF EXISTS '. $wpdb->prefix .'frm_display' );
         delete_option('frmpro_options');
         delete_option('frmpro_db_version');
         delete_option('frm_usloc_options'); //locations
@@ -62,13 +62,13 @@ class FrmProDb{
         delete_option($frm_update->pro_cred_store);
     }
 
-    /*
-    * Migrate style to custom post type
-    */
+    /**
+     * Migrate style to custom post type
+     */
     private static function migrate_to_27() {
         $new_post = array(
             'post_type'     => FrmStylesController::$post_type,
-            'post_title'    => __('Formidable Style', 'formidable'),
+            'post_title'    => __( 'Formidable Style', 'formidable' ),
             'post_status'   => 'publish',
             'post_content'  => array(),
             'menu_order'    => 1, //set as default
@@ -109,9 +109,9 @@ class FrmProDb{
         $frm_style->save($new_post);
     }
 
-    /*
-    * Migrate "allow one per field" into "unique"
-    */
+    /**
+     * Migrate "allow one per field" into "unique"
+     */
     private static function migrate_to_17() {
         global $wpdb;
 
@@ -120,32 +120,32 @@ class FrmProDb{
         foreach ( $form as $f ) {
             if ( isset($f->options['single_entry']) && $f->options['single_entry'] && is_numeric($f->options['single_entry_type']) ) {
                 $f->options['single_entry'] = 0;
-                $wpdb->update( $wpdb->prefix .'frm_forms', array('options' => serialize($f->options)), array( 'id' => $f->id ) );
+                $wpdb->update( $wpdb->prefix .'frm_forms', array( 'options' => serialize($f->options)), array( 'id' => $f->id ) );
                 $field_ids[] = $f->options['single_entry_type'];
             }
             unset($f);
         }
 
         if ( ! empty($field_ids) ) {
-            $fields = $wpdb->get_results('SELECT id, field_options FROM '. $wpdb->prefix .'frm_fields WHERE id in ('. implode(',', $field_ids) .')');
+            $fields = FrmDb::get_results( 'frm_fields', array( 'id' => $field_ids), 'id, field_options' );
             foreach ( $fields as $f ) {
                 $opts = maybe_unserialize($f->field_options);
                 $opts['unique'] = 1;
-                $wpdb->update( $wpdb->prefix .'frm_fields', array('field_options' => serialize($opts)), array( 'id' => $f->id ) );
+                $wpdb->update( $wpdb->prefix .'frm_fields', array( 'field_options' => serialize($opts)), array( 'id' => $f->id ) );
                 unset($f);
             }
         }
     }
 
-    /*
-    * Migrate displays table into wp_posts
-    */
+    /**
+     * Migrate displays table into wp_posts
+     */
     private static function migrate_to_16() {
         global $wpdb;
 
         $display_posts = array();
         if ( $wpdb->get_var( "SHOW TABLES LIKE '{$wpdb->prefix}frm_display'" ) ) { //only migrate if table exists
-            $dis = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}frm_display");
+            $dis = FrmDb::get_results('frm_display');
         } else {
             $dis = array();
         }
@@ -189,13 +189,13 @@ class FrmProDb{
         unset($dis);
 
         //get all post_ids from frm_entries
-        $entry_posts = $wpdb->get_results('SELECT id, post_id, form_id FROM '. $wpdb->prefix .'frm_items WHERE post_id > 0');
+        $entry_posts = FrmDb::get_results( $wpdb->prefix .'frm_items', array( 'post_id >' => 1), 'id, post_id, form_id' );
         $form_display = array();
         foreach ( $entry_posts as $ep ) {
             if ( isset($form_display[$ep->form_id]) ) {
                 $display_posts[$ep->post_id] = $form_display[$ep->form_id];
             } else {
-                $d = FrmProDisplay::get_auto_custom_display(array('post_id' => $ep->post_id, 'form_id' => $ep->form_id, 'entry_id' => $ep->id));
+                $d = FrmProDisplay::get_auto_custom_display( array( 'post_id' => $ep->post_id, 'form_id' => $ep->form_id, 'entry_id' => $ep->id));
                 $display_posts[$ep->post_id] = $form_display[$ep->form_id] = ($d ? $d->ID : 0);
                 unset($d);
             }

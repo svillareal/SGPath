@@ -1,17 +1,18 @@
 <?php
 if ( isset($field) && $field->type == 'user_id' ) { ?>
 <select name="options[where_val][<?php echo esc_attr( $where_key ); ?>]">
-<option value="current_user"><?php _e('Current User', 'formidable') ?></option>
+<option value="current_user"><?php _e( 'Current User', 'formidable' ) ?></option>
 <?php
 $users = FrmProFieldsHelper::get_user_options();
-foreach($users as $user_id => $user_login){
-    if(empty($user_id)) continue;
+foreach ( $users as $user_id => $user_login ) {
+	if ( empty($user_id) ) {
+		continue;
+	}
 ?>
 <option value="<?php echo esc_attr( $user_id ) ?>" <?php selected( $where_val, $user_id ) ?>><?php echo esc_html( $user_login ) ?></option>
 <?php } ?>
 </select>
 <?php
-//}else if(in_array($field->type, array('select', 'radio'))){
 } else if ( isset($field->field_options) && isset($field->field_options['post_field']) && $field->field_options['post_field'] == 'post_status' ) {
 $options = FrmProFieldsHelper::get_status_options($field); ?>
 <select name="options[where_val][<?php echo esc_attr( $where_key ); ?>]">

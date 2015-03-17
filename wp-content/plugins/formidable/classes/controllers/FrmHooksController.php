@@ -1,11 +1,11 @@
 <?php
-    
-class FrmHooksController{
-    /*
-    * Trigger plugin-wide hook loading
-    */
+
+class FrmHooksController {
+    /**
+     * Trigger plugin-wide hook loading
+     */
     public static function trigger_load_hook( $hooks = 'load_hooks' ) {
-        $controllers = apply_filters('frm_load_controllers', array( 'FrmHooksController' ) );
+        $controllers = apply_filters( 'frm_load_controllers', array( 'FrmHooksController' ) );
 
         $trigger_hooks = $hooks;
         $hooks = (array) $hooks;
@@ -13,7 +13,7 @@ class FrmHooksController{
         if ( 'load_hooks' == $trigger_hooks ) {
             if ( is_admin() ) {
                 $hooks[] = 'load_admin_hooks';
-                if ( defined('DOING_AJAX') ) {
+                if ( defined( 'DOING_AJAX' ) ) {
                     $hooks[] = 'load_ajax_hooks';
                     $hooks[] = 'load_form_hooks';
                 }
@@ -40,7 +40,7 @@ class FrmHooksController{
 
     }
 
-    public function load_hooks(){
+    public function load_hooks() {
         if ( ! is_admin() ) {
             add_filter('the_content', 'FrmAppController::page_route', 10);
         }
@@ -49,11 +49,6 @@ class FrmHooksController{
         add_action('init', 'FrmAppController::front_head' );
         add_filter('widget_text', 'FrmAppController::widget_text_filter', 8 );
         add_action('wp_footer', 'FrmAppController::footer_js', 1, 0);
-
-        if ( ! FrmAppHelper::is_admin() ) {
-            // Update the session data
-            add_action('init', 'FrmAppController::referer_session', 1);
-        }
 
         // Entries controller
         add_action('wp', 'FrmEntriesController::process_entry', 10, 0);
@@ -105,7 +100,7 @@ class FrmHooksController{
         add_action('frm_field_options_form', 'FrmFieldsController::add_conditional_update_msg', 50);
 
         // Form Actions Controller
-        if ( FrmAppHelper::is_admin_page('formidable') ) {
+        if ( FrmAppHelper::is_admin_page('formidable' ) ) {
             add_action('frm_before_update_form_settings', 'FrmFormActionsController::update_settings');
         }
         add_action('frm_after_duplicate_form', 'FrmFormActionsController::duplicate_form_actions', 20, 3);
@@ -165,9 +160,10 @@ class FrmHooksController{
         add_action('wp_ajax_frm_form_action_fill', 'FrmFormActionsController::fill_action');
 
         // Forms Controller
-        add_action('wp_ajax_frm_save_form', 'FrmFormsController::route' ); //.0015
-        add_action('wp_ajax_frm_form_key_in_place_edit', 'FrmFormsController::edit_key' ); //.0016
-        add_action('wp_ajax_frm_form_desc_in_place_edit', 'FrmFormsController::edit_description' ); //.0015
+		add_action( 'wp_ajax_frm_create_from_template', 'FrmFormsController::_create_from_template' );
+		add_action( 'wp_ajax_frm_save_form', 'FrmFormsController::route' );
+		add_action( 'wp_ajax_frm_form_key_in_place_edit', 'FrmFormsController::edit_key' );
+		add_action( 'wp_ajax_frm_form_desc_in_place_edit', 'FrmFormsController::edit_description' );
         add_action('wp_ajax_frm_get_default_html', 'FrmFormsController::get_email_html' );
         add_action('wp_ajax_frm_get_shortcode_opts',  'FrmFormsController::get_shortcode_opts' );
         add_action('wp_ajax_frm_forms_preview', 'FrmFormsController::preview' );

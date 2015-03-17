@@ -1,24 +1,27 @@
 <?php
-if ( !defined('ABSPATH') ) die('You are not allowed to call this page directly.');
+if ( ! defined('ABSPATH') ) {
+	die( 'You are not allowed to call this page directly.' );
+}
 
-class FrmXMLHelper{
+class FrmXMLHelper {
 
-    public static function get_xml_values($opt, $padding){
-        if(is_array($opt)){
-            foreach($opt as $ok => $ov){
-                echo "\n". $padding;
-                echo '<'. (is_numeric($ok) ? 'key:' : '') . $ok .'>';
-                self::get_xml_values($ov, $padding .'    ');
-                if(is_array($ov))
-                    echo "\n". $padding;
-                echo '</'. (is_numeric($ok) ? 'key:' : '') . $ok .'>';
-            }
-        }else{
-            echo self::cdata($opt);
-        }
-    }
+	public static function get_xml_values( $opt, $padding ) {
+		if ( is_array( $opt ) ) {
+			foreach ( $opt as $ok => $ov ) {
+				echo "\n" . $padding;
+				echo '<' . ( is_numeric( $ok ) ? 'key:' : '' ) . $ok . '>';
+				self::get_xml_values( $ov, $padding .'    ' );
+				if ( is_array( $ov ) ) {
+					echo "\n" . $padding;
+				}
+				echo '</' . ( is_numeric( $ok ) ? 'key:' : '' ) . $ok . '>';
+			}
+		} else {
+			echo self::cdata( $opt );
+		}
+	}
 
-    public static function import_xml($file){
+    public static function import_xml($file) {
         $defaults = array(
             'forms' => 0, 'fields' => 0, 'terms' => 0,
             'posts' => 0, 'views' => 0, 'actions' => 0,
@@ -56,7 +59,7 @@ class FrmXMLHelper{
 		}
 
         // add terms, forms (form and field ids), posts (post ids), and entries to db, in that order
-        foreach ( array('term', 'form', 'view') as $item_type ) {
+		foreach ( array( 'term', 'form', 'view' ) as $item_type ) {
             // grab cats, tags, and terms, or forms or posts
             if ( isset($xml->{$item_type} ) ) {
                 $function_name = 'import_xml_'. $item_type .'s';
@@ -113,7 +116,7 @@ class FrmXMLHelper{
             $form['options'] = FrmAppHelper::maybe_json_decode($form['options']);
 
             // if template, allow to edit if form keys match, otherwise, creation date must also match
-            $edit_query = array('form_key' => $form['form_key'], 'is_template' => $form['is_template']);
+            $edit_query = array( 'form_key' => $form['form_key'], 'is_template' => $form['is_template']);
             if ( ! $form['is_template'] ) {
                 $edit_query['created_at'] = $form['created_at'];
             }
@@ -128,7 +131,7 @@ class FrmXMLHelper{
             $this_form = FrmForm::getAll($edit_query, '', 1);
             unset($edit_query);
 
-            if ( !empty($this_form) ) {
+            if ( ! empty( $this_form ) ) {
                 $old_id = $form_id = $this_form->id;
                 FrmForm::update($form_id, $form );
                 $imported['updated']['forms']++;
@@ -215,10 +218,9 @@ class FrmXMLHelper{
     		    unset($field);
     		}
 
-
     		// Delete any fields attached to this form that were not included in the template
-    		if ( isset($form_fields) && !empty($form_fields) ) {
-                foreach ($form_fields as $field){
+    		if ( isset( $form_fields ) && ! empty( $form_fields ) ) {
+				foreach ( $form_fields as $field ) {
                     if ( is_object($field) ) {
                         FrmField::destroy($field->id);
                     }
@@ -228,9 +230,12 @@ class FrmXMLHelper{
             }
 
 		    // Update field ids/keys to new ones
-		    do_action('frm_after_duplicate_form', $form_id, $form, array('old_id' => $old_id));
+		    do_action('frm_after_duplicate_form', $form_id, $form, array( 'old_id' => $old_id));
 
             $imported['forms'][ (int) $item->id] = $form_id;
+
+            // Send pre 2.0 form options through function that creates actions
+            self::migrate_form_settings_to_actions( $form['options'], $form_id, $imported, $switch = true );
 
 		    unset($form, $item);
 		}
@@ -342,7 +347,7 @@ class FrmXMLHelper{
 
 	    $m = array(
 			'key'   => (string) $meta->meta_key,
-			'value' => (string) $meta->meta_value
+			'value' => (string) $meta->meta_value,
 		);
 
 		//switch old form and field ids to new ones
@@ -357,22 +362,22 @@ class FrmXMLHelper{
 		            $m['value'] = FrmFieldsHelper::switch_field_ids($m['value']);
     		    } else if ( $m['key'] == 'frm_options' ) {
 
-                    foreach ( array('date_field_id', 'edate_field_id') as $setting_name ) {
+					foreach ( array( 'date_field_id', 'edate_field_id' ) as $setting_name ) {
     		            if ( isset($m['value'][$setting_name]) && is_numeric($m['value'][$setting_name]) && isset($frm_duplicate_ids[$m['value'][$setting_name]]) ) {
     		                $m['value'][$setting_name] = $frm_duplicate_ids[$m['value'][$setting_name]];
     		            }
     		        }
 
                     $check_dup_array = array();
-    		        if ( isset($m['value']['order_by']) && !empty($m['value']['order_by']) ) {
-    		            if ( is_numeric($m['value']['order_by']) && isset($frm_duplicate_ids[$m['value']['order_by']]) ) {
-    		                $m['value']['order_by'] = $frm_duplicate_ids[$m['value']['order_by']];
-    		            } else if ( is_array($m['value']['order_by']) ) {
+    		        if ( isset( $m['value']['order_by'] ) && ! empty( $m['value']['order_by'] ) ) {
+    		            if ( is_numeric( $m['value']['order_by'] ) && isset( $frm_duplicate_ids[ $m['value']['order_by'] ] ) ) {
+    		                $m['value']['order_by'] = $frm_duplicate_ids[ $m['value']['order_by'] ];
+    		            } else if ( is_array( $m['value']['order_by'] ) ) {
                             $check_dup_array[] = 'order_by';
     		            }
     		        }
 
-    		        if ( isset($m['value']['where']) && !empty($m['value']['where']) ) {
+    		        if ( isset( $m['value']['where'] ) && ! empty( $m['value']['where'] ) ) {
     		            $check_dup_array[] = 'where';
     		        }
 
@@ -395,9 +400,11 @@ class FrmXMLHelper{
 		$post['postmeta'][ (string) $meta->meta_key ] = $m['value'];
     }
 
-    /*
-    * Add terms to post
-    */
+    /**
+     * Add terms to post
+     * @param array $post by reference
+     * @param object $item The XML object data
+     */
     private static function populate_taxonomies( &$post, $item ) {
 		foreach ( $item->category as $c ) {
 			$att = $c->attributes();
@@ -426,18 +433,18 @@ class FrmXMLHelper{
 		}
     }
 
-    /*
-    * Edit post if the key and created time match
-    */
+    /**
+     * Edit post if the key and created time match
+     */
     private static function maybe_editing_post( &$post ) {
-		$match_by =  array(
+		$match_by = array(
 		    'post_type'     => $post['post_type'],
 		    'name'          => $post['post_name'],
 		    'post_status'   => $post['post_status'],
 		    'posts_per_page' => 1,
 		);
 
-		if ( in_array($post['post_status'], array('trash', 'draft')) ) {
+		if ( in_array( $post['post_status'], array( 'trash', 'draft' ) ) ) {
 		    $match_by['include'] = $post['post_id'];
 		    unset($match_by['name']);
 		}
@@ -481,8 +488,8 @@ class FrmXMLHelper{
         }
 
         $t_strings = array(
-            'imported'  => __('Imported', 'formidable'),
-            'updated'   => __('Updated', 'formidable'),
+            'imported'  => __( 'Imported', 'formidable' ),
+            'updated'   => __( 'Updated', 'formidable' ),
         );
 
         $message = '<ul>';
@@ -503,12 +510,11 @@ class FrmXMLHelper{
                 $message .= implode(', ', $s_message);
                 $message .= '</li>';
             }
-
         }
 
         if ( $message == '<ul>' ) {
             $message = '';
-            $errors[] = __('Nothing was imported or updated', 'formidable');
+            $errors[] = __( 'Nothing was imported or updated', 'formidable' );
         } else {
             $message .= '</ul>';
         }
@@ -550,5 +556,326 @@ class FrmXMLHelper{
 
 		return $str;
 	}
+
+    public static function migrate_form_settings_to_actions( $form_options, $form_id, &$imported = array(), $switch = false ) {
+        // Get post type
+        $post_type = FrmFormActionsController::$action_post_type;
+
+        // Set up imported index, if not set up yet
+        if ( ! isset( $imported['imported']['actions'] ) ) {
+            $imported['imported']['actions'] = 0;
+        }
+
+        // Migrate post settings to action
+        self::migrate_post_settings_to_action( $form_options, $form_id, $post_type, $imported, $switch );
+
+        // Migrate email settings to action
+        self::migrate_email_settings_to_action( $form_options, $form_id, $post_type, $imported, $switch );
+    }
+
+    /**
+    * Migrate post settings to form action
+    *
+    * @param string $post_type
+    */
+    private static function migrate_post_settings_to_action( $form_options, $form_id, $post_type, &$imported, $switch ) {
+        if ( ! isset($form_options['create_post']) || ! $form_options['create_post'] ) {
+            return;
+        }
+
+        $new_action = array(
+            'post_type'     => $post_type,
+            'post_excerpt'  => 'wppost',
+			'post_title'    => __( 'Create Posts', 'formidable' ),
+            'menu_order'    => $form_id,
+            'post_status'   => 'publish',
+            'post_content'  => array(),
+            'post_name'     => $form_id .'_wppost_1',
+        );
+
+        $post_settings = array(
+            'post_type', 'post_category', 'post_content',
+            'post_excerpt', 'post_title', 'post_name', 'post_date',
+			'post_status', 'post_custom_fields', 'post_password',
+        );
+
+        foreach ( $post_settings as $post_setting ) {
+            if ( isset( $form_options[$post_setting] ) ) {
+                $new_action['post_content'][$post_setting] = $form_options[$post_setting];
+            }
+            unset($post_setting);
+        }
+
+        $new_action['event'] = array( 'create', 'update');
+
+        if ( $switch ) {
+            $new_action['post_content'] = self::switch_post_setting_field_ids( $new_action['post_content'] );
+        }
+        $new_action['post_content'] = json_encode($new_action['post_content']);
+
+        $exists = get_posts( array(
+            'name'          => $new_action['post_name'],
+            'post_type'     => $new_action['post_type'],
+            'post_status'   => $new_action['post_status'],
+            'numberposts'   => 1,
+        ) );
+
+        if ( ! $exists ) {
+			// Remove the balanceTags filter in case WordPress is trying to validate the XHTML
+			remove_filter( 'content_save_pre', 'balanceTags', 50 );
+
+            wp_insert_post( $new_action );
+            $imported['imported']['actions']++;
+        }
+    }
+
+    private static function switch_post_setting_field_ids( $post_content ) {
+        global $frm_duplicate_ids;
+
+        // If there aren't IDs that were switched, end now
+        if ( ! $frm_duplicate_ids ) {
+            return;
+        }
+
+        // Fields with string or int saved
+        $basic_fields = array( 'post_title', 'post_content', 'post_excerpt', 'post_password', 'post_date', 'post_status' );
+
+        // Fields with arrays saved
+        $array_fields = array( 'post_category', 'post_custom_fields' );
+
+        // Get old IDs
+        $old = array_keys( $frm_duplicate_ids );
+
+        // Get new IDs
+        $new = array_values( $frm_duplicate_ids );
+
+        // Do a str_replace with each item to set the new IDs
+        foreach ( $post_content as $key => $setting ) {
+            if ( ! is_array( $setting ) && in_array( $key, $basic_fields ) ) {
+                // Replace old IDs with new IDs
+                $post_content[$key] = str_replace( $old, $new, $setting );
+            } else if ( is_array( $setting ) && in_array( $key, $array_fields ) ) {
+                foreach ( $setting as $k => $val ) {
+                    // Replace old IDs with new IDs
+                    $post_content[$key][$k] = str_replace( $old, $new, $val );
+                }
+            }
+            unset( $key, $setting );
+        }
+        return $post_content;
+    }
+
+    private static function migrate_email_settings_to_action( $form_options, $form_id, $post_type, &$imported, $switch ) {
+        // No old notifications or autoresponders to carry over
+        if ( ! isset( $form_options['auto_responder'] ) && ! isset( $form_options['notification'] ) ) {
+            return;
+        }
+
+        // Initialize notifications array
+        $notifications = array();
+
+        // Migrate regular notifications
+        self::migrate_notifications_to_action( $form_options, $form_id, $notifications );
+
+        // Migrate autoresponders
+        self::migrate_autoresponder_to_action( $form_options, $form_id, $notifications );
+
+        if (  empty( $notifications ) ) {
+            return;
+        }
+
+        foreach ( $notifications as $new_notification ) {
+            $new_notification['post_type']      = $post_type;
+            $new_notification['post_excerpt']   = 'email';
+			$new_notification['post_title']     = __( 'Email Notification', 'formidable' );
+            $new_notification['menu_order']     = $form_id;
+            $new_notification['post_status']    = 'publish';
+
+            // Switch field IDs and keys, if needed
+            if ( $switch ) {
+                $new_notification['post_content'] = FrmFieldsHelper::switch_field_ids( $new_notification['post_content'] );
+            }
+            $new_notification['post_content']   = FrmAppHelper::prepare_and_encode( $new_notification['post_content'] );
+
+            $exists = get_posts( array(
+                'name'          => $new_notification['post_name'],
+                'post_type'     => $new_notification['post_type'],
+                'post_status'   => $new_notification['post_status'],
+                'numberposts'   => 1,
+            ) );
+
+            if ( empty($exists) ) {
+				// Remove the balancTags filter in case WordPress is trying to validate the XHTML
+				remove_filter( 'content_save_pre', 'balanceTags', 50 );
+
+                wp_insert_post( $new_notification );
+                $imported['imported']['actions']++;
+            }
+            unset($new_notification);
+        }
+    }
+
+    private static function migrate_notifications_to_action( $form_options, $form_id, &$notifications ) {
+        if ( ! isset( $form_options['notification'] ) && isset( $form_options['email_to'] ) && ! empty( $form_options['email_to'] ) ) {
+            // add old settings into notification array
+            $form_options['notification'] = array(0 => $form_options);
+        } else if ( isset( $form_options['notification']['email_to'] ) ) {
+            // make sure it's in the correct format
+            $form_options['notification'] = array(0 => $form_options['notification']);
+        }
+
+        if ( isset( $form_options['notification'] ) && is_array($form_options['notification']) ) {
+            foreach ( $form_options['notification'] as $email_key => $notification ) {
+
+                $atts = array( 'email_to' => '', 'reply_to' => '', 'reply_to_name' => '', 'event' => '', 'form_id' => $form_id, 'email_key' => $email_key );
+
+                // Format the email data
+                self::format_email_data( $atts, $notification );
+
+                // Setup the new notification
+                $new_notification = array();
+                self::setup_new_notification( $new_notification, $notification, $atts );
+
+                $notifications[] = $new_notification;
+            }
+        }
+    }
+
+    private static function format_email_data( &$atts, $notification ) {
+        // Format email_to
+        self::format_email_to_data( $atts, $notification );
+
+        // Format the reply to email and name
+        $reply_fields = array( 'reply_to' => '', 'reply_to_name' => '' );
+        foreach ( $reply_fields as $f => $val ) {
+            if ( isset( $notification[$f] ) ) {
+                $atts[$f] = $notification[$f];
+                if ( 'custom' == $notification[$f] ) {
+                    $atts[$f] = $notification['cust_' . $f];
+                } else if ( is_numeric( $atts[$f] ) && ! empty( $atts[$f] ) ) {
+                    $atts[$f] = '['. $atts[$f] .']';
+                }
+            }
+            unset( $f, $val );
+        }
+
+        // Format event
+        $atts['event'] = array( 'create');
+        if ( isset( $notification['update_email'] ) && 1 == $notification['update_email'] ) {
+            $atts['event'][] = 'update';
+        } else if ( isset($notification['update_email']) && 2 == $notification['update_email'] ) {
+            $atts['event'] = array( 'update');
+        }
+    }
+
+    private static function format_email_to_data( &$atts, $notification ) {
+        if ( isset( $notification['email_to'] ) ) {
+			$atts['email_to'] = preg_split( '/ (,|;) /', $notification['email_to'] );
+        } else {
+            $atts['email_to'] = array();
+        }
+
+        if ( isset( $notification['also_email_to'] ) ) {
+            $email_fields = (array) $notification['also_email_to'];
+            $atts['email_to'] = array_merge( $email_fields, $atts['email_to'] );
+            unset( $email_fields );
+        }
+
+        foreach ( $atts['email_to'] as $key => $email_field ) {
+
+            if ( is_numeric( $email_field ) ) {
+                $atts['email_to'][$key] = '['. $email_field .']';
+            }
+
+            if ( strpos( $email_field, '|') ) {
+                $email_opt = explode( '|', $email_field );
+                if ( isset( $email_opt[0] ) ) {
+                    $atts['email_to'][$key] = '['. $email_opt[0] .' show='. $email_opt[1] .']';
+                }
+                unset( $email_opt );
+            }
+        }
+        $atts['email_to'] = implode(', ', $atts['email_to']);
+    }
+
+    private static function setup_new_notification( &$new_notification, $notification, $atts ) {
+        // Set up new notification
+        $new_notification = array(
+            'post_content'  => array(
+                'email_to'      => $atts['email_to'],
+                'event'         => $atts['event'],
+            ),
+            'post_name'         => $atts['form_id'] .'_email_'. $atts['email_key'],
+        );
+
+        // Add more fields to the new notification
+        $add_fields = array( 'email_message', 'email_subject', 'plain_text', 'inc_user_info', 'conditions' );
+        foreach ( $add_fields as $add_field ) {
+            if ( isset ( $notification[$add_field] ) ) {
+                $new_notification['post_content'][$add_field] = $notification[$add_field];
+            } else if ( in_array( $add_field, array( 'plain_text', 'inc_user_info' ) ) ) {
+                $new_notification['post_content'][$add_field] = 0;
+            } else {
+                $new_notification['post_content'][$add_field] = '';
+            }
+            unset( $add_field );
+        }
+
+        if ( isset( $notification['twilio'] ) && $notification['twilio'] ) {
+            $new_notification['post_content'] = $notification['twilio'];
+        }
+
+        // Set reply to
+        $new_notification['post_content']['reply_to'] = $atts['reply_to'];
+
+        // Set from
+        if ( !empty( $atts['reply_to'] ) || !empty( $atts['reply_to_name'] ) ) {
+            $new_notification['post_content']['from'] = ( empty($atts['reply_to_name']) ? '[sitename]' : $atts['reply_to_name'] ) .' <'. ( empty($atts['reply_to']) ? '[admin_email]' : $atts['reply_to'] ) .'>';
+        }
+    }
+
+    private static function migrate_autoresponder_to_action( $form_options, $form_id, &$notifications ) {
+        if ( isset($form_options['auto_responder']) && $form_options['auto_responder'] && isset($form_options['ar_email_message']) && $form_options['ar_email_message'] ) {
+            // migrate autoresponder
+
+            $email_field = isset($form_options['ar_email_to']) ? $form_options['ar_email_to'] : 0;
+            if ( strpos($email_field, '|') ) {
+                // data from entries field
+                $email_field = explode('|', $email_field);
+                if ( isset($email_field[1]) ) {
+                    $email_field = $email_field[1];
+                }
+            }
+            if ( is_numeric($email_field) && ! empty($email_field) ) {
+                $email_field = '['. $email_field .']';
+            }
+
+            $notification = $form_options;
+            $new_notification2 = array(
+                'post_content'  => array(
+                    'email_message' => $notification['ar_email_message'],
+                    'email_subject' => isset($notification['ar_email_subject']) ? $notification['ar_email_subject'] : '',
+                    'email_to'      => $email_field,
+                    'plain_text'    => isset($notification['ar_plain_text']) ? $notification['ar_plain_text'] : 0,
+                    'inc_user_info' => 0,
+                ),
+                'post_name'     => $form_id .'_email_'. count( $notifications ),
+            );
+
+            $reply_to = isset($notification['ar_reply_to']) ? $notification['ar_reply_to'] : '';
+            $reply_to_name = isset($notification['ar_reply_to_name']) ? $notification['ar_reply_to_name'] : '';
+
+			if ( ! empty( $reply_to ) ) {
+				$new_notification2['post_content']['reply_to'] = $reply_to;
+			}
+
+			if ( ! empty( $reply_to ) || ! empty( $reply_to_name ) ) {
+                $new_notification2['post_content']['from'] = ( empty($reply_to_name) ? '[sitename]' : $reply_to_name ) .' <'. ( empty($reply_to) ? '[admin_email]' : $reply_to ) .'>';
+			}
+
+            $notifications[] = $new_notification2;
+            unset( $new_notification2 );
+        }
+    }
 
 }

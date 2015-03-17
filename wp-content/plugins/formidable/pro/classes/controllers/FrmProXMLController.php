@@ -37,11 +37,11 @@ class FrmProXMLController{
     }
 
     public static function csv_instructions_1(){
-        return __('Upload your Formidable XML or CSV file to import forms, entries, and views into this site. <br/><strong>Note: If your imported form/entry/view key and creation date match an item on your site, that item will be updated. You cannot undo this action.</strong>', 'formidable');
+        return __( 'Upload your Formidable XML or CSV file to import forms, entries, and views into this site. <br/><strong>Note: If your imported form/entry/view key and creation date match an item on your site, that item will be updated. You cannot undo this action.</strong>', 'formidable' );
     }
 
     public static function csv_instructions_2(){
-        return __('Choose a Formidable XML or any CSV file', 'formidable');
+        return __( 'Choose a Formidable XML or any CSV file', 'formidable' );
     }
 
     public static function csv_opts($forms) {
@@ -52,15 +52,15 @@ class FrmProXMLController{
     }
 
     public static function xml_export_types($types) {
-        $types['items'] = __('Entries', 'formidable');
-        $types['posts'] = __('Views', 'formidable');
-        $types['styles'] = __('Styles', 'formidable');
+        $types['items'] = __( 'Entries', 'formidable' );
+        $types['posts'] = __( 'Views', 'formidable' );
+        $types['styles'] = __( 'Styles', 'formidable' );
 
         return $types;
     }
 
     public static function export_formats($formats) {
-        $formats['csv'] = array('name' => 'CSV', 'support' => 'items', 'count' => 'single');
+        $formats['csv'] = array( 'name' => 'CSV', 'support' => 'items', 'count' => 'single');
         $formats['xml']['support'] = 'forms|items|posts|styles';
 
         return $formats;
@@ -69,7 +69,7 @@ class FrmProXMLController{
     public static function export_csv($atts) {
         $form_ids = $atts['ids'];
         if ( empty($form_ids) ) {
-            wp_die(__('Please select a form', 'formidable'));
+            wp_die(__( 'Please select a form', 'formidable' ));
         }
         FrmProEntriesController::csv(reset($form_ids));
     }
@@ -90,7 +90,7 @@ class FrmProXMLController{
         }
 
         if ( empty($_POST['form_id']) ) {
-            $errors = array(__('All Fields are required', 'formidable'));
+            $errors = array(__( 'All Fields are required', 'formidable' ));
             FrmXMLController::form($errors);
             return;
         }
@@ -102,7 +102,7 @@ class FrmProXMLController{
         }
 
         if ( empty($filename) ) {
-            $errors = array(__('That CSV was not uploaded. Are CSV files allowed on your site?', 'formidable'));
+            $errors = array(__( 'That CSV was not uploaded. Are CSV files allowed on your site?', 'formidable' ));
             FrmXMLController::form($errors);
             return;
         }
@@ -117,16 +117,17 @@ class FrmProXMLController{
             while ( ( $data = fgetcsv($f, 100000, $csv_del) ) !== false ) {
             //while (($raw_data = fgets($f, 100000))){
                 $row++;
-                if($row == 1)
+				if ( $row == 1 ) {
                     $headers = $data;
-                else if($row == 2)
+                } else if ( $row == 2 ) {
                     $example = $data;
-                else
+				} else {
                     continue;
+				}
             }
             fclose($f);
         } else {
-            $errors = array(__('CSV cannot be opened.', 'formidable'));
+            $errors = array(__( 'CSV cannot be opened.', 'formidable' ));
             FrmXMLController::form($errors);
             return;
         }
@@ -160,13 +161,15 @@ class FrmProXMLController{
         $mapping = FrmAppHelper::get_param('data_array');
         $url_vars = "&csv_del=". urlencode($csv_del) ."&form_id={$form_id}&frm_import_file={$media_id}&row={$row}&max={$import_count}";
 
-        foreach($mapping as $mkey => $map)
+        foreach ( $mapping as $mkey => $map ) {
             $url_vars .= "&data_array[$mkey]=$map";
+		}
 
         include(FrmAppHelper::plugin_path() .'/pro/classes/views/xml/import_csv.php');
     }
 
     public static function import_csv_entries() {
+        check_ajax_referer( 'frm_ajax', 'nonce' );
         FrmAppHelper::permission_check('frm_create_entries');
 
         $opts = get_option('frm_import_options');
@@ -181,7 +184,7 @@ class FrmProXMLController{
 
         $imported = FrmProXMLHelper::import_csv($current_path, $vars['form_id'], $vars['data_array'], 0, $start_row+1, $vars['csv_del'], $vars['max']);
 
-        $opts[$file_id] = array('row' => $vars['row'], 'imported' => $imported);
+        $opts[$file_id] = array( 'row' => $vars['row'], 'imported' => $imported);
         echo $remaining = ( (int) $vars['row'] - (int) $imported );
 
         // check if the import is complete
@@ -194,7 +197,7 @@ class FrmProXMLController{
 
         update_option('frm_import_options', $opts);
 
-        die();
+        wp_die();
     }
 
 }
