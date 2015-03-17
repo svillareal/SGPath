@@ -118,6 +118,22 @@ class Outcome {
 		//Sends back a list of Extras for the entered Outcome, ordered by listing order
 		return $extrasArray;		
 	}
+	
+	public static function getOutcomeIdByName($outcomeName) {
+		wp_reset_postdata();
+			$spiritualOutcomes = new WP_Query(array(
+				'posts_per_page' => -1,			
+				'post_type' => 'spiritual_outcomes'
+			));
+		while($spiritualOutcomes->have_posts()) : $spiritualOutcomes->the_post();	
+			$title = get_the_title();
+			if ($title == $outcomeName) {
+				$postID = get_the_ID();
+				break;
+			}
+		endwhile;
+		return $postID;
+	}
 
 }
 

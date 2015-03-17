@@ -4,6 +4,8 @@ if ( !defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+include_once('Outcome.php');
+
 class HeartCheckStatus {
 
 	//Attributes
@@ -39,7 +41,8 @@ class HeartCheckStatus {
 		'714' => '518',
 			);
 	public $score;
-	protected $scoreFieldID;
+	public $entryDate;
+	public $scoreFieldID;
 	protected $entryID;
 	
 	//Methods
@@ -52,8 +55,17 @@ class HeartCheckStatus {
 		if ($this->score == "") {
 			$this->score = 0;
 		}
+		$this->entryDate = $wpdb->get_var($wpdb->prepare("SELECT created_at FROM {$wpdb->prefix}frm_items WHERE id=%d", $this->entryID));
 	}
-	
+
+	public static function getOutcomeFromForm($formID, $userID) {
+		global $wpdb;
+		$entryID = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_items WHERE form_id=%d AND user_id=%d ORDER BY created_at DESC", $formID, $userID));
+		$outcomeFieldID = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_fields WHERE form_id=%d AND field_order='0'", $formID));
+		$outcomeName = stripslashes($wpdb->get_var($wpdb->prepare("SELECT meta_value FROM {$wpdb->prefix}frm_item_metas WHERE field_id=%d and item_id=%d", $outcomeFieldID, $entryID)));
+		$postID = Outcome::getOutcomeIdByName($outcomeName);
+		return $postID;
+	}
 }
 
 

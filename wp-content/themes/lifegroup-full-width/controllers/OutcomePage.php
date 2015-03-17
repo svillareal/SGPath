@@ -53,7 +53,8 @@ class OutcomePage {
 				'season' => $season,
 				'category' => $category,
 				'order' => $order,
-				'postID' => get_the_ID()
+				'postID' => get_the_ID(),
+				'title' => get_the_title()
 			);
 		endwhile;
 	}

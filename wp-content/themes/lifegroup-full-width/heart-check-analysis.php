@@ -12,39 +12,42 @@ Template Name:  Heart Check Analysis page
  * @version        Release: 1.0
  */
 
- 
-
 get_header(); 
 
+//Get required functions
+include_once('spg-functions.php');
 
-//Get user info
-	$UserID = get_current_user_id();
-	$userData = get_userdata( $UserID );
-	if (in_array("administrator", $userData->roles)) {
-		$userView = "admin";
-	} else if (in_array("grow_pastor", $userData->roles)) {
-		$userView = "pastor";
-	} else if (in_array("group_leader", $userData->roles)) {
-		$userView = "leader";
-	} else if (in_array("subscriber", $userData->roles)) {
-		$userView = "member";
-	} else {
-		$userView = "non_member";
-	}
+//Get form content
+	$currentSgpUser = new SgpUser(get_current_user_id());
+//	$outcomeContent = new OutcomePage();
+//	$generalInfo = array(
+//		'trainingProgressIcon' => $outcomeContent->trainingProgressIcon,
+//		'heartProgressIcon' => $outcomeContent->heartProgressIcon,
+//		'userID' => $currentSgpUser->userID,
+//		'userView' => $currentSgpUser->userView
+//	);
 
 //Get posted data
-	global $wpdb;
+//	global $wpdb;
 	$formID = $_GET["form"];
 	$formID = (int)$formID;
+	$outcomePostID = HeartCheckStatus::getOutcomeFromForm($formID, $currentSgpUser->userID);
+	$outcome = new Outcome($outcomePostID);
+	$heartCheck = new HeartCheckStatus($outcomePostID, $currentSgpUser->userID);
+	$scoreFieldID = $heartCheck->scoreFieldID;
+	$entryDate = $heartCheck->entryDate;
+	$userID = $currentSgpUser->userID;
+//Get heart check status
 
-//Get form data
-	$entryID = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}frm_items WHERE form_id='$formID' AND user_id='$UserID' ORDER BY created_at DESC");
+
+/**	$entryID = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}frm_items WHERE form_id='$formID' AND user_id='$UserID' ORDER BY created_at DESC");
 	$outcomeFieldID = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}frm_fields WHERE form_id='$formID' AND field_order='0'");
 	$scoreFieldID = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}frm_fields WHERE form_id='$formID' ORDER BY field_order DESC");
 	$outcomeName = stripslashes($wpdb->get_var("SELECT meta_value FROM {$wpdb->prefix}frm_item_metas WHERE field_id='$outcomeFieldID' and item_id='$entryID'"));
 	$currentScore = $wpdb->get_var("SELECT meta_value FROM {$wpdb->prefix}frm_item_metas WHERE field_id='$scoreFieldID' and item_id='$entryID'");
-	$entryDate = $wpdb->get_var("SELECT created_at FROM {$wpdb->prefix}frm_items WHERE id='$entryID'");
-//Get associated outcome URL
+	$entryDate = $wpdb->get_var("SELECT created_at FROM {$wpdb->prefix}frm_items WHERE id='$entryID'"); **/
+	
+/** //Get associated outcome URL
 	wp_reset_postdata();
 		$spiritualOutcomes = new WP_Query(array(
 			'posts_per_page' => -1,			
@@ -55,15 +58,15 @@ get_header();
 		if ($title == $outcomeName) {
 			$outcomeURL = get_post_permalink();
 		}
-	endwhile;
+	endwhile; **/
 
 ?>
 <div id="content-full" class="grid col-940 heart-check-analysis">
 <div class="outcome-entry-title">Assessment Results</div>
 	
-	<p>Thanks for taking the <?php echo $outcomeName;?> heart check assessment. This is some kind of intro paragraph that we could use to give users a quick overview of how to use this results report. For those who are not logged in, we can encourage them to sign-up for an account to save their scores online. We can recommend for them to print the scores out to take a copy to their Life Groups, etc.</p>
+	<p>Thanks for taking the <?php echo $outcome->title;?> heart check assessment. This is some kind of intro paragraph that we could use to give users a quick overview of how to use this results report. For those who are not logged in, we can encourage them to sign-up for an account to save their scores online. We can recommend for them to print the scores out to take a copy to their Life Groups, etc.</p>
 	<div class="row">
-			<?php if ($userView == "non_member") { ?>
+			<?php if ($currentSgpUser->userView == "non_member") { ?>
         	<div class="column3 user-button">
             <button class="btn btn-primary">Sign-Up for an Account<br/>to save your results</button>
             </div>
@@ -73,12 +76,12 @@ get_header();
             </div>
 	</div>
 <div id="heart-check-results">
-    <h3 class="outcome-heading">Results for <?php echo $outcomeName;?></h3>
+    <h3 class="outcome-heading">Results for <?php echo $outcome->title;?></h3>
 	<div class="row centered graph-results">
 <?php //Need to edit that first graph below so that it shows the latest score only instead of the average for that particular day.?>
-        <div class="column6 current-score"><?php echo do_shortcode("[frm-graph id='$scoreFieldID' title='Your Score' type='bar' data_type='average' x_axis='created_at' x_start='$entryDate' x_end='$entryDate' min='0' max='100' user_id='$UserID' grid_color='green']")?></div>
-        <?php if ($userView !== "non_member") { ?>
-        <div class="column6 over-time-scores"><?php echo do_shortcode("[frm-graph id='$scoreFieldID' title='Scores Over Time' type='line' data_type='average' x_axis='created_at' user_id='$UserID' min='0' max='100' grid_color='green']")?></div>
+        <div class="column6 current-score"><?php echo do_shortcode("[frm-graph id='$scoreFieldID' title='Your Score' type='bar' data_type='average' x_axis='created_at' x_start='$entryDate' x_end='$entryDate' min='0' max='100' user_id='$userID' grid_color='green']")?></div>
+        <?php if ($currentSgpUser->userView !== "non_member") { ?>
+        <div class="column6 over-time-scores"><?php echo do_shortcode("[frm-graph id='$scoreFieldID' title='Scores Over Time' type='line' data_type='average' x_axis='created_at' user_id='$userID' min='0' max='100' grid_color='green']")?></div>
 		<?php } ?>
     </div>
 	<h4>Understanding Your Score:</h4>
@@ -89,7 +92,7 @@ get_header();
 </div>
 
 	<div class="row">
-			<?php if ($userView == "non_member") { ?>
+			<?php if ($currentSgpUser->userView == "non_member") { ?>
         	<div class="column3 user-button">
             <button class="btn btn-primary">Sign-Up for an Account<br/>to save your results</button>
             </div>
@@ -99,7 +102,7 @@ get_header();
             </div>
 	</div>
 
-<p>Back to <a href="<?php echo $outcomeURL;?>"><?php echo $outcomeName;?></a>, Back to <a href="http://localhost/lg">Spiritual Growth Path</a>
+<p>Back to <a href="<?php echo $outcome->postPermalink;?>"><?php echo $outcome->title;?></a>, Back to <a href="http://localhost/lg">Spiritual Growth Path</a>
 
 </div>
 
