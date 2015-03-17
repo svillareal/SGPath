@@ -1,5 +1,8 @@
 <?php
-
+// Exit if accessed directly
+if ( !defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 /**
  * Full Content Template
@@ -17,18 +20,8 @@ get_header();
 //Get required functions
 include_once('spg-functions.php');
 
-//Get form content
+//Get page content
 	$currentSgpUser = new SgpUser(get_current_user_id());
-//	$outcomeContent = new OutcomePage();
-//	$generalInfo = array(
-//		'trainingProgressIcon' => $outcomeContent->trainingProgressIcon,
-//		'heartProgressIcon' => $outcomeContent->heartProgressIcon,
-//		'userID' => $currentSgpUser->userID,
-//		'userView' => $currentSgpUser->userView
-//	);
-
-//Get posted data
-//	global $wpdb;
 	$formID = $_GET["form"];
 	$formID = (int)$formID;
 	$outcomePostID = HeartCheckStatus::getOutcomeFromForm($formID, $currentSgpUser->userID);
@@ -37,28 +30,7 @@ include_once('spg-functions.php');
 	$scoreFieldID = $heartCheck->scoreFieldID;
 	$entryDate = $heartCheck->entryDate;
 	$userID = $currentSgpUser->userID;
-//Get heart check status
 
-
-/**	$entryID = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}frm_items WHERE form_id='$formID' AND user_id='$UserID' ORDER BY created_at DESC");
-	$outcomeFieldID = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}frm_fields WHERE form_id='$formID' AND field_order='0'");
-	$scoreFieldID = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}frm_fields WHERE form_id='$formID' ORDER BY field_order DESC");
-	$outcomeName = stripslashes($wpdb->get_var("SELECT meta_value FROM {$wpdb->prefix}frm_item_metas WHERE field_id='$outcomeFieldID' and item_id='$entryID'"));
-	$currentScore = $wpdb->get_var("SELECT meta_value FROM {$wpdb->prefix}frm_item_metas WHERE field_id='$scoreFieldID' and item_id='$entryID'");
-	$entryDate = $wpdb->get_var("SELECT created_at FROM {$wpdb->prefix}frm_items WHERE id='$entryID'"); **/
-	
-/** //Get associated outcome URL
-	wp_reset_postdata();
-		$spiritualOutcomes = new WP_Query(array(
-			'posts_per_page' => -1,			
-			'post_type' => 'spiritual_outcomes'
-		));
-	while($spiritualOutcomes->have_posts()) : $spiritualOutcomes->the_post();	
-		$title = get_the_title();
-		if ($title == $outcomeName) {
-			$outcomeURL = get_post_permalink();
-		}
-	endwhile; **/
 
 ?>
 <div id="content-full" class="grid col-940 heart-check-analysis">

@@ -221,32 +221,7 @@ include_once('spg-functions.php');
 								<?php } ?>
 							</div><!--column1-->
 						<?php }
-						if ($resource->type == "Scripture Memory passages") {?>
-						<div class="row" align="left">
-							<div class="column2 extras-img" align="right">
-								<a href="<?php echo $resource->internalURL;?>"><img class="extras-image" src="<?php echo $resource->imageURL;?>"></a>
-							</div><!--column2-->
-							<div class="column7 extras-blurb">
-								<div class="extras-entry-title"><a href="<?php echo $resource->internalURL ?>"><?php echo $resource->title ?></a></div>
-								<div class="resource-description">Click here to check out the Scripture Memory passages associated with this outcome.</div>
-							</div><!--column7-->
-							</div><!--row-->
-						<?php } 
-						
-						else {?>
-						<div class="row" align="left">
-							<div class="column2 extras-img" align="right">
-								<a href="<?php echo $resource->internalURL;?>"><img class="extras-image" src="<?php echo $resource->imageURL;?>"></a>
-							</div><!--column2-->
-							<div class="column7 extras-blurb">
-								<div class="extras-entry-title"><a href="<?php echo $resource->internalURL ?>"><?php echo $resource->title ?></a></div>
-								<?php if (!($resource->author == "")) { ?>
-									<div class="extras-author">by <?php echo $resource->author;?></div>
-								<?php } ?>
-								<div class="resource-description"><?php echo $resource->description ?></div>
-							</div><!--column7-->
-							</div><!--row-->
-						<?php }
+						$resource->displayResourceInList();
 					}
 				} 
 		

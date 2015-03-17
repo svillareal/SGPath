@@ -56,37 +56,10 @@ include_once('spg-functions.php');
 	<div class="core-instructions">
 	<?php if ($currentResource != NULL) { ?>
 		<p>Currently, you have the following resource associated with the <?php echo CoreCategories::$coreCategories[$catIndex];?> category for the <?php echo $outcome->title;?> outcome.</p>
-	<?php		
-	//Display the current resource ?>
-        <div class="column1 extras-controls">
-            <button class="remove-from-core" id="coreID<?php echo $currentResource->postID;?>" type="button">Remove</button>
+		<div class='column1 extras-controls'>
+            <button class='remove-from-core' id='coreID<?php echo $currentResource->postID;?>' type='button'>Remove</button>
         </div><!--column1-->
-		<?php if ($currentResource->type == "Scripture Memory passages") {?>
-		<div class="row" align="left">
-			<div class="column2 extras-img" align="right">
-				<a href="<?php echo $currentResource->internalURL;?>"><img class="extras-image" src="<?php echo $currentResource->imageURL;?>"></a>
-			</div><!--column2-->
-			<div class="column7 extras-blurb">
-				<div class="extras-entry-title"><a href="<?php echo $currentResource->internalURL ?>"><?php echo $currentResource->title ?></a></div>
-				<div class="resource-description">Click here to check out the Scripture Memory passages associated with this outcome.</div>
-			</div><!--column7-->
-			</div><!--row-->
-		<?php } 
-		
-		else {?>
-		<div class="row" align="left">
-			<div class="column2 extras-img" align="right">
-				<a href="<?php echo $currentResource->internalURL;?>"><img class="extras-image" src="<?php echo $currentResource->imageURL;?>"></a>
-			</div><!--column2-->
-			<div class="column7 extras-blurb">
-				<div class="extras-entry-title"><a href="<?php echo $currentResource->internalURL ?>"><?php echo $currentResource->title ?></a></div>
-				<?php if (!($currentResource->author == "")) { ?>
-					<div class="extras-author">by <?php echo $currentResource->author;?></div>
-				<?php } ?>
-				<div class="resource-description"><?php echo $currentResource->description ?></div>
-			</div><!--column7-->
-			</div><!--row-->
-		<?php }
+		<?php $currentResource->displayResourceInList();
 	} else { ?>
 		<p>Currently, you don't have a resource associated with the <?php echo CoreCategories::$coreCategories[$catIndex];?> category for the <?php echo $outcome->title;?> outcome.</p>
 	<?php }?>
@@ -114,39 +87,12 @@ include_once('spg-functions.php');
 			$query = new WP_Query($args);
 			while($query->have_posts()) : $query->the_post();	
 				if (!($resource->postID == $currentResource->postID)) {
-					$resource = new Resource(get_the_ID());
-					//Display the list
-					?>
+					$resource = new Resource(get_the_ID()); ?>
 					<div class="column1">
 						<button class="this-one" id="extraID<?php echo $resource->postID;?>" type="button">This one!</button>
 					</div><!--column1-->
-					<?php if ($resource->type == "Scripture Memory passages") {?>
-					<div class="row" align="left">
-						<div class="column2 extras-img" align="right">
-							<a href="<?php echo $resource->internalURL;?>"><img class="extras-image" src="<?php echo $resource->imageURL;?>"></a>
-						</div><!--column2-->
-						<div class="column7 extras-blurb">
-							<div class="extras-entry-title"><a href="<?php echo $resource->internalURL ?>"><?php echo $resource->title ?></a></div>
-							<div class="resource-description">Click here to check out the Scripture Memory passages associated with this outcome.</div>
-						</div><!--column7-->
-						</div><!--row-->
-					<?php } 
-					
-					else {?>
-					<div class="row" align="left">
-						<div class="column2 extras-img" align="right">
-							<a href="<?php echo $resource->internalURL;?>"><img class="extras-image" src="<?php echo $resource->imageURL;?>"></a>
-						</div><!--column2-->
-						<div class="column7 extras-blurb">
-							<div class="extras-entry-title"><a href="<?php echo $resource->internalURL ?>"><?php echo $resource->title ?></a></div>
-							<?php if (!($resource->author == "")) { ?>
-								<div class="extras-author">by <?php echo $resource->author;?></div>
-							<?php } ?>
-							<div class="resource-description"><?php echo $resource->description ?></div>
-						</div><!--column7-->
-						</div><!--row-->
-					<?php }
-					}
+					<?php $resource->displayResourceInList();
+					} 
 			endwhile;
 		?>
         <div><p>Don't see your resource here? Add a New Resource, <strong>making sure to associate it with the <?php echo $outcome->title;?> outcome</strong>, and then select it from the list above.</p></div>

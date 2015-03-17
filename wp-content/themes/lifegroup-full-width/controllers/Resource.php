@@ -143,7 +143,33 @@ class Resource {
 			return false;
 		}
 	}
-	
+
+	public function displayResourceInList() {
+		if ($this->type == 'Scripture Memory passages') {
+			echo "<div class='row' align='left'>
+				<div class='column2 extras-img' align='right'>
+					<a href='".$this->internalURL."'><img class='extras-image' src='".$this->imageURL."'></a>
+				</div><!--column2-->
+				<div class='column7 extras-blurb'>
+					<div class='extras-entry-title'><a href='".$this->internalURL."'>".$this->title."</a></div>
+					<div class='resource-description'>Click here to check out the Scripture Memory passages associated with this outcome.</div>
+				</div><!--column7-->
+			</div><!--row-->";
+		} else {
+			echo "<div class='row' align='left'>
+				<div class='column2 extras-img' align='right'>
+					<a href='".$this->internalURL."'><img class='extras-image' src='".$this->imageURL."'></a>
+				</div><!--column2-->
+				<div class='column7 extras-blurb'>
+					<div class='extras-entry-title'><a href='".$this->internalURL."'>".$this->title."</a></div>";
+					if (!($this->author == "")) {
+						echo "<div class='extras-author'>by ".$this->author."</div>";
+					}
+					echo "<div class='resource-description'>".$this->description."</div>
+				</div><!--column7-->
+			</div><!--row-->";
+		}
+	}
 }
 
 
