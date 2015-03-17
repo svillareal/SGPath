@@ -31,88 +31,66 @@ Template Name:  Update Core Resources
 
 
 
-get_header(); ?>
+get_header();
 
-<?php 
-//Get current resource info
-$outcomeID = $wpdb->get_var("SELECT id FROM {$wpdb->prefix}frm_items WHERE form_id='59' AND name='$outcomeName'");
-$currentResourceEntryID = $wpdb->get_var("SELECT resourceEntryID FROM {$wpdb->prefix}coremeta WHERE outcomeID='$outcomeID' AND coreCategory='$resourceCategory' ORDER BY created_at DESC");
-if (($currentResourceEntryID == NULL) || ($currentResourceEntryID == -1)) {
-	$currentResourcePostID = "";
-} else {
-	$currentResourcePostID = $wpdb->get_var("SELECT post_id FROM {$wpdb->prefix}frm_items WHERE id='$currentResourceEntryID'");
-}
+//Get required functions
+include_once('spg-functions.php');
+
+//Get page content
+	$currentSgpUser = new SgpUser(get_current_user_id());
+	$outcome = new Outcome(Outcome::getOutcomeIdByName($outcomeName));
+	$catIndex = CoreCategories::categoryIndex($resourceCategory);
+	if ($outcome->coreID[$catIndex] != NULL) {
+		$currentResource = new Resource(getPostID($outcome->coreID[$catIndex]));
+	} else {
+		$currentResource = "";
+	}
 
 ?>
 
 <div id="content-full" class="grid col-940">
-<div class="hidden" id="outcomeName"><?php echo $outcomeName;?></div>
-<div class="hidden" id="resourceCategory"><?php echo $resourceCategory;?></div>
+<div class="hidden" id="outcomeName"><?php echo $outcome->title;?></div>
+<div class="hidden" id="resourceCategory"><?php echo CoreCategories::$coreCategories[$catIndex];?></div>
 
 	<h1><?php echo $pageTitle;?></h1>
 	<div class="core-instructions">
-	<?php if ($currentResourcePostID !== "") { ?>
-	<p>Currently, you have the following resource associated with the <?php echo $resourceCategory;?> category for the <?php echo $outcomeName;?> outcome.</p>
+	<?php if ($currentResource != NULL) { ?>
+		<p>Currently, you have the following resource associated with the <?php echo CoreCategories::$coreCategories[$catIndex];?> category for the <?php echo $outcome->title;?> outcome.</p>
 	<?php		
-        wp_reset_postdata();
-            $extraResources = new WP_Query(array(
-                'post_type' => 'resource'
-            ));
-        while($extraResources->have_posts()) : $extraResources->the_post();	
-			$postID = get_the_ID();
-			if ($postID == $currentResourcePostID) {
-				//**Get Extras Resource info**//
-				$corePostID = get_the_ID();
-				$coreTitle = get_the_title();
-				$coreAuthor = get_field('extrasAuthor');
-				$coreDescription = get_field('extrasDescription');
-				$coreHide = get_field('extrasHide');
-				$coreListingOrder = get_field('extrasListingOrder');
-				$coreLinkURL = get_permalink();
-				$coreResourceType = get_field('extrasType');
-				/**Get Cover Image info**/
-				$coreImageID = get_field('extrasImageID');
-				if ($coreImageID == NULL) {
-					$coreImageID = $wpdb->get_var("SELECT meta_value FROM {$wpdb->prefix}frm_item_metas WHERE field_id='863'");
-				}
-				$coreImageURL = wp_get_attachment_url( $coreImageID );
-	
-			//**Display the list**// ?>
-					<div class="column1 extras-controls">
-						<button class="remove-from-core" id="coreID<?php echo $corePostID;?>" type="button">Remove</button>
-					</div><!--column1-->
-				<?php if ($coreResourceType == "Scripture Memory passages") {?>
-				<div class="row" align="left">
-					<div class="column2 extras-img" align="right">
-						<a href="<?php echo $coreLinkURL;?>"><img class="extras-image" src="<?php echo $coreImageURL;?>"></a>
-					</div><!--column2-->
-					<div class="column7 extras-blurb">
-						<div class="extras-entry-title"><a href="<?php echo $coreLinkURL ?>"><?php echo $coreTitle ?></a></div>
-						<div class="resource-description">Click here to check out the Scripture Memory passages associated with this outcome.</div>
-					</div><!--column7-->
-					</div><!--row-->
-				<?php } 
-				
-				else {?>
-				<div class="row" align="left">
-					<div class="column2 extras-img" align="right">
-						<a href="<?php echo $coreLinkURL;?>"><img class="extras-image" src="<?php echo $coreImageURL;?>"></a>
-					</div><!--column2-->
-					<div class="column7 extras-blurb">
-						<div class="extras-entry-title"><a href="<?php echo $coreLinkURL ?>"><?php echo $coreTitle ?></a></div>
-						<?php if (!($coreAuthor == "")) { ?>
-							<div class="extras-author">by <?php echo $coreAuthor;?></div>
-						<?php } ?>
-						<div class="resource-description"><?php echo $coreDescription ?></div>
-					</div><!--column7-->
-					</div><!--row-->
-				<?php }
-			}
-		endwhile;
+	//Display the current resource ?>
+        <div class="column1 extras-controls">
+            <button class="remove-from-core" id="coreID<?php echo $currentResource->postID;?>" type="button">Remove</button>
+        </div><!--column1-->
+		<?php if ($currentResource->type == "Scripture Memory passages") {?>
+		<div class="row" align="left">
+			<div class="column2 extras-img" align="right">
+				<a href="<?php echo $currentResource->internalURL;?>"><img class="extras-image" src="<?php echo $currentResource->imageURL;?>"></a>
+			</div><!--column2-->
+			<div class="column7 extras-blurb">
+				<div class="extras-entry-title"><a href="<?php echo $currentResource->internalURL ?>"><?php echo $currentResource->title ?></a></div>
+				<div class="resource-description">Click here to check out the Scripture Memory passages associated with this outcome.</div>
+			</div><!--column7-->
+			</div><!--row-->
+		<?php } 
+		
+		else {?>
+		<div class="row" align="left">
+			<div class="column2 extras-img" align="right">
+				<a href="<?php echo $currentResource->internalURL;?>"><img class="extras-image" src="<?php echo $currentResource->imageURL;?>"></a>
+			</div><!--column2-->
+			<div class="column7 extras-blurb">
+				<div class="extras-entry-title"><a href="<?php echo $currentResource->internalURL ?>"><?php echo $currentResource->title ?></a></div>
+				<?php if (!($currentResource->author == "")) { ?>
+					<div class="extras-author">by <?php echo $currentResource->author;?></div>
+				<?php } ?>
+				<div class="resource-description"><?php echo $currentResource->description ?></div>
+			</div><!--column7-->
+			</div><!--row-->
+		<?php }
 	} else { ?>
-		<p>Currently, you don't have a resource associated with the <?php echo $resourceCategory;?> category for the <?php echo $outcomeName;?> outcome.</p>
+		<p>Currently, you don't have a resource associated with the <?php echo CoreCategories::$coreCategories[$catIndex];?> category for the <?php echo $outcome->title;?> outcome.</p>
 	<?php }?>
-	<p>Select from the options below to select a new <?php echo $resourceCategory;?> resource for the <?php echo $outcomeName;?> outcome.</p>
+	<p>Select from the options below to select a new <?php echo CoreCategories::$coreCategories[$catIndex];?> resource for the <?php echo $outcome->title;?> outcome.</p>
     </div>
 
 	<div class="core-option-links">
@@ -128,65 +106,27 @@ if (($currentResourceEntryID == NULL) || ($currentResourceEntryID == -1)) {
 				'meta_query' => array(
 					array(
 						'key'     => 'extrasOutcomeName',
-						'value'   => $outcomeID,
+						'value'   => $outcome->entryID,
 						'compare' => 'LIKE',
 					)
 				),
 			);
 			$query = new WP_Query($args);
 			while($query->have_posts()) : $query->the_post();	
-				//**Check Extras for outcome, category, and 'not-current-core' match**//
-				$extraResourceType = get_field('extrasType');
-/*					if (
-					(($resourceCategory == "Bible Study") && !(($extraResourceType == "Scripture Memory passages") || ($extraResourceType == "Music")))
-					|| (($resourceCategory == "Reading") && (($extraResourceType == "Book") || ($extraResourceType == "PDF Download") || ($extraResourceType == "Web resource")))
-					|| (($resourceCategory == "Scripture Memory") && ($extraResourceType == "Scripture Memory passages"))
-					|| (($resourceCategory == "Activity") && (($extraResourceType == "Book") || ($extraResourceType == "PDF Download") || ($extraResourceType == "Short Activity - add content in description")))
-					|| (($resourceCategory == "Group Discussion") && (($extraResourceType == "Book") || ($extraResourceType == "PDF Download") || ($extraResourceType == "Short Activity - add content in description")))
-					|| ($resourceCategory == "Other")
-					) {
-						$categoryMatch = "yes";
-					} else { $categoryMatch = "no"; }
-				$extraOutcomeID = get_field('extrasOutcomeName');
-					if (!(is_array($extraOutcomeID))) {$extraOutcomeID = array($extraOutcomeID);}
-					foreach ($extraOutcomeID as $key => $value) {
-						$extraOutcomeName[$key] = $wpdb->get_var("SELECT name FROM {$wpdb->prefix}frm_items WHERE id='$value'");
-						if ($extraOutcomeName[$key] == $outcomeName) { $outcomeMatch = "yes";}
-						else {$outcomeMatch = "no";}
-					}*/
-				$extraPostID = get_the_ID();
-					if ($extraPostID == $currentResourcePostID) { $postMatch = "no"; } else { $postMatch = "yes"; }
-//				if (($categoryMatch == "yes") && ($outcomeMatch == "yes") && ($postMatch == "yes")) { $fullMatch = "yes"; } else { $fullMatch = "no"; }
-				if ($postMatch == "yes") { 
-		
-					//**Get Extras Resource info**//
-					$extraPostID = get_the_ID();
-					$extraTitle = get_the_title();
-					$extraAuthor = get_field('extrasAuthor');
-					$extraDescription = get_field('extrasDescription');
-					$extraHide = get_field('extrasHide');
-					$extraListingOrder = get_field('extrasListingOrder');
-					$extraLinkURL = get_permalink();
-		
-					/**Get Cover Image info**/
-					$extraImageID = get_field('extrasImageID');
-					if ($extraImageID == NULL) {
-						$extraImageID = $wpdb->get_var("SELECT meta_value FROM {$wpdb->prefix}frm_item_metas WHERE field_id='863'");
-					}
-					$extraImageURL = wp_get_attachment_url( $extraImageID );
-		
-					//**Display the list**//
+				if (!($resource->postID == $currentResource->postID)) {
+					$resource = new Resource(get_the_ID());
+					//Display the list
 					?>
 					<div class="column1">
-                    	<button class="this-one" id="extraID<?php echo $extraPostID;?>" type="button">This one!</button>
-                    </div><!--column1-->
-					<?php if ($extraResourceType == "Scripture Memory passages") {?>
+						<button class="this-one" id="extraID<?php echo $resource->postID;?>" type="button">This one!</button>
+					</div><!--column1-->
+					<?php if ($resource->type == "Scripture Memory passages") {?>
 					<div class="row" align="left">
 						<div class="column2 extras-img" align="right">
-							<a href="<?php echo $extraLinkURL;?>"><img class="extras-image" src="<?php echo $extraImageURL;?>"></a>
+							<a href="<?php echo $resource->internalURL;?>"><img class="extras-image" src="<?php echo $resource->imageURL;?>"></a>
 						</div><!--column2-->
 						<div class="column7 extras-blurb">
-							<div class="extras-entry-title"><a href="<?php echo $extraLinkURL ?>"><?php echo $extraTitle ?></a></div>
+							<div class="extras-entry-title"><a href="<?php echo $resource->internalURL ?>"><?php echo $resource->title ?></a></div>
 							<div class="resource-description">Click here to check out the Scripture Memory passages associated with this outcome.</div>
 						</div><!--column7-->
 						</div><!--row-->
@@ -195,21 +135,21 @@ if (($currentResourceEntryID == NULL) || ($currentResourceEntryID == -1)) {
 					else {?>
 					<div class="row" align="left">
 						<div class="column2 extras-img" align="right">
-							<a href="<?php echo $extraLinkURL;?>"><img class="extras-image" src="<?php echo $extraImageURL;?>"></a>
+							<a href="<?php echo $resource->internalURL;?>"><img class="extras-image" src="<?php echo $resource->imageURL;?>"></a>
 						</div><!--column2-->
 						<div class="column7 extras-blurb">
-							<div class="extras-entry-title"><a href="<?php echo $extraLinkURL ?>"><?php echo $extraTitle ?></a></div>
-							<?php if (!($extraAuthor == "")) { ?>
-								<div class="extras-author">by <?php echo $extraAuthor;?></div>
+							<div class="extras-entry-title"><a href="<?php echo $resource->internalURL ?>"><?php echo $resource->title ?></a></div>
+							<?php if (!($resource->author == "")) { ?>
+								<div class="extras-author">by <?php echo $resource->author;?></div>
 							<?php } ?>
-							<div class="resource-description"><?php echo $extraDescription ?></div>
+							<div class="resource-description"><?php echo $resource->description ?></div>
 						</div><!--column7-->
 						</div><!--row-->
 					<?php }
-				}
+					}
 			endwhile;
 		?>
-        <div><p>Don't see your resource here? Add a New Resource, <strong>making sure to associate it with the <?php echo $outcomeName;?> outcome</strong>, and then select it from the list above.</p></div>
+        <div><p>Don't see your resource here? Add a New Resource, <strong>making sure to associate it with the <?php echo $outcome->title;?> outcome</strong>, and then select it from the list above.</p></div>
 
 <?php /**
 		<strong>To choose from resources associated with another outcome, select an outcome here:</strong><br/>

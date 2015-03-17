@@ -42,6 +42,11 @@ class CoreCategories {
 		}
 	}
 	
+	public static function categoryIndex($categoryName) {
+		$index = array_search($categoryName, self::$coreCategories);
+		return $index;
+	}
+
 }
 
 
