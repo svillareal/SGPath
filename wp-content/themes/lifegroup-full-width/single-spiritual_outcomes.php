@@ -249,7 +249,11 @@ include_once('spg-functions.php');
 						<?php }
 					}
 				} 
-			?>
+		
+			if (($currentSgpUser->userView == "admin") || ($currentSgpUser->userView == "pastor")) { ?>
+                <div align="left"></br><a href="/lg/add-new-resources/" class="btn btn-primary" type="button">+Add New Resource</a></div>
+                <div align="left"><p><i class="fa fa-trash"></i><em> &nbsp;&nbsp;<a href="http://localhost/lg/view-deleted-resources?outcomeName=<?php echo $outcome->title;?>">Click here</a> to view a list of resources previously deleted from the <?php echo $outcome->title;?> outcome.</em></p></div>
+			<?php } ?>
            </div><!--outcome extras-->
 
 
