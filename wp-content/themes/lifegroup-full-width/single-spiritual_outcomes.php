@@ -19,8 +19,15 @@ get_header(); ?>
 //Get required files
 include_once('spg-functions.php');
 
-//Get content
-	
+//User validation
+	$currentSgpUser = new SgpUser(get_current_user_id());
+	if ( $currentSgpUser->statusCheck == "bad" ) {
+		echo "Sorry, you are not a valid user.  Please try logging out and back in again.";
+		get_footer();
+		exit;
+	}
+
+//Get page content
 	//Outcome-specific content
 	$outcome = new Outcome(get_the_ID());
 	
@@ -30,7 +37,6 @@ include_once('spg-functions.php');
 	$numberOfCore = CoreCategories::numCoreCategories();
 	
 	//User-specific content
-	$currentSgpUser = new SgpUser(get_current_user_id());
 	list($coreHideClass, $coreAddClass) = $outcome->getCoreVisibility($currentSgpUser->userView);
 	$coreTrainingStatus = new CoreTrainingStatus($outcome->postID, $currentSgpUser->userID);
 	$heartCheck = new HeartCheckStatus($outcome->postID, $currentSgpUser->userID);

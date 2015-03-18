@@ -8,7 +8,7 @@ include_once ('CoreCategories.php');
 
 class Outcome {
 	//Attributes
-	public static $coreHideFieldID = array("823", "824", "825", "826", "827", "828");
+	public $statusCheck;
 	public $title;
 	public $definition;
 	public $description;
@@ -25,6 +25,14 @@ class Outcome {
 	
 	//Methods
 	public function __construct($postID) {
+		//check status
+		if (($postID != NULL) && (get_post_type($postID) == "spiritual_outcomes")) {
+			$this->statusCheck = "good";
+		} else {
+			$this->statusCheck = "bad";
+			return;
+		}
+
 		//general outcome info
 		$this->postID = $postID;
 		$this->postPermalink = get_post_permalink($this->postID);
@@ -48,7 +56,7 @@ class Outcome {
 		$this->entryID = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_items WHERE post_id=%d", $this->postID));
 		$visibilityEntryID = $wpdb->get_var($wpdb->prepare("SELECT item_id FROM {$wpdb->prefix}frm_item_metas WHERE meta_value=%d AND field_id='822'", $this->entryID));
 		for ($i = 0; $i <= ($numberOfCore-1); $i++) {
-			$coreHideField = self::$coreHideFieldID[$i];
+			$coreHideField = CoreCategories::$coreHideFieldID[$i];
 			$this->coreHide[$i] = $wpdb->get_var($wpdb->prepare("SELECT meta_value FROM {$wpdb->prefix}frm_item_metas WHERE item_id=%d AND field_id=%d", $visibilityEntryID, $coreHideField));
 			$coreCat = CoreCategories::$coreCategories[$i];
 			$this->coreID[$i] = $wpdb->get_var($wpdb->prepare("SELECT resourceEntryID FROM {$wpdb->prefix}coremeta WHERE outcomeID=%d AND coreCategory=%s ORDER BY created_at DESC", $this->entryID, $coreCat));

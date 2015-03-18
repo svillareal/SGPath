@@ -5,17 +5,29 @@ if ( !defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-//Variables
-	$pageTitle = get_the_title();
-	$outcomeName = $_GET["outcomeName"];
+//Get required functions
+include_once('spg-functions.php');
 
-//Check that URL was reached through the correct path
-if ($outcomeName == NULL) {
-    header("HTTP/1.0 404 Not Found - Archive Empty");
-    $wp_query->set_404();
-    require TEMPLATEPATH.'/404.php';
-    exit;
-}
+//Variables
+	$outcomeName = $_GET["outcomeName"];
+	$outcome = new Outcome(Outcome::getOutcomeIdByName($outcomeName));
+	if ($outcome->statusCheck == "bad") {
+		header("HTTP/1.0 404 Not Found - Archive Empty");
+		$wp_query->set_404();
+		require TEMPLATEPATH.'/404.php';
+		exit;
+	} 
+
+get_header(); 
+
+//Validation
+	$currentSgpUser = new SgpUser(get_current_user_id());
+	if ( ($currentSgpUser->statusCheck == "bad") || (!($currentSgpUser->userView == "admin") && !($currentSgpUser->userView == "pastor"))) {
+		echo "Sorry, you do not have permission to view this page.";
+		get_footer();
+		exit;
+	}
+	
 
 /**
  * Full Content Template
@@ -28,15 +40,12 @@ Template Name:  View Deleted Resources
 
 
 
-get_header(); 
-
-//Get required functions
-include_once('spg-functions.php');
 
 //Get page content
-	$currentSgpUser = new SgpUser(get_current_user_id());
-	$outcomePostID = Outcome::getOutcomeIdByName($outcomeName);
-	$outcome = new Outcome($outcomePostID);
+//	$currentSgpUser = new SgpUser(get_current_user_id());
+	$pageTitle = get_the_title();
+//	$outcomePostID = Outcome::getOutcomeIdByName($outcomeName);
+//	$outcome = new Outcome($outcomePostID);
 
 ?>
 

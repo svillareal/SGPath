@@ -5,18 +5,27 @@ if ( !defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-//Variables
-	$pageTitle = get_the_title();
-	$outcomeName = $_GET["outcomeName"];
-	$resourceCategory = $_GET["resourceCategory"];
+//Get required functions
+include_once('spg-functions.php');
 
-//Check that URL was reached through the correct path
-if (($outcomeName == NULL) || ($resourceCategory == NULL)) {
-    header("HTTP/1.0 404 Not Found - Archive Empty");
-    $wp_query->set_404();
-    require TEMPLATEPATH.'/404.php';
-    exit;
-}
+//Variables
+	$outcomeName = $_GET["outcomeName"];
+	$outcome = new Outcome(Outcome::getOutcomeIdByName($outcomeName));
+	if ($outcome->statusCheck == "bad") {
+		header("HTTP/1.0 404 Not Found - Archive Empty");
+		$wp_query->set_404();
+		require TEMPLATEPATH.'/404.php';
+		get_footer();
+		exit;
+	}
+	$resourceCategory = $_GET["resourceCategory"];
+	if (!(in_array($resourceCategory, CoreCategories::$coreCategories))) {
+		header("HTTP/1.0 404 Not Found - Archive Empty");
+		$wp_query->set_404();
+		require TEMPLATEPATH.'/404.php';
+		get_footer();
+		exit;
+	}
 
 /**
  * Full Content Template
@@ -29,16 +38,18 @@ Template Name:  Update Core Resources
  * @version        Release: 1.0
  */
 
-
-
 get_header();
 
-//Get required functions
-include_once('spg-functions.php');
+//Validation
+	$currentSgpUser = new SgpUser(get_current_user_id());
+	if ( ($currentSgpUser->statusCheck == "bad") || (!($currentSgpUser->userView == "admin") && !($currentSgpUser->userView == "pastor"))) {
+		echo "Sorry, you do not have permission to view this page.";
+		get_footer();
+		exit;
+	}
 
 //Get page content
-	$currentSgpUser = new SgpUser(get_current_user_id());
-	$outcome = new Outcome(Outcome::getOutcomeIdByName($outcomeName));
+	$pageTitle = get_the_title();
 	$catIndex = CoreCategories::categoryIndex($resourceCategory);
 	if ($outcome->coreID[$catIndex] != NULL) {
 		$currentResource = new Resource(getPostID($outcome->coreID[$catIndex]));
@@ -85,17 +96,21 @@ include_once('spg-functions.php');
 				),
 			);
 			$query = new WP_Query($args);
-			while($query->have_posts()) : $query->the_post();	
-				if (!($resource->postID == $currentResource->postID)) {
-					$resource = new Resource(get_the_ID()); ?>
-					<div class="column1">
-						<button class="this-one" id="extraID<?php echo $resource->postID;?>" type="button">This one!</button>
-					</div><!--column1-->
-					<?php $resource->displayResourceInList();
-					} 
-			endwhile;
+			if ($query->have_posts()) {
+				while($query->have_posts()) : $query->the_post();	
+					if (!($resource->postID == $currentResource->postID)) {
+						$resource = new Resource(get_the_ID()); ?>
+						<div class="column1">
+							<button class="this-one" id="extraID<?php echo $resource->postID;?>" type="button">This one!</button>
+						</div><!--column1-->
+						<?php $resource->displayResourceInList();
+						} 
+				endwhile; ?>
+        		<div><p>Don't see your resource here? Add a New Resource below, <strong>making sure to associate it with the <?php echo $outcome->title;?> outcome</strong>, and then select it from the list above.</p></div>
+			<?php } else {
+				echo "Sorry, but there are currently no resources associated with the ".$outcome->title." outcome. You can add a new resource in the section below.";
+			}
 		?>
-        <div><p>Don't see your resource here? Add a New Resource, <strong>making sure to associate it with the <?php echo $outcome->title;?> outcome</strong>, and then select it from the list above.</p></div>
 
 <?php /**
 		<strong>To choose from resources associated with another outcome, select an outcome here:</strong><br/>
@@ -187,7 +202,6 @@ include_once('spg-functions.php');
             ?>
             <div><p>Don't see your resource here? Add a New Resource, <strong>making sure to associate it with the <?php echo $outcomeName;?> outcome</strong>, and then select it from the list above.</p></div>
         </div>**/?>
-
 
     </div>
 

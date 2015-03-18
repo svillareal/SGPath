@@ -17,21 +17,5 @@ Template Name:  Test page
  */
 
 
-
-get_header(); ?>
-
-<?php 
-	$x = 14;
-	$y = 5;
-
-function getOutcomeDiv() {
-	global $x, $y;
-	echo "X is ".$x."<br/>";
-	$y = $x + $y;
-}
-
-getOutcomeDiv();
-
-echo $y;
-
-get_footer(); ?>
+echo "hello!";
+phpinfo(); ?>

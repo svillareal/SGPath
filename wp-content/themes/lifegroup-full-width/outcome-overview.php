@@ -22,8 +22,15 @@ get_header();
 //Get required functions
 include_once('spg-functions.php');
 
-//Get user info
+//User validation
 	$currentSgpUser = new SgpUser(get_current_user_id());
+	if ( $currentSgpUser->statusCheck == "bad" ) {
+		echo "Sorry, you are not a valid user.  Please try logging out and back in again.";
+		get_footer();
+		exit;
+	}
+
+//Get page content
 	$outcomeContent = new OutcomePage();
 	$generalInfo = array(
 		'trainingProgressIcon' => $outcomeContent->trainingProgressIcon,
@@ -31,6 +38,8 @@ include_once('spg-functions.php');
 		'userID' => $currentSgpUser->userID,
 		'userView' => $currentSgpUser->userView
 	);
+
+
 
 //Content-generating functions
 function getOutcomeDiv($generalInfo, $postID, $divWidth) {
@@ -84,11 +93,7 @@ function getWOCsection($generalInfo, $season, $category="") {
 			$divWidth = 25;
 			$rowWidth = 100;	
 		}
-		if ($season == 'Deepen') {
-			echo "<div class='row outcome-row' style='width:".$rowWidth."%;' align='center'>";
-		} else {
 			echo "<div class='row outcome-row centered' style='width:".$rowWidth."%;' align='center'>";
-		}
 		$singleOutcome = $outcomeRow[$i];
 		foreach ($singleOutcome as $data) {
 			getOutcomeDiv($generalInfo, $data['postID'], $divWidth);
@@ -193,7 +198,7 @@ function getWOCsection($generalInfo, $season, $category="") {
 </div><!--end of Develop-->
 
 <a name='deepen-section'></a>
-<div id='deepen-section'>
+<div id='deepen-section' style='overflow:hidden;'>
     <div class='woc-section float-to-left' style='width:50%'>
         <h4>Love God</h4>
         <?php getWOCsection($generalInfo, 'Deepen', 'Love God'); ?>
@@ -209,8 +214,8 @@ function getWOCsection($generalInfo, $season, $category="") {
     <div class='woc-section float-to-left' style='width:50%'>
         <h4>Be the Body</h4>
         <?php getWOCsection($generalInfo, 'Deepen', 'Be the Body'); ?>
-    </div>		
-</div><!--end of Develop-->
+    </div>	
+</div><!--end of Deepen-->
 
 </div><!-- end of #content-full -->
 

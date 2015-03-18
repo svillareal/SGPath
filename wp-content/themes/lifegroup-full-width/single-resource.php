@@ -15,11 +15,18 @@ if ( !defined( 'ABSPATH' ) ) {
 
 get_header();
   
-	//Get required files
-	include_once('spg-functions.php');
+//Get required files
+include_once('spg-functions.php');
 
-	//Get info
+//User validation
 	$currentSgpUser = new SgpUser(get_current_user_id());
+	if ( $currentSgpUser->statusCheck == "bad" ) {
+		echo "Sorry, you are not a valid user.  Please try logging out and back in again.";
+		get_footer();
+		exit;
+	}
+
+//Get resource
 	$resource = new Resource(get_the_ID());
 
 ?>
@@ -174,9 +181,8 @@ get_header();
 
 <div class="clear"></div>
 
-<?php $entryID = getEntryID(get_the_ID());
-if (($currentSgpUser->userView == "admin") || ($currentSgpUser->userView == "pastor")) { ?>
-	Edit this entry link:  <?php echo FrmProEntriesController::entry_edit_link(array('id' => $entryID, 'label' => 'Edit', 'page_id' => 275)); ?>
+<?php if (($currentSgpUser->userView == "admin") || ($currentSgpUser->userView == "pastor")) { ?>
+	Edit this entry link:  <?php echo FrmProEntriesController::entry_edit_link(array('id' => $resource->entryID, 'label' => 'Edit', 'page_id' => 275)); ?>
 <?php } ?>
 		</div><!-- #content -->
 	</div><!-- #primary -->

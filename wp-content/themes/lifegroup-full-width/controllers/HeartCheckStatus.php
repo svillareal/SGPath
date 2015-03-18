@@ -9,6 +9,7 @@ include_once('Outcome.php');
 class HeartCheckStatus {
 
 	//Attributes
+	public $statusCheck;
 	protected $scoreFieldIDArray = array(
 		'484' => '461',
 		'485' => '176',
@@ -48,9 +49,17 @@ class HeartCheckStatus {
 	//Methods
 	public function __construct($outcomePostID, $userID) {
 		global $wpdb;
-		$this->scoreFieldID = $this->scoreFieldIDArray[$outcomePostID];
+		$outcome = new Outcome($outcomePostID);
+		$user = new SgpUser($userID);
+		if (($outcome->statusCheck == "good") && ($user->statusCheck == "good")) {
+			$this->statusCheck = "good";
+		} else {
+			$this->statusCheck = "bad";
+			return;
+		}
+		$this->scoreFieldID = $this->scoreFieldIDArray[$outcome->postID];
 		$formID = $wpdb->get_var($wpdb->prepare("SELECT form_id FROM {$wpdb->prefix}frm_fields WHERE id=%d", $this->scoreFieldID));
-		$this->entryID = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_items WHERE form_id=%d AND user_id=%d ORDER BY created_at DESC", $formID, $userID));
+		$this->entryID = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_items WHERE form_id=%d AND user_id=%d ORDER BY created_at DESC", $formID, $user->userID));
 		$this->score = $wpdb->get_var($wpdb->prepare("SELECT meta_value FROM {$wpdb->prefix}frm_item_metas WHERE field_id=%d AND item_id=%d", $this->scoreFieldID, $this->entryID));
 		if ($this->score == "") {
 			$this->score = 0;
@@ -60,11 +69,16 @@ class HeartCheckStatus {
 
 	public static function getOutcomeFromForm($formID, $userID) {
 		global $wpdb;
-		$entryID = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_items WHERE form_id=%d AND user_id=%d ORDER BY created_at DESC", $formID, $userID));
-		$outcomeFieldID = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_fields WHERE form_id=%d AND field_order='0'", $formID));
-		$outcomeName = stripslashes($wpdb->get_var($wpdb->prepare("SELECT meta_value FROM {$wpdb->prefix}frm_item_metas WHERE field_id=%d and item_id=%d", $outcomeFieldID, $entryID)));
-		$postID = Outcome::getOutcomeIdByName($outcomeName);
-		return $postID;
+		$user = new SgpUser($userID);
+		if ($user->statusCheck == "bad") {
+			$outcomePostID = "";
+		} else {
+			$entryID = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_items WHERE form_id=%d AND user_id=%d ORDER BY created_at DESC", $formID, $user->userID));
+			$outcomeFieldID = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_fields WHERE form_id=%d AND field_order='0'", $formID));
+			$outcomeName = stripslashes($wpdb->get_var($wpdb->prepare("SELECT meta_value FROM {$wpdb->prefix}frm_item_metas WHERE field_id=%d and item_id=%d", $outcomeFieldID, $entryID)));
+			$outcomePostID = Outcome::getOutcomeIdByName($outcomeName);
+		}
+		return $outcomePostID;
 	}
 }
 

@@ -4,6 +4,40 @@ if ( !defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+//Get required functions
+include_once('spg-functions.php');
+
+//User validation
+	$currentSgpUser = new SgpUser(get_current_user_id());
+	if ( $currentSgpUser->statusCheck == "bad" ) {
+		get_header();
+		echo "Sorry, you are not a valid user.  Please try logging out and back in again.";
+		get_footer();
+		exit;
+	}
+
+//Validation
+	$formID = $_GET["form"];
+	$formID = (int)$formID;
+	$outcomePostID = HeartCheckStatus::getOutcomeFromForm($formID, $currentSgpUser->userID);
+	$outcome = new Outcome($outcomePostID);
+	if ($outcome->statusCheck == "bad") {
+		header("HTTP/1.0 404 Not Found - Archive Empty");
+		$wp_query->set_404();
+		require TEMPLATEPATH.'/404.php';
+		get_footer();
+		exit;
+	}
+	$heartCheck = new HeartCheckStatus($outcome->postID, $currentSgpUser->userID);
+	if ($heartCheck->statusCheck == "bad") {
+		header("HTTP/1.0 404 Not Found - Archive Empty");
+		$wp_query->set_404();
+		require TEMPLATEPATH.'/404.php';
+		get_footer();
+		exit;
+	}
+
+
 /**
  * Full Content Template
  *
@@ -17,16 +51,7 @@ Template Name:  Heart Check Analysis page
 
 get_header(); 
 
-//Get required functions
-include_once('spg-functions.php');
-
 //Get page content
-	$currentSgpUser = new SgpUser(get_current_user_id());
-	$formID = $_GET["form"];
-	$formID = (int)$formID;
-	$outcomePostID = HeartCheckStatus::getOutcomeFromForm($formID, $currentSgpUser->userID);
-	$outcome = new Outcome($outcomePostID);
-	$heartCheck = new HeartCheckStatus($outcomePostID, $currentSgpUser->userID);
 	$scoreFieldID = $heartCheck->scoreFieldID;
 	$entryDate = $heartCheck->entryDate;
 	$userID = $currentSgpUser->userID;

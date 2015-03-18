@@ -8,9 +8,7 @@ include_once('Outcome.php');
 
 class CoreTrainingStatus {
 	//Attributes
-	protected static $coreFieldOrder = array("0", "2", "4", "6", "8", "10");
-	protected static $resFieldOrder = array("1", "3", "5", "7", "9", "11");
-	protected static $versionFieldOrder = array("12", "13", "14", "15", "16", "17");
+	public $statusCheck;
 	protected $entryID;
 	protected $coreFieldID;
 	protected $lastCheckedResourceID;
@@ -28,15 +26,21 @@ class CoreTrainingStatus {
 		global $wpdb;
 		$outcome = new Outcome($postID);
 		$user = new SgpUser($userID);
+		if (($outcome->statusCheck == "good") && ($user->statusCheck == "good")) {
+			$this->statusCheck = "good";
+		} else {
+			$this->statusCheck = "bad";
+			return;
+		}
 		$coreCategories = new CoreCategories();
 		$numberOfCore = CoreCategories::numCoreCategories();
 		$formName = "Resource Checkboxes - ".$outcome->title;
 		$formID = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_forms WHERE name=%s", $formName));
 		$this->entryID = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_items WHERE user_id=%d AND form_id=%d ORDER BY created_at DESC", $user->userID, $formID));
 		for ($i = 0; $i <= ($numberOfCore-1); $i++) {
-			$coreFieldOrd = self::$coreFieldOrder[$i];
-			$resFieldOrd = self::$resFieldOrder[$i];
-			$versionFieldOrd = self::$versionFieldOrder[$i];
+			$coreFieldOrd = CoreCategories::$coreFieldOrder[$i];
+			$resFieldOrd = CoreCategories::$resFieldOrder[$i];
+			$versionFieldOrd = CoreCategories::$versionFieldOrder[$i];
 			$this->coreFieldID[$i] = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_fields WHERE form_id=%d AND field_order=%d", $formID, $coreFieldOrd));
 			$resFieldID[$i] = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_fields WHERE form_id=%d AND field_order=%d", $formID, $resFieldOrd));
 			$versionFieldID[$i] = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_fields WHERE form_id=%d AND field_order=%d", $formID, $versionFieldOrd));
@@ -58,7 +62,11 @@ class CoreTrainingStatus {
 					$coreCheckedTot = $coreCheckedTot + 1;
 				}
 			}
-			$coreCheckedPerc = ($coreCheckedTally/$coreCheckedTot)*100;
+			if ($coreCheckedTot == 0) {
+				$coreCheckedPerc = 0;
+			} else {
+				$coreCheckedPerc = ($coreCheckedTally/$coreCheckedTot)*100;
+			}
 			$this->coreCheckedScore = round($coreCheckedPerc, 3);
 	}
 		//check to see if user has checked off an older version of the resource before & get resource info

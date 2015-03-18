@@ -9,6 +9,7 @@ include_once('Outcome.php');
 class Resource {
 
 	//Attributes
+	public $statusCheck;
 	public $postID;
 	public $entryID;
 	public $type;
@@ -37,6 +38,13 @@ class Resource {
 	//Methods
 	public function __construct($resourcePostID) {
 		global $wpdb;
+		//check status
+		if (($resourcePostID != NULL) && (get_post_type($resourcePostID) == "resource")) {
+			$this->statusCheck = "good";
+		} else {
+			$this->statusCheck = "bad";
+			return;
+		}
 		$this->postID = $resourcePostID;
 		$this->entryID = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_items WHERE post_id=%d", $this->postID));
 		$this->type = get_field('extrasType', $this->postID);
