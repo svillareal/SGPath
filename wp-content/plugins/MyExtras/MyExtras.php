@@ -1,4 +1,9 @@
 <?php
+// Exit if accessed directly
+if ( !defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
 * Plugin Name: My Extras
 * Description: This plugin is used for adding theme-independent funcitons to this website.
@@ -8,7 +13,7 @@
 */
 
 
-require 'php/extrasFunctions.php';
+require_once 'php/extrasFunctions.php';
 
 
 /**
