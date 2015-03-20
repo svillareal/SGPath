@@ -5,46 +5,69 @@ if ( !defined( 'ABSPATH' ) ) {
 }
 
 /**
-* Plugin Name: My Extras
+* Plugin Name: Spiritual Growth Path
 * Description: This plugin is used for adding theme-independent funcitons to this website.
 * Version: 1.0
 * Author: Sherilyn Villareal
 * Author URI: http://design.sherilynvillareal.com
 */
 
-
-require_once 'php/extrasFunctions.php';
-
+//Load files
+include_once 'helpers/AppHelpers.php';
+include_once 'views/PageTemplater.php';
+require_once 'controllers/ajax-functions.php';
 
 /**
  * Enqueue scripts and styles
  */
-function my_extras_scripts() {
-  wp_register_script( 'extras_script', plugins_url( '/js/extras_script.js', __FILE__ ), array( 'jquery'));
+function sgp_scripts() {
+  wp_register_script( 'spiritual-growth-path', plugins_url( '/js/extras_script.js', __FILE__ ), array( 'jquery'));
+  wp_register_style( 'spiritual-growth-path', plugins_url( 'spiritual-growth-path/css/style.css' ) );
   $url = plugins_url();
   $plugin_path = array( 'plugin_path' =>  $url );
-  wp_localize_script( 'extras_script', 'plugin_info', $plugin_path );  
-  wp_enqueue_script( 'extras_script' );
+  wp_localize_script( 'spiritual-growth-path', 'plugin_info', $plugin_path );  
+  wp_enqueue_script( 'spiritual-growth-path' );
+  wp_enqueue_style( 'spiritual-growth-path' );
   $core_nonce = wp_create_nonce( 'updateCoreMeta' );
-  wp_localize_script( 'extras_script', 'my_ajax_obj', array(
+  wp_localize_script( 'spiritual-growth-path', 'my_ajax_obj', array(
        'ajax_url' => admin_url( 'admin-ajax.php' ),
        'nonce'    => $core_nonce,
     ) );
 }
+add_action( 'wp_enqueue_scripts', 'sgp_scripts' );
 
-add_action( 'wp_enqueue_scripts', 'my_extras_scripts' );
+/*function theme_name_scripts() {
+	wp_enqueue_style( 'style-name', get_stylesheet_uri() );
+	wp_enqueue_script( 'script-name', get_template_directory_uri() . '/js/example.js', array(), '1.0.0', true );
+}
+
+add_action( 'wp_enqueue_scripts', 'theme_name_scripts' ); */
+
+//Change page templates for custom post types
+function get_custom_post_type_template($single_template) {
+     global $post;
+     if ($post->post_type == 'resource') {
+          $single_template = SgpAppHelpers::plugin_path() . '/views/single-resource.php';
+     } else if ($post->post_type == 'spiritual_outcomes') {
+          $single_template = SgpAppHelpers::plugin_path() . '/views/single-spiritual_outcomes.php';
+	 }
+     return $single_template;
+}
+add_filter( 'single_template', 'get_custom_post_type_template' );
+
 
 //Disable admin bar for all users except admin
-add_action('after_setup_theme', 'remove_admin_bar');
 function remove_admin_bar() {
+	//************************once user types set, change this to only sgp-specific user types
 	if (!current_user_can('administrator') && !is_admin()) {
 	  show_admin_bar(false);
 	}
 }
+add_action('after_setup_theme', 'remove_admin_bar');
 
 //Re-direct all users except admin away from wp-admin panel
 function restrict_admin_with_redirect() {
-
+	//**************************change to sgp-specific user re-directs once user types are set
 	if ( ! current_user_can( 'manage_options' ) && ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) ) {
 		wp_redirect( site_url() ); 
 		exit;
@@ -52,18 +75,84 @@ function restrict_admin_with_redirect() {
 }
 add_action( 'admin_init', 'restrict_admin_with_redirect', 1 );
 
-/**Function for checking page url at time of form entry (to return to same page) **/
+//Add SGP database tables
+	function coremeta_install() {
+		global $wpdb;
+	  
+		$table_name = $wpdb->prefix . 'coremeta';
+		
+		$charset_collate = $wpdb->get_charset_collate();
+	
+		$sql = "CREATE TABLE $table_name (
+			id mediumint(9) NOT NULL AUTO_INCREMENT,
+			outcomeID smallint,
+			coreCategory varchar(50),
+			resourceEntryID smallint,
+			updated_by mediumint(9),
+			created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+			UNIQUE KEY id (id)
+		) $charset_collate;";
+	
+		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+		dbDelta( $sql );
+	}
+	
+	function extrasmeta_install() {
+		global $wpdb;
+	  
+		$table_name = $wpdb->prefix . 'extrasmeta';
+		
+		$charset_collate = $wpdb->get_charset_collate();
+	
+		$sql = "CREATE TABLE $table_name (
+			id mediumint(9) NOT NULL AUTO_INCREMENT,
+			resourceID smallint,
+			outcomeID smallint,
+			listingOrder smallint,
+			created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+			UNIQUE KEY id (id)
+		) $charset_collate;";
+	
+		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+		dbDelta( $sql );
+	}
+register_activation_hook( __FILE__, 'coremeta_install' );
+register_activation_hook( __FILE__, 'extrasmeta_install' );
+register_activation_hook( __FILE__, 'add_sgp_pages' );
+
+function add_sgp_pages() {
+	$new_page_title = 'Did it work';
+	$new_page_content = "Here's the page content!";
+	$new_page_template = 'outcome-overview.php'; //ex. template-custom.php. Leave blank if you don't want a custom page template.
+	$page_check = get_page_by_title($new_page_title);
+	$new_page = array(
+		'post_type' => 'page',
+		'post_title' => $new_page_title,
+		'post_content' => $new_page_content,
+		'post_status' => 'publish',
+		'post_author' => 1,
+	);
+	if(!isset($page_check->ID)){
+		$new_page_id = wp_insert_post($new_page);
+		if(!empty($new_page_template)){
+			update_post_meta($new_page_id, '_wp_page_template', $new_page_template);
+		}
+	}
+}
+
+/*
+//**************************this function may be deprecated
+//Function for checking page url at time of form entry (to return to same page)
 add_filter('frm_setup_new_fields_vars', 'frm_get_pageid', 20, 2);
 add_filter('frm_setup_edit_fields_vars', 'frm_get_pageid', 20, 2);
 function frm_get_pageid($values, $field){
-if($field->id == 108){
-   $values['value'] = get_permalink();
-}
-return $values;
-}
+	if($field->id == 108){
+	   $values['value'] = get_permalink();
+	}
+	return $values;
+} */
 
 //Determines type of user role on user registration
-add_filter('frmreg_new_role', 'assign_role', 10, 2);
 function assign_role($role, $atts){
   extract($atts);
   if($form->id == 18){
@@ -72,7 +161,11 @@ function assign_role($role, $atts){
   }
   return $role;
 }
+add_filter('frmreg_new_role', 'assign_role', 10, 2);
 
+/*
+//********************this funciton may be deprecated
+//formidable function allowing conditional viewing
 function maybe_frm_value_func( $atts, $content = '' ) {
       $val = FrmProEntriesController::get_field_value_shortcode($atts);
       if($val == $atts['equals']){
@@ -83,8 +176,10 @@ function maybe_frm_value_func( $atts, $content = '' ) {
 }
 add_shortcode( 'maybe-frm-field-value', 'maybe_frm_value_func' );
 
-add_filter('frm_data_sort', 'frm_my_data_sort', 21, 2);
-    function frm_my_data_sort($options, $atts){
+
+//**********************this function may be deprecated
+//changes teh way outcomes are sorted
+function frm_my_data_sort($options, $atts){
         if($atts['field']->id == 227){ //change 227 to the ID of the linked field (not the data from entries field)
            ksort($options);//sorts options by entry ID
         }
@@ -96,32 +191,9 @@ add_filter('frm_data_sort', 'frm_my_data_sort', 21, 2);
         }
         return $options;
 	}
+add_filter('frm_data_sort', 'frm_my_data_sort', 21, 2); */
 
-/**
-//Add User profile field in wordpress backend
-add_action( 'show_user_profile', 'add_profile_fields' );
-add_action( 'edit_user_profile', 'add_profile_fields' );
-
-function add_profile_fields( $user )
-{
-    ?>
-        <h3>Life Group membership</h3>
-
-        <table class="form-table">
-            <tr>
-                <th><label for="member_passcode">Group Passcode</label></th>
-                <td><input type="text" name="member_passcode" value="<?php echo get_the_author_meta( 'member_passcode', $user->ID ); ?>" class="regular-text" /></td>
-            </tr>
-        </table>
-
-
-    <?php
-}
-**/
-
-//Create / update user meta data on profile change
-add_action('frm_after_create_entry', 'update_user_meta_on_profile_change', 30, 2);
-add_action('frm_after_update_entry', 'update_user_meta_on_profile_change', 10, 2);
+//Create & update user meta data on profile change
 function update_user_meta_on_profile_change($entry_id, $form_id){
   if($form_id == 110){ 
     global $wpdb;
@@ -147,8 +219,8 @@ function update_user_meta_on_profile_change($entry_id, $form_id){
 		}
 	} else {
 		$groupsEntries = NULL;
-	}
-	  
+	}  
+
 	//update user meta
 	update_user_meta( $user_id, 'first_name', $name['first']);
 	update_user_meta( $user_id, 'last_name', $name['last']);
@@ -192,9 +264,11 @@ function update_user_meta_on_profile_change($entry_id, $form_id){
     } 
   }
 }
+add_action('frm_after_create_entry', 'update_user_meta_on_profile_change', 30, 2);
+add_action('frm_after_update_entry', 'update_user_meta_on_profile_change', 10, 2);
+
 
 //Create blank Resource Checkbox form entry for new users
-add_action( 'user_register', 'create_resource_checkbox_entries', 10, 1 );
 function create_resource_checkbox_entries( $user_id ){
 	$userData = get_userdata( $user_id );
 	if (in_array("administrator", $userData->roles)) {
@@ -257,70 +331,6 @@ function create_resource_checkbox_entries( $user_id ){
 	 }
   }
 }
-
-function testdb_install() {
-	global $wpdb;
-  
-	$table_name = $wpdb->prefix . 'testdb';
-	
-	$charset_collate = $wpdb->get_charset_collate();
-
-	$sql = "CREATE TABLE $table_name (
-		id mediumint(9) NOT NULL AUTO_INCREMENT,
-		time datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
-		name tinytext NOT NULL,
-		text text NOT NULL,
-		url varchar(55) DEFAULT '' NOT NULL,
-		UNIQUE KEY id (id)
-	) $charset_collate;";
-
-	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-	dbDelta( $sql );
-}
-
-function coremeta_install() {
-	global $wpdb;
-  
-	$table_name = $wpdb->prefix . 'coremeta';
-	
-	$charset_collate = $wpdb->get_charset_collate();
-
-	$sql = "CREATE TABLE $table_name (
-		id mediumint(9) NOT NULL AUTO_INCREMENT,
-		outcomeID smallint,
-		coreCategory varchar(50),
-		resourceEntryID smallint,
-		updated_by mediumint(9),
-		created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
-		UNIQUE KEY id (id)
-	) $charset_collate;";
-
-	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-	dbDelta( $sql );
-}
-
-function extrasmeta_install() {
-	global $wpdb;
-  
-	$table_name = $wpdb->prefix . 'extrasmeta';
-	
-	$charset_collate = $wpdb->get_charset_collate();
-
-	$sql = "CREATE TABLE $table_name (
-		id mediumint(9) NOT NULL AUTO_INCREMENT,
-		resourceID smallint,
-		outcomeID smallint,
-		listingOrder smallint,
-		created_at datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
-		UNIQUE KEY id (id)
-	) $charset_collate;";
-
-	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-	dbDelta( $sql );
-}
-
-register_activation_hook( __FILE__, 'testdb_install' );
-register_activation_hook( __FILE__, 'coremeta_install' );
-register_activation_hook( __FILE__, 'extrasmeta_install' );
+add_action( 'user_register', 'create_resource_checkbox_entries', 10, 1 );
 
   ?>

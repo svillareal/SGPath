@@ -19,27 +19,8 @@ Template Name:  View Group Members page
 
 get_header(); 
 
-//functions
-function objectToArray($d) {
-	if (is_object($d)) {
-		// Gets the properties of the given object
-		// with get_object_vars function
-		$d = get_object_vars($d);
-	}
 
-	if (is_array($d)) {
-		/*
-		* Return array converted to object
-		* Using __FUNCTION__ (Magic constant)
-		* for recursive call
-		*/
-		return array_map(__FUNCTION__, $d);
-	}
-	else {
-		// Return array
-		return $d;
-	}
-}
+//*****************This php file has not been converted for object-oriented use yet.*******
 
 //Get user info
 	$UserID = get_current_user_id();

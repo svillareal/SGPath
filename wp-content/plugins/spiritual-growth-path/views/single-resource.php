@@ -16,7 +16,7 @@ if ( !defined( 'ABSPATH' ) ) {
 get_header();
   
 //Get required files
-include_once('spg-functions.php');
+include_once(SgpAppHelpers::plugin_path().'/sgp-includes.php');
 
 //User validation
 	$currentSgpUser = new SgpUser(get_current_user_id());

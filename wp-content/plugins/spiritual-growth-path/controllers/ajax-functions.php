@@ -1,5 +1,11 @@
 <?php 
+// Exit if accessed directly
+if ( !defined( 'ABSPATH' ) ) {
+	exit;
+}
 
+
+//AJAX functions
 function updateCoreTraining() {
   //check_ajax_referer( 'update_Core' )
   $resourceTag = $_POST["resourceTag"];
@@ -690,7 +696,6 @@ function removeCore() {
   echo $redirectURL;
 	die();
 }
-
 add_action('wp_ajax_nopriv_updateCoreTraining','updateCoreTraining');
 add_action('wp_ajax_updateCoreTraining','updateCoreTraining');
 add_action('wp_ajax_nopriv_updateToNewCoreTraining','updateToNewCoreTraining');

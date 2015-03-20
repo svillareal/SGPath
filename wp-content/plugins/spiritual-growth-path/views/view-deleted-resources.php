@@ -6,7 +6,7 @@ if ( !defined( 'ABSPATH' ) ) {
 }
 
 //Get required functions
-include_once('spg-functions.php');
+include_once(SgpAppHelpers::plugin_path().'/sgp-includes.php');
 
 //Variables
 	$outcomeName = $_GET["outcomeName"];
