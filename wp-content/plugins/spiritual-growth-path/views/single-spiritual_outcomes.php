@@ -148,7 +148,7 @@ include_once(SgpAppHelpers::plugin_path().'/sgp-includes.php');
                                     <a href="/lg/update-core-training-resources?outcomeName=<?php echo $outcome->title;?>&resourceCategory=<?php echo CoreCategories::$coreCategories[$i];?>" class="sectionChange">Add</a>
                                 <?php } else {
                                     echo FrmProEntriesController::entry_edit_link(array('id' => $outcome->coreID[$i], 'label' => 'Edit', 'page_id' => 275));?> / 
-                                    <a href="/lg/update-core-training-resources?outcomeName=<?php echo $outcome->title;?>&resourceCategory=<?php echo CoreCategories::$coreCategories[$i];?>" class="sectionChange">Change</a>
+                                    <a href="/lg/update-core-training-resources?outcomeName=<?php echo urlencode($outcome->title);?>&resourceCategory=<?php echo urlencode(CoreCategories::$coreCategories[$i]);?>" class="sectionChange">Change</a>
                                 <?php } ?>
                             </div>
                          <?php } ?>
@@ -233,7 +233,7 @@ include_once(SgpAppHelpers::plugin_path().'/sgp-includes.php');
 		
 			if (($currentSgpUser->userView == "admin") || ($currentSgpUser->userView == "pastor")) { ?>
                 <div align="left"></br><a href="/lg/add-new-resources/" class="btn btn-primary" type="button">+Add New Resource</a></div>
-                <div align="left"><p><i class="fa fa-trash"></i><em> &nbsp;&nbsp;<a href="http://localhost/lg/view-deleted-resources?outcomeName=<?php echo $outcome->title;?>">Click here</a> to view a list of resources previously deleted from the <?php echo $outcome->title;?> outcome.</em></p></div>
+                <div align="left"><p><i class="fa fa-trash"></i><em> &nbsp;&nbsp;<a href="http://localhost/lg/view-deleted-resources?outcomeName=<?php echo urlencode($outcome->title);?>">Click here</a> to view a list of resources previously deleted from the <?php echo $outcome->title;?> outcome.</em></p></div>
 			<?php } ?>
            </div><!--outcome extras-->
 

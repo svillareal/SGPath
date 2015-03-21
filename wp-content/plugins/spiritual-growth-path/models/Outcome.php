@@ -22,6 +22,7 @@ class Outcome {
 	public $coreAddClass;
 	public $coreID;
 	public $iconSrc;
+	public $visibilityEntryID;
 	
 	//Methods
 	public function __construct($postID) {
@@ -54,10 +55,10 @@ class Outcome {
 		//Core Training info
 		global $wpdb;
 		$this->entryID = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_items WHERE post_id=%d", $this->postID));
-		$visibilityEntryID = $wpdb->get_var($wpdb->prepare("SELECT item_id FROM {$wpdb->prefix}frm_item_metas WHERE meta_value=%d AND field_id='822'", $this->entryID));
+		$this->visibilityEntryID = $wpdb->get_var($wpdb->prepare("SELECT item_id FROM {$wpdb->prefix}frm_item_metas WHERE meta_value=%d AND field_id='822' ORDER BY created_at DESC", $this->entryID));
 		for ($i = 0; $i <= ($numberOfCore-1); $i++) {
 			$coreHideField = CoreCategories::$coreHideFieldID[$i];
-			$this->coreHide[$i] = $wpdb->get_var($wpdb->prepare("SELECT meta_value FROM {$wpdb->prefix}frm_item_metas WHERE item_id=%d AND field_id=%d", $visibilityEntryID, $coreHideField));
+			$this->coreHide[$i] = $wpdb->get_var($wpdb->prepare("SELECT meta_value FROM {$wpdb->prefix}frm_item_metas WHERE item_id=%d AND field_id=%d", $this->visibilityEntryID, $coreHideField));
 			$coreCat = CoreCategories::$coreCategories[$i];
 			$this->coreID[$i] = $wpdb->get_var($wpdb->prepare("SELECT resourceEntryID FROM {$wpdb->prefix}coremeta WHERE outcomeID=%d AND coreCategory=%s ORDER BY created_at DESC", $this->entryID, $coreCat));
 		}

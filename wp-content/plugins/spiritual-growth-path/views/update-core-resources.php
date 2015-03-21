@@ -51,12 +51,13 @@ get_header();
 //Get page content
 	$pageTitle = get_the_title();
 	$catIndex = CoreCategories::categoryIndex($resourceCategory);
-	if ($outcome->coreID[$catIndex] != NULL) {
+	if (($outcome->coreID[$catIndex] != NULL) && ($outcome->coreID[$catIndex] != "-1")) {
 		$currentResource = new Resource(getPostID($outcome->coreID[$catIndex]));
 	} else {
 		$currentResource = "";
 	}
-
+	$numberOfCore = CoreCategories::numCoreCategories();
+//echo var_dump($currentResource);
 ?>
 
 <div id="content-full" class="grid col-940">
@@ -74,7 +75,7 @@ get_header();
 	} else { ?>
 		<p>Currently, you don't have a resource associated with the <?php echo CoreCategories::$coreCategories[$catIndex];?> category for the <?php echo $outcome->title;?> outcome.</p>
 	<?php }?>
-	<p>Select from the options below to select a new <?php echo CoreCategories::$coreCategories[$catIndex];?> resource for the <?php echo $outcome->title;?> outcome.</p>
+	<p>Select from the options below to add a new <?php echo CoreCategories::$coreCategories[$catIndex];?> resource.</p>
     </div>
 
 	<div class="core-option-links">
@@ -98,13 +99,20 @@ get_header();
 			$query = new WP_Query($args);
 			if ($query->have_posts()) {
 				while($query->have_posts()) : $query->the_post();	
-					if (!($resource->postID == $currentResource->postID)) {
-						$resource = new Resource(get_the_ID()); ?>
+					$coreMatch = "no";
+					$resource = new Resource(get_the_ID());
+					for ($i = 0; $i < $numberOfCore; $i++) {
+						if ($resource->entryID == $outcome->coreID[$i]) {
+							$coreMatch = "yes";
+							continue;
+						}
+					}
+					if (!($resource->postID == $currentResource->postID) && !($coreMatch == "yes")) { ?>
 						<div class="column1">
 							<button class="this-one" id="extraID<?php echo $resource->postID;?>" type="button">This one!</button>
 						</div><!--column1-->
 						<?php $resource->displayResourceInList();
-						} 
+						}
 				endwhile; ?>
         		<div><p>Don't see your resource here? Add a New Resource below, <strong>making sure to associate it with the <?php echo $outcome->title;?> outcome</strong>, and then select it from the list above.</p></div>
 			<?php } else {

@@ -9,8 +9,11 @@ include_once('Outcome.php');
 class CoreTrainingStatus {
 	//Attributes
 	public $statusCheck;
-	protected $entryID;
-	protected $coreFieldID;
+	public $entryID;
+	public $formID;
+	public $coreFieldID;
+	public $resFieldID;
+	public $versionFieldID;
 	protected $lastCheckedResourceID;
 	//this assignment only matters if they have completed an older version of the resource for a core section than the current one in the system; assigned 'old' if the user chooses to display his/her previously checked-off version, or 'new' if he/she chooses to display the updated version
 	public $coreVersion;
@@ -35,17 +38,17 @@ class CoreTrainingStatus {
 		$coreCategories = new CoreCategories();
 		$numberOfCore = CoreCategories::numCoreCategories();
 		$formName = "Resource Checkboxes - ".$outcome->title;
-		$formID = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_forms WHERE name=%s", $formName));
-		$this->entryID = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_items WHERE user_id=%d AND form_id=%d ORDER BY created_at DESC", $user->userID, $formID));
+		$this->formID = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_forms WHERE name=%s", $formName));
+		$this->entryID = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_items WHERE user_id=%d AND form_id=%d ORDER BY created_at DESC", $user->userID, $this->formID));
 		for ($i = 0; $i <= ($numberOfCore-1); $i++) {
 			$coreFieldOrd = CoreCategories::$coreFieldOrder[$i];
 			$resFieldOrd = CoreCategories::$resFieldOrder[$i];
 			$versionFieldOrd = CoreCategories::$versionFieldOrder[$i];
-			$this->coreFieldID[$i] = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_fields WHERE form_id=%d AND field_order=%d", $formID, $coreFieldOrd));
-			$resFieldID[$i] = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_fields WHERE form_id=%d AND field_order=%d", $formID, $resFieldOrd));
-			$versionFieldID[$i] = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_fields WHERE form_id=%d AND field_order=%d", $formID, $versionFieldOrd));
-			$this->lastCheckedResourceID[$i] = $wpdb->get_var($wpdb->prepare("SELECT meta_value FROM {$wpdb->prefix}frm_item_metas WHERE field_id=%d AND item_id=%d", $resFieldID[$i], $this->entryID));
-			$this->coreVersion[$i] = $wpdb->get_var($wpdb->prepare("SELECT meta_value FROM {$wpdb->prefix}frm_item_metas WHERE field_id=%d AND item_id=%d", $versionFieldID[$i], $this->entryID));
+			$this->coreFieldID[$i] = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_fields WHERE form_id=%d AND field_order=%d", $this->formID, $coreFieldOrd));
+			$this->resFieldID[$i] = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_fields WHERE form_id=%d AND field_order=%d", $this->formID, $resFieldOrd));
+			$this->versionFieldID[$i] = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_fields WHERE form_id=%d AND field_order=%d", $this->formID, $versionFieldOrd));
+			$this->lastCheckedResourceID[$i] = $wpdb->get_var($wpdb->prepare("SELECT meta_value FROM {$wpdb->prefix}frm_item_metas WHERE field_id=%d AND item_id=%d", $this->resFieldID[$i], $this->entryID));
+			$this->coreVersion[$i] = $wpdb->get_var($wpdb->prepare("SELECT meta_value FROM {$wpdb->prefix}frm_item_metas WHERE field_id=%d AND item_id=%d", $this->versionFieldID[$i], $this->entryID));
 		}
 		if ($user->userView !== "non_member") {
 			$coreCheckedTot = 0;
