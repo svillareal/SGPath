@@ -344,11 +344,11 @@
 				foreach ($unlistedObjectArrayComplete as $key => $object) {
 					$unlistedArrayComplete[$key] = $object->item_id;
 				}		
-				rsort($unlistedArrayComplete);
+				/*rsort($unlistedArrayComplete);
 				$marker = array_search($bottomEntryID, $unlistedArrayComplete) + 1;
-				$unlistedArray = array_slice($unlistedArrayComplete, 0, $marker);
+				$unlistedArray = array_slice($unlistedArrayComplete, 0, $marker); */
 				//remove those resources that are already listed
-				$unlistedArrayTruncated = array_diff($unlistedArray, $listedArray);
+				$unlistedArrayTruncated = array_diff($unlistedArrayComplete, $listedArray);
 				$table_name = $wpdb->prefix . 'extrasmeta';
 				foreach ($unlistedArrayTruncated as $resourceEntryID) {
 					//add row for these resources in listing order database

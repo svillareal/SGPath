@@ -20,7 +20,7 @@ require_once 'controllers/ajax-includes.php';
 
 //Page load
 
-		//Enqueue scripts and styles
+		//Enqueue SGP scripts and styles
 		function sgp_scripts() {
 		  wp_register_script( 'spiritual-growth-path', plugins_url( '/js/sgp_script.js', __FILE__ ), array( 'jquery'));
 		  wp_register_style( 'spiritual-growth-path', plugins_url( 'spiritual-growth-path/css/style.css' ) );
@@ -52,7 +52,24 @@ require_once 'controllers/ajax-includes.php';
 			) );
 		}
 		add_action( 'wp_enqueue_scripts', 'sgp_scripts' );
-		
+
+
+		//Enqueue Chartist scripts and styles
+		function chartist_scripts() {
+		  wp_register_script( 'chartist', plugins_url( '/chartist/chartist.min.js', __FILE__ ));
+		  wp_register_style( 'chartist', plugins_url( 'spiritual-growth-path/chartist/chartist.min.css' ) );
+		  wp_enqueue_script( 'chartist' );
+		  wp_enqueue_style( 'chartist' );
+		}
+		add_action( 'wp_enqueue_scripts', 'chartist_scripts' ); 
+				
+
+		//Enqueue SGP admin resports scripts (loaded on report pages)
+		function admin_reports_scripts() {
+		  wp_register_script( 'admin_reports', plugins_url( '/js/sgp_admin_reports.js', __FILE__ ));
+		  wp_enqueue_script( 'admin_reports' );
+		}
+
 		
 		//Disable admin bar for all users except admin
 		function remove_admin_bar() {
@@ -75,6 +92,7 @@ require_once 'controllers/ajax-includes.php';
 		add_action( 'admin_init', 'restrict_admin_with_redirect', 1 );
 
 //Page display
+
 		
 		//Change page templates for custom post types
 		function get_custom_post_type_template($single_template) {
@@ -86,8 +104,18 @@ require_once 'controllers/ajax-includes.php';
 			 }
 			 return $single_template;
 		}
-		add_filter( 'single_template', 'get_custom_post_type_template' );
-		
+		add_filter( 'single_template', 'get_custom_post_type_template' ); 
+
+		//Change page template for some individual pages
+		function get_custom_page_template($page_template) {
+			global $post;
+			$slug = get_post( $post )->post_name;
+			if ($slug == "charts-test1") {
+				$page_template = SgpAppHelpers::plugin_path() . '/views/chart-sample.php';
+			}
+			return $page_template;
+		}
+		add_filter( 'page_template', 'get_custom_page_template' );	
 
 //Plugin activation actions
 		
@@ -157,6 +185,6 @@ require_once 'controllers/ajax-includes.php';
 				}
 			}
 		}
-		register_activation_hook( __FILE__, 'add_sgp_pages' );		
+		register_activation_hook( __FILE__, 'add_sgp_pages' );		 
 
   ?>

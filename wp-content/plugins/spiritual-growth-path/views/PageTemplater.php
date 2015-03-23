@@ -47,6 +47,7 @@ class PageTemplater {
 				'view-deleted-resources.php' => 'SGP - View Deleted Resources',
 				'heart-check-analysis.php' => 'SGP - Heart Check Analysis page',
 				'group-members.php' => 'SGP - Group Member Reports',
+				'chart-sample' => 'SGP - chart sample page',
 				);
         } 
 

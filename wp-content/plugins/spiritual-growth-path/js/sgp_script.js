@@ -1,7 +1,5 @@
 // JavaScript Document
 
-
-
 jQuery(document).ready(function() {
 
 
@@ -238,7 +236,7 @@ jQuery(document).ready(function() {
 				top: topPostID,
 				bottom: bottomPostID
 			})
-			.done(function() {  
+			.done(function(data) {  
 				location.reload();
 			})
 			.fail(function() {  
@@ -355,5 +353,8 @@ jQuery(document).ready(function() {
 				alert("Sorry, your request cannot be completed because of a server error. Please try again later.");
 			});
 		  });
-		  
+
 });
+
+
+
