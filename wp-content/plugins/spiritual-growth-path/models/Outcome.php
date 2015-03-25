@@ -10,6 +10,8 @@ class Outcome {
 	//Attributes
 	public $statusCheck;
 	public $title;
+	public $woc_category;
+	public $season;
 	public $definition;
 	public $description;
 	public $evidence;
@@ -35,9 +37,14 @@ class Outcome {
 		}
 
 		//general outcome info
+		global $wpdb;
 		$this->postID = $postID;
 		$this->postPermalink = get_post_permalink($this->postID);
 		$this->title = get_the_title($this->postID);
+		$seasonEntryID = get_field('season', $this->postID);
+		$this->season = $wpdb->get_var($wpdb->prepare("SELECT meta_value FROM {$wpdb->prefix}frm_item_metas WHERE item_id=%d AND field_id='283'", $seasonEntryID));
+		$categoryEntryID = get_field('woc_category', $this->postID);
+		$this->woc_category = $wpdb->get_var($wpdb->prepare("SELECT meta_value FROM {$wpdb->prefix}frm_item_metas WHERE item_id=%d AND field_id='280'", $categoryEntryID));
 		$this->definition = get_field('outcome_definition', $this->postID);
 		$this->description = get_field('outcome_descriptionFrm', $this->postID);
 		$evidenceFieldName = array("evidence1", "evidence2", "evidence3", "evidence4");
@@ -53,7 +60,6 @@ class Outcome {
 		$numberOfCore = CoreCategories::numCoreCategories();
 
 		//Core Training info
-		global $wpdb;
 		$this->entryID = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}frm_items WHERE post_id=%d", $this->postID));
 		$this->visibilityEntryID = $wpdb->get_var($wpdb->prepare("SELECT item_id FROM {$wpdb->prefix}frm_item_metas WHERE meta_value=%d AND field_id='822' ORDER BY created_at DESC", $this->entryID));
 		for ($i = 0; $i <= ($numberOfCore-1); $i++) {

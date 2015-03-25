@@ -9,6 +9,6 @@ if ( !defined( 'ABSPATH' ) ) {
 include_once 'userUpdatedCoreTrainingStatus.php';
 include_once 'adminUpdatedCoreTraining.php';
 include_once 'adminUpdatedExtrasResources.php';
-
+include_once 'admin_report_data.php';
 
 ?>
